@@ -799,34 +799,9 @@ select.form-control { cursor: pointer; }
       </div>
       <div class="table-card">
         <table>
-          <thead><tr><th>学员</th><th>学号</th><th>课程</th><th>平时成绩</th><th>期中</th><th>期末</th><th>总评</th><th>等级</th></tr></thead>
-          <tbody>
-            <tr>
-              <td><div class="avatar-cell"><div class="avatar-sm" style="background:#6366F1">李</div>李明华</div></td>
-              <td>S20260001</td><td>商务英语高级班</td><td>92</td><td>88</td><td>91</td>
-              <td><strong>90.4</strong></td><td><span class="status-tag active">优秀</span></td>
-            </tr>
-            <tr>
-              <td><div class="avatar-cell"><div class="avatar-sm" style="background:#EC4899">王</div>王思雨</div></td>
-              <td>S20260002</td><td>Python全栈开发</td><td>85</td><td>78</td><td>82</td>
-              <td><strong>81.7</strong></td><td><span class="status-tag pending">良好</span></td>
-            </tr>
-            <tr>
-              <td><div class="avatar-cell"><div class="avatar-sm" style="background:#F59E0B">张</div>张天一</div></td>
-              <td>S20260003</td><td>少儿美术启蒙</td><td>95</td><td>92</td><td>96</td>
-              <td><strong>94.3</strong></td><td><span class="status-tag active">优秀</span></td>
-            </tr>
-            <tr>
-              <td><div class="avatar-cell"><div class="avatar-sm" style="background:#10B981">陈</div>陈晓峰</div></td>
-              <td>S20260004</td><td>雅思冲刺班</td><td>76</td><td>72</td><td>68</td>
-              <td><strong>71.6</strong></td><td><span class="status-tag inactive">及格</span></td>
-            </tr>
-            <tr>
-              <td><div class="avatar-cell"><div class="avatar-sm" style="background:#8B5CF6">刘</div>刘雨萱</div></td>
-              <td>S20260005</td><td>钢琴进阶课</td><td>88</td><td>85</td><td>90</td>
-              <td><strong>87.8</strong></td><td><span class="status-tag pending">良好</span></td>
-            </tr>
-          </tbody>
+          <thead><tr><th>学员</th><th>学号</th><th>课程</th><th>平时成绩</th><th>期中</th><th>期末</th><th>总评</th><th>等级</th><th>操作</th></tr></thead>
+          <tbody id="gradesBody"></tbody>
+
         </table>
         <div class="pagination">
           <div class="info">显示 1-5 共 1,286 条</div>
@@ -846,64 +821,9 @@ select.form-control { cursor: pointer; }
       <div class="filter-bar">
         <select class="form-control" style="width:140px"><option>全部学科</option><option>英语</option><option>计算机</option><option>美术</option><option>音乐</option></select>
         <div style="flex:1"></div>
-        <button class="btn btn-primary">➕ 新增教师</button>
+        <button class="btn btn-primary" onclick="showModal('addTeacherModal')">➕ 新增教师</button>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
-        <div class="chart-card" style="display:flex;gap:16px;align-items:center;cursor:pointer" onmouseover="this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.boxShadow='var(--shadow)'">
-          <div class="avatar-sm" style="width:56px;height:56px;font-size:20px;background:linear-gradient(135deg,#6366F1,#8B5CF6)">张</div>
-          <div style="flex:1">
-            <div style="font-weight:600;font-size:15px">张明辉</div>
-            <div style="font-size:12px;color:var(--text-secondary)">英语教研组 · 高级讲师</div>
-            <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">教授 3 个班级 · 96 名学员</div>
-          </div>
-          <span class="status-tag active">在职</span>
-        </div>
-        <div class="chart-card" style="display:flex;gap:16px;align-items:center;cursor:pointer" onmouseover="this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.boxShadow='var(--shadow)'">
-          <div class="avatar-sm" style="width:56px;height:56px;font-size:20px;background:linear-gradient(135deg,#EC4899,#F43F5E)">李</div>
-          <div style="flex:1">
-            <div style="font-weight:600;font-size:15px">李文静</div>
-            <div style="font-size:12px;color:var(--text-secondary)">计算机教研组 · 讲师</div>
-            <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">教授 2 个班级 · 56 名学员</div>
-          </div>
-          <span class="status-tag active">在职</span>
-        </div>
-        <div class="chart-card" style="display:flex;gap:16px;align-items:center;cursor:pointer" onmouseover="this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.boxShadow='var(--shadow)'">
-          <div class="avatar-sm" style="width:56px;height:56px;font-size:20px;background:linear-gradient(135deg,#F59E0B,#F97316)">王</div>
-          <div style="flex:1">
-            <div style="font-weight:600;font-size:15px">王艺萌</div>
-            <div style="font-size:12px;color:var(--text-secondary)">艺术教研组 · 特聘教师</div>
-            <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">教授 4 个班级 · 120 名学员</div>
-          </div>
-          <span class="status-tag active">在职</span>
-        </div>
-        <div class="chart-card" style="display:flex;gap:16px;align-items:center;cursor:pointer" onmouseover="this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.boxShadow='var(--shadow)'">
-          <div class="avatar-sm" style="width:56px;height:56px;font-size:20px;background:linear-gradient(135deg,#10B981,#059669)">赵</div>
-          <div style="flex:1">
-            <div style="font-weight:600;font-size:15px">赵国强</div>
-            <div style="font-size:12px;color:var(--text-secondary)">数学教研组 · 高级讲师</div>
-            <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">教授 2 个班级 · 48 名学员</div>
-          </div>
-          <span class="status-tag active">在职</span>
-        </div>
-        <div class="chart-card" style="display:flex;gap:16px;align-items:center;cursor:pointer" onmouseover="this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.boxShadow='var(--shadow)'">
-          <div class="avatar-sm" style="width:56px;height:56px;font-size:20px;background:linear-gradient(135deg,#3B82F6,#2563EB)">刘</div>
-          <div style="flex:1">
-            <div style="font-weight:600;font-size:15px">刘思远</div>
-            <div style="font-size:12px;color:var(--text-secondary)">英语教研组 · 外教</div>
-            <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">教授 2 个班级 · 50 名学员</div>
-          </div>
-          <span class="status-tag active">在职</span>
-        </div>
-        <div class="chart-card" style="display:flex;gap:16px;align-items:center;cursor:pointer" onmouseover="this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.boxShadow='var(--shadow)'">
-          <div class="avatar-sm" style="width:56px;height:56px;font-size:20px;background:linear-gradient(135deg,#8B5CF6,#7C3AED)">周</div>
-          <div style="flex:1">
-            <div style="font-weight:600;font-size:15px">周雅琴</div>
-            <div style="font-size:12px;color:var(--text-secondary)">音乐教研组 · 讲师</div>
-            <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">教授 3 个班级 · 72 名学员</div>
-          </div>
-          <span class="status-tag pending">休假</span>
-        </div>
-      </div>
+      <div id="teacherGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px"></div>
     </div>
 
     <!-- Classroom Page -->
@@ -912,52 +832,9 @@ select.form-control { cursor: pointer; }
         <select class="form-control" style="width:140px"><option>全部楼层</option><option>A栋</option><option>B栋</option></select>
         <select class="form-control" style="width:140px"><option>全部类型</option><option>普通教室</option><option>多媒体教室</option><option>计算机房</option><option>语音室</option></select>
         <div style="flex:1"></div>
-        <button class="btn btn-primary">➕ 新增教室</button>
+        <button class="btn btn-primary" onclick="showModal('addClassroomModal')">➕ 新增教室</button>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
-        <div class="chart-card" style="text-align:center">
-          <div style="font-size:32px;margin-bottom:8px">🏫</div>
-          <div style="font-weight:700;font-size:18px">A301</div>
-          <div style="font-size:12px;color:var(--text-secondary);margin:4px 0 12px">多媒体教室 · 50人</div>
-          <span class="status-tag active">空闲</span>
-          <div style="margin-top:12px;font-size:12px;color:var(--text-secondary)">今日使用: 3/8 课时</div>
-        </div>
-        <div class="chart-card" style="text-align:center">
-          <div style="font-size:32px;margin-bottom:8px">🎙️</div>
-          <div style="font-weight:700;font-size:18px">A302</div>
-          <div style="font-size:12px;color:var(--text-secondary);margin:4px 0 12px">语音室 · 40人</div>
-          <span class="status-tag inactive">使用中</span>
-          <div style="margin-top:12px;font-size:12px;color:var(--text-secondary)">今日使用: 5/8 课时</div>
-        </div>
-        <div class="chart-card" style="text-align:center">
-          <div style="font-size:32px;margin-bottom:8px">💻</div>
-          <div style="font-weight:700;font-size:18px">B201</div>
-          <div style="font-size:12px;color:var(--text-secondary);margin:4px 0 12px">计算机房 · 45人</div>
-          <span class="status-tag active">空闲</span>
-          <div style="margin-top:12px;font-size:12px;color:var(--text-secondary)">今日使用: 2/8 课时</div>
-        </div>
-        <div class="chart-card" style="text-align:center">
-          <div style="font-size:32px;margin-bottom:8px">🎨</div>
-          <div style="font-weight:700;font-size:18px">B205</div>
-          <div style="font-size:12px;color:var(--text-secondary);margin:4px 0 12px">画室 · 30人</div>
-          <span class="status-tag active">空闲</span>
-          <div style="margin-top:12px;font-size:12px;color:var(--text-secondary)">今日使用: 4/8 课时</div>
-        </div>
-        <div class="chart-card" style="text-align:center">
-          <div style="font-size:32px;margin-bottom:8px">🎹</div>
-          <div style="font-weight:700;font-size:18px">B301</div>
-          <div style="font-size:12px;color:var(--text-secondary);margin:4px 0 12px">琴房 · 20人</div>
-          <span class="status-tag pending">维护中</span>
-          <div style="margin-top:12px;font-size:12px;color:var(--text-secondary)">预计明日恢复</div>
-        </div>
-        <div class="chart-card" style="text-align:center">
-          <div style="font-size:32px;margin-bottom:8px">📐</div>
-          <div style="font-weight:700;font-size:18px">A201</div>
-          <div style="font-size:12px;color:var(--text-secondary);margin:4px 0 12px">普通教室 · 60人</div>
-          <span class="status-tag active">空闲</span>
-          <div style="margin-top:12px;font-size:12px;color:var(--text-secondary)">今日使用: 6/8 课时</div>
-        </div>
-      </div>
+      <div id="classroomGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px"></div>
     </div>
 
     <!-- Reports Page -->
@@ -1153,6 +1030,12 @@ select.form-control { cursor: pointer; }
           <select class="form-control" id="courseType"><option>语言培训</option><option>职业技能</option><option>艺术特长</option><option>学科辅导</option></select>
         </div>
         <div class="form-group">
+          <label>类型</label>
+          <select class="form-control" id="schedType"><option value="course">课程</option><option value="meeting">会议</option><option value="exam">考试</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
           <label>授课教师</label>
           <select class="form-control" id="courseTeacher"><option>张明辉</option><option>李文静</option><option>王艺萌</option><option>赵国强</option></select>
         </div>
@@ -1204,7 +1087,7 @@ select.form-control { cursor: pointer; }
       <div class="form-row">
         <div class="form-group">
           <label>上课日期 *</label>
-          <input class="form-control" type="date">
+          <input class="form-control" id="schedDate" type="date" value="5/4">
         </div>
         <div class="form-group">
           <label>教室 *</label>
@@ -1228,7 +1111,80 @@ select.form-control { cursor: pointer; }
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="hideModal('addScheduleModal')">取消</button>
-      <button class="btn btn-primary" onclick="hideModal('addScheduleModal'); showToast('排课成功！')">确认排课</button>
+      <button class="btn btn-primary" onclick="addScheduleEvent()">确认排课</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Add Teacher Modal -->
+<div class="modal-overlay" id="addTeacherModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>🎓 新增教师</h3>
+      <button class="modal-close" onclick="hideModal('addTeacherModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>姓名 *</label>
+          <input class="form-control" id="teacherName" placeholder="请输入教师姓名">
+        </div>
+        <div class="form-group">
+          <label>学科</label>
+          <select class="form-control" id="teacherSubject"><option>英语</option><option>计算机</option><option>美术</option><option>音乐</option><option>数学</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>职称</label>
+          <select class="form-control" id="teacherTitle"><option>讲师</option><option>高级讲师</option><option>副教授</option><option>特聘教师</option><option>外教</option></select>
+        </div>
+        <div class="form-group">
+          <label>状态</label>
+          <select class="form-control" id="teacherStatus"><option value="active">在职</option><option value="pending">休假</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="hideModal('addTeacherModal')">取消</button>
+      <button class="btn btn-primary" onclick="addTeacher()">确认添加</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Classroom Modal -->
+<div class="modal-overlay" id="addClassroomModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>🏫 新增教室</h3>
+      <button class="modal-close" onclick="hideModal('addClassroomModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>教室编号 *</label>
+          <input class="form-control" id="roomName" placeholder="如: C101">
+        </div>
+        <div class="form-group">
+          <label>教室类型</label>
+          <select class="form-control" id="roomType"><option>普通教室</option><option>多媒体教室</option><option>计算机房</option><option>语音室</option><option>画室</option><option>琴房</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>容纳人数</label>
+          <input class="form-control" id="roomCapacity" type="number" placeholder="如: 50">
+        </div>
+        <div class="form-group">
+          <label>楼层</label>
+          <select class="form-control" id="roomFloor"><option>A栋</option><option>B栋</option><option>C栋</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="hideModal('addClassroomModal')">取消</button>
+      <button class="btn btn-primary" onclick="addClassroom()">确认添加</button>
     </div>
   </div>
 </div>
@@ -1436,6 +1392,180 @@ function addCourse() {
   document.getElementById('courseHours').value = '';
   document.getElementById('coursePrice').value = '';
   showToast(`课程「${name}」创建成功！`);
+}
+
+// ============ Teachers — localStorage ============
+const defaultTeachers = [
+  { name: '张明辉', subject: '英语', title: '高级讲师', dept: '英语教研组', classes: 3, students: 96, status: 'active', gradient: 'linear-gradient(135deg,#6366F1,#8B5CF6)' },
+  { name: '李文静', subject: '计算机', title: '讲师', dept: '计算机教研组', classes: 2, students: 56, status: 'active', gradient: 'linear-gradient(135deg,#EC4899,#F43F5E)' },
+  { name: '王艺萌', subject: '美术', title: '特聘教师', dept: '艺术教研组', classes: 4, students: 120, status: 'active', gradient: 'linear-gradient(135deg,#F59E0B,#F97316)' },
+  { name: '赵国强', subject: '数学', title: '高级讲师', dept: '数学教研组', classes: 2, students: 48, status: 'active', gradient: 'linear-gradient(135deg,#10B981,#059669)' },
+  { name: '刘思远', subject: '英语', title: '外教', dept: '英语教研组', classes: 2, students: 50, status: 'active', gradient: 'linear-gradient(135deg,#3B82F6,#2563EB)' },
+  { name: '周雅琴', subject: '音乐', title: '讲师', dept: '音乐教研组', classes: 3, students: 72, status: 'pending', gradient: 'linear-gradient(135deg,#8B5CF6,#7C3AED)' },
+];
+function loadTeachers() { const s = localStorage.getItem('liming_teachers'); return s ? JSON.parse(s) : [...defaultTeachers]; }
+function saveTeachers() { localStorage.setItem('liming_teachers', JSON.stringify(teachers)); }
+let teachers = loadTeachers();
+function renderTeachers() {
+  const grid = document.getElementById('teacherGrid');
+  grid.innerHTML = teachers.map((t, i) => `
+    <div class="chart-card" style="display:flex;gap:16px;align-items:center;cursor:pointer" onmouseover="this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.boxShadow='var(--shadow)'">
+      <div class="avatar-sm" style="width:56px;height:56px;font-size:20px;background:${t.gradient}">${t.name[0]}</div>
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:15px">${t.name}</div>
+        <div style="font-size:12px;color:var(--text-secondary)">${t.dept} · ${t.title}</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">教授 ${t.classes} 个班级 · ${t.students} 名学员</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+        <span class="status-tag ${t.status === 'active' ? 'active' : 'pending'}">${t.status === 'active' ? '在职' : '休假'}</span>
+        <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger);padding:2px 8px;font-size:11px" onclick="deleteTeacher(${i})">删除</button>
+      </div>
+    </div>
+  `).join('');
+}
+renderTeachers();
+function deleteTeacher(idx) {
+  const t = teachers[idx]; if (!t) return;
+  if (!confirm(`确定要删除教师「${t.name}」吗？`)) return;
+  teachers.splice(idx, 1); saveTeachers(); renderTeachers(); showToast(`已删除教师「${t.name}」`);
+}
+function addTeacher() {
+  const name = document.getElementById('teacherName').value.trim();
+  if (!name) { showToast('请输入教师姓名', true); return; }
+  const subject = document.getElementById('teacherSubject').value;
+  const title = document.getElementById('teacherTitle').value;
+  const status = document.getElementById('teacherStatus').value;
+  const gradients = ['linear-gradient(135deg,#6366F1,#8B5CF6)','linear-gradient(135deg,#EC4899,#F43F5E)','linear-gradient(135deg,#F59E0B,#F97316)','linear-gradient(135deg,#10B981,#059669)','linear-gradient(135deg,#3B82F6,#2563EB)','linear-gradient(135deg,#8B5CF6,#7C3AED)'];
+  teachers.push({ name, subject, title, dept: subject + '教研组', classes: 0, students: 0, status, gradient: gradients[Math.floor(Math.random() * gradients.length)] });
+  saveTeachers(); renderTeachers(); hideModal('addTeacherModal');
+  document.getElementById('teacherName').value = '';
+  showToast(`教师「${name}」添加成功！`);
+}
+
+// ============ Classrooms — localStorage ============
+const defaultClassrooms = [
+  { name: 'A301', type: '多媒体教室', capacity: 50, floor: 'A栋', icon: '🏫', status: 'active', usage: '3/8' },
+  { name: 'A302', type: '语音室', capacity: 40, floor: 'A栋', icon: '🎙️', status: 'inactive', usage: '5/8' },
+  { name: 'B201', type: '计算机房', capacity: 45, floor: 'B栋', icon: '💻', status: 'active', usage: '2/8' },
+  { name: 'B205', type: '画室', capacity: 30, floor: 'B栋', icon: '🎨', status: 'active', usage: '4/8' },
+  { name: 'B301', type: '琴房', capacity: 20, floor: 'B栋', icon: '🎹', status: 'pending', usage: '维护中' },
+  { name: 'A201', type: '普通教室', capacity: 60, floor: 'A栋', icon: '📐', status: 'active', usage: '6/8' },
+];
+function loadClassrooms() { const s = localStorage.getItem('liming_classrooms'); return s ? JSON.parse(s) : [...defaultClassrooms]; }
+function saveClassrooms() { localStorage.setItem('liming_classrooms', JSON.stringify(classrooms)); }
+let classrooms = loadClassrooms();
+function renderClassrooms() {
+  const grid = document.getElementById('classroomGrid');
+  grid.innerHTML = classrooms.map((c, i) => `
+    <div class="chart-card" style="text-align:center">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span></span>
+        <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger);padding:2px 8px;font-size:11px" onclick="deleteClassroom(${i})">删除</button>
+      </div>
+      <div style="font-size:32px;margin-bottom:8px">${c.icon}</div>
+      <div style="font-weight:700;font-size:18px">${c.name}</div>
+      <div style="font-size:12px;color:var(--text-secondary);margin:4px 0 12px">${c.type} · ${c.capacity}人</div>
+      <span class="status-tag ${c.status}">${c.status === 'active' ? '空闲' : c.status === 'inactive' ? '使用中' : '维护中'}</span>
+      <div style="margin-top:12px;font-size:12px;color:var(--text-secondary)">今日使用: ${c.usage} 课时</div>
+    </div>
+  `).join('');
+}
+renderClassrooms();
+function deleteClassroom(idx) {
+  const c = classrooms[idx]; if (!c) return;
+  if (!confirm(`确定要删除教室「${c.name}」吗？`)) return;
+  classrooms.splice(idx, 1); saveClassrooms(); renderClassrooms(); showToast(`已删除教室「${c.name}」`);
+}
+function addClassroom() {
+  const name = document.getElementById('roomName').value.trim();
+  if (!name) { showToast('请输入教室编号', true); return; }
+  const icons = ['🏫','🎙️','💻','🎨','🎹','📐','🔬','🎭'];
+  classrooms.push({
+    name, type: document.getElementById('roomType').value,
+    capacity: parseInt(document.getElementById('roomCapacity').value) || 30,
+    floor: document.getElementById('roomFloor').value,
+    icon: icons[Math.floor(Math.random() * icons.length)],
+    status: 'active', usage: '0/8'
+  });
+  saveClassrooms(); renderClassrooms(); hideModal('addClassroomModal');
+  document.getElementById('roomName').value = '';
+  document.getElementById('roomCapacity').value = '';
+  showToast(`教室「${name}」添加成功！`);
+}
+
+// ============ Schedule — localStorage ============
+const defaultSchedule = {
+  '5/4': [{ name: '商务英语', type: 'course' }, { name: '教研会议', type: 'meeting' }],
+  '5/5': [{ name: 'Python开发', type: 'course' }, { name: '雅思冲刺', type: 'course' }],
+  '5/6': [{ name: '商务英语', type: 'course' }, { name: '少儿美术', type: 'course' }, { name: '月度考试', type: 'exam' }],
+  '5/7': [{ name: 'Python开发', type: 'course' }],
+  '5/8': [{ name: '商务英语', type: 'course' }, { name: '钢琴课', type: 'course' }],
+  '5/9': [{ name: '雅思冲刺', type: 'course' }, { name: '数学辅导', type: 'course' }],
+  '5/10': [{ name: '家长会', type: 'meeting' }],
+};
+function loadSchedule() { const s = localStorage.getItem('liming_schedule'); return s ? JSON.parse(s) : {...defaultSchedule}; }
+function saveSchedule() { localStorage.setItem('liming_schedule', JSON.stringify(scheduleData)); }
+let scheduleData = loadSchedule();
+const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+const dates = ['5/4', '5/5', '5/6', '5/7', '5/8', '5/9', '5/10'];
+function renderSchedule() {
+  const scheduleGrid = document.getElementById('scheduleGrid');
+  scheduleGrid.innerHTML = days.map(d => `<div class="schedule-header">${d}</div>`).join('') +
+    dates.map(d => {
+      const events = scheduleData[d] || [];
+      const isToday = d === '5/6';
+      return `<div class="schedule-cell ${isToday ? 'today' : ''}">
+        <div class="date-num">${d.split('/')[1]}日</div>
+        ${events.map((e, ei) => `<div class="schedule-event ${e.type}" style="cursor:pointer" onclick="deleteScheduleEvent('${d}',${ei})" title="点击删除">${e.name} ✕</div>`).join('')}
+      </div>`;
+    }).join('');
+}
+renderSchedule();
+function deleteScheduleEvent(date, idx) {
+  const events = scheduleData[date]; if (!events || !events[idx]) return;
+  const name = events[idx].name;
+  if (!confirm(`确定要删除「${name}」吗？`)) return;
+  events.splice(idx, 1); saveSchedule(); renderSchedule(); showToast(`已删除排课「${name}」`);
+}
+function addScheduleEvent() {
+  const course = document.getElementById('schedCourse').value;
+  const date = document.getElementById('schedDate').value;
+  const type = document.getElementById('schedType').value;
+  if (!course || !date) { showToast('请选择课程和日期', true); return; }
+  if (!scheduleData[date]) scheduleData[date] = [];
+  scheduleData[date].push({ name: course, type });
+  saveSchedule(); renderSchedule(); hideModal('addScheduleModal');
+  showToast(`排课「${course}」添加成功！`);
+}
+
+// ============ Grades — localStorage ============
+const defaultGrades = [
+  { name: '李明华', id: 'S20260001', course: '商务英语高级班', daily: 92, midterm: 88, final: 91, total: 90.4, level: '优秀', color: '#6366F1' },
+  { name: '王思雨', id: 'S20260002', course: 'Python全栈开发', daily: 85, midterm: 78, final: 82, total: 81.7, level: '良好', color: '#EC4899' },
+  { name: '张天一', id: 'S20260003', course: '少儿美术启蒙', daily: 95, midterm: 92, final: 96, total: 94.3, level: '优秀', color: '#F59E0B' },
+  { name: '陈晓峰', id: 'S20260004', course: '雅思冲刺班', daily: 76, midterm: 72, final: 68, total: 71.6, level: '及格', color: '#10B981' },
+  { name: '刘雨萱', id: 'S20260005', course: '钢琴进阶课', daily: 88, midterm: 85, final: 90, total: 87.8, level: '良好', color: '#8B5CF6' },
+];
+function loadGrades() { const s = localStorage.getItem('liming_grades'); return s ? JSON.parse(s) : [...defaultGrades]; }
+function saveGrades() { localStorage.setItem('liming_grades', JSON.stringify(gradesData)); }
+let gradesData = loadGrades();
+function renderGrades() {
+  const tbody = document.getElementById('gradesBody');
+  if (!tbody) return;
+  tbody.innerHTML = gradesData.map((g, i) => `
+    <tr>
+      <td><div class="avatar-cell"><div class="avatar-sm" style="background:${g.color}">${g.name[0]}</div>${g.name}</div></td>
+      <td>${g.id}</td><td>${g.course}</td><td>${g.daily}</td><td>${g.midterm}</td><td>${g.final}</td>
+      <td><strong>${g.total}</strong></td><td><span class="status-tag ${g.level === '优秀' ? 'active' : g.level === '良好' ? 'pending' : 'inactive'}">${g.level}</span></td>
+      <td><button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger)" onclick="deleteGrade(${i})">删除</button></td>
+    </tr>
+  `).join('');
+}
+renderGrades();
+function deleteGrade(idx) {
+  const g = gradesData[idx]; if (!g) return;
+  if (!confirm(`确定要删除「${g.name}」的成绩吗？`)) return;
+  gradesData.splice(idx, 1); saveGrades(); renderGrades(); showToast(`已删除成绩记录`);
 }
 
 // Schedule grid
