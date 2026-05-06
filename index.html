@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智学通 - 教务培训管理平台</title>
+<style>
+:root {
+  --primary: #4F46E5;
+  --primary-light: #818CF8;
+  --primary-dark: #3730A3;
+  --accent: #F59E0B;
+  --success: #10B981;
+  --danger: #EF4444;
+  --warning: #F59E0B;
+  --info: #3B82F6;
+  --bg: #F8FAFC;
+  --surface: #FFFFFF;
+  --text: #1E293B;
+  --text-secondary: #64748B;
+  --border: #E2E8F0;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+  --radius: 12px;
+  --sidebar-w: 260px;
+  --header-h: 64px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+
+/* Sidebar */
+.sidebar {
+  position: fixed; left: 0; top: 0; bottom: 0; width: var(--sidebar-w);
+  background: linear-gradient(180deg, #1E1B4B 0%, #312E81 100%);
+  color: white; z-index: 100; display: flex; flex-direction: column;
+  transition: transform 0.3s ease;
+}
+.sidebar-brand {
+  padding: 20px 24px; display: flex; align-items: center; gap: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.sidebar-brand .logo {
+  width: 40px; height: 40px; background: var(--accent);
+  border-radius: 10px; display: flex; align-items: center; justify-content: center;
+  font-size: 20px; font-weight: 700; color: #1E1B4B;
+}
+.sidebar-brand h1 { font-size: 18px; font-weight: 700; letter-spacing: 0.5px; }
+.sidebar-brand small { font-size: 11px; opacity: 0.6; display: block; }
+.sidebar-nav { flex: 1; padding: 16px 12px; overflow-y: auto; }
+.nav-section { margin-bottom: 24px; }
+.nav-section-title {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px;
+  padding: 0 12px; margin-bottom: 8px; opacity: 0.4; font-weight: 600;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 12px; padding: 10px 16px;
+  border-radius: 8px; cursor: pointer; transition: all 0.2s; margin-bottom: 2px;
+  font-size: 14px; color: rgba(255,255,255,0.7);
+}
+.nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+.nav-item.active { background: rgba(255,255,255,0.15); color: white; font-weight: 600; }
+.nav-item .icon { width: 20px; text-align: center; font-size: 16px; }
+.nav-item .badge {
+  margin-left: auto; background: var(--danger); color: white;
+  font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600;
+}
+.sidebar-footer {
+  padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.1);
+  display: flex; align-items: center; gap: 12px;
+}
+.sidebar-footer .avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #F97316);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700;
+}
+.sidebar-footer .user-info { flex: 1; }
+.sidebar-footer .user-name { font-size: 13px; font-weight: 600; }
+.sidebar-footer .user-role { font-size: 11px; opacity: 0.5; }
+
+/* Main */
+.main { margin-left: var(--sidebar-w); min-height: 100vh; }
+.header {
+  height: var(--header-h); background: var(--surface);
+  border-bottom: 1px solid var(--border); display: flex;
+  align-items: center; padding: 0 32px; position: sticky; top: 0; z-index: 50;
+  justify-content: space-between;
+}
+.header-left { display: flex; align-items: center; gap: 16px; }
+.header-left h2 { font-size: 18px; font-weight: 700; }
+.breadcrumb { font-size: 13px; color: var(--text-secondary); }
+.breadcrumb span { color: var(--primary); }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.search-box {
+  display: flex; align-items: center; background: var(--bg);
+  border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; gap: 8px;
+  width: 280px; transition: border-color 0.2s;
+}
+.search-box:focus-within { border-color: var(--primary); }
+.search-box input {
+  border: none; background: none; outline: none; font-size: 13px;
+  width: 100%; color: var(--text);
+}
+.search-box .icon { color: var(--text-secondary); font-size: 14px; }
+.header-btn {
+  width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--surface); cursor: pointer; display: flex;
+  align-items: center; justify-content: center; position: relative;
+  transition: all 0.2s; font-size: 16px;
+}
+.header-btn:hover { border-color: var(--primary); color: var(--primary); }
+.header-btn .dot {
+  position: absolute; top: 6px; right: 6px; width: 8px; height: 8px;
+  background: var(--danger); border-radius: 50%; border: 2px solid var(--surface);
+}
+
+/* Content */
+.content { padding: 24px 32px; }
+
+/* Dashboard Cards */
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 24px; }
+.stat-card {
+  background: var(--surface); border-radius: var(--radius); padding: 24px;
+  box-shadow: var(--shadow); display: flex; align-items: flex-start; gap: 16px;
+  transition: transform 0.2s, box-shadow 0.2s; cursor: pointer;
+}
+.stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.stat-icon {
+  width: 48px; height: 48px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center; font-size: 22px;
+}
+.stat-icon.blue { background: #EEF2FF; color: var(--primary); }
+.stat-icon.green { background: #ECFDF5; color: var(--success); }
+.stat-icon.amber { background: #FFFBEB; color: var(--accent); }
+.stat-icon.red { background: #FEF2F2; color: var(--danger); }
+.stat-info h3 { font-size: 28px; font-weight: 700; line-height: 1.2; }
+.stat-info p { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+.stat-info .trend {
+  font-size: 12px; margin-top: 8px; display: flex; align-items: center; gap: 4px;
+}
+.stat-info .trend.up { color: var(--success); }
+.stat-info .trend.down { color: var(--danger); }
+
+/* Charts Area */
+.charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 24px; }
+.chart-card {
+  background: var(--surface); border-radius: var(--radius); padding: 24px;
+  box-shadow: var(--shadow);
+}
+.chart-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+.chart-placeholder { height: 240px; position: relative; }
+
+/* Bar Chart CSS */
+.bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 200px; padding: 0 10px; }
+.bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.bar {
+  width: 100%; border-radius: 6px 6px 0 0; transition: height 0.8s ease;
+  position: relative; min-height: 4px;
+}
+.bar.primary { background: linear-gradient(180deg, var(--primary-light), var(--primary)); }
+.bar.accent { background: linear-gradient(180deg, #FCD34D, var(--accent)); }
+.bar-label { font-size: 11px; color: var(--text-secondary); white-space: nowrap; }
+.bar-group:hover .bar { filter: brightness(1.1); }
+
+/* Donut Chart CSS */
+.donut-chart { display: flex; align-items: center; gap: 32px; justify-content: center; height: 200px; }
+.donut-ring {
+  width: 160px; height: 160px; border-radius: 50%; position: relative;
+  background: conic-gradient(
+    var(--primary) 0% 35%,
+    var(--success) 35% 55%,
+    var(--accent) 55% 75%,
+    var(--info) 75% 88%,
+    #CBD5E1 88% 100%
+  );
+}
+.donut-ring::after {
+  content: ''; position: absolute; inset: 30px; border-radius: 50%;
+  background: var(--surface);
+}
+.donut-center {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; z-index: 1;
+}
+.donut-center strong { font-size: 22px; }
+.donut-center span { font-size: 11px; color: var(--text-secondary); }
+.donut-legend { display: flex; flex-direction: column; gap: 10px; }
+.legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+/* Table */
+.table-card {
+  background: var(--surface); border-radius: var(--radius);
+  box-shadow: var(--shadow); overflow: hidden;
+}
+.table-header {
+  padding: 20px 24px; display: flex; align-items: center;
+  justify-content: space-between; border-bottom: 1px solid var(--border);
+}
+.table-header h3 { font-size: 15px; font-weight: 600; }
+.table-actions { display: flex; gap: 8px; }
+.btn {
+  padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all 0.2s; border: 1px solid transparent;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-outline { background: var(--surface); color: var(--text); border-color: var(--border); }
+.btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+.btn-success { background: var(--success); color: white; }
+.btn-danger { background: var(--danger); color: white; }
+.btn-sm { padding: 5px 12px; font-size: 12px; }
+table { width: 100%; border-collapse: collapse; }
+thead { background: #F8FAFC; }
+th {
+  padding: 12px 20px; text-align: left; font-size: 12px; font-weight: 600;
+  color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;
+}
+td { padding: 14px 20px; font-size: 13px; border-bottom: 1px solid var(--border); }
+tr:last-child td { border-bottom: none; }
+tr:hover { background: #F8FAFC; }
+.status-tag {
+  padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 500;
+  display: inline-block;
+}
+.status-tag.active { background: #ECFDF5; color: #065F46; }
+.status-tag.pending { background: #FFFBEB; color: #92400E; }
+.status-tag.inactive { background: #FEF2F2; color: #991B1B; }
+.status-tag.completed { background: #EEF2FF; color: #3730A3; }
+.avatar-cell { display: flex; align-items: center; gap: 10px; }
+.avatar-sm {
+  width: 32px; height: 32px; border-radius: 50%; display: flex;
+  align-items: center; justify-content: center; font-size: 12px;
+  font-weight: 600; color: white; flex-shrink: 0;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(4px); z-index: 1000; display: flex;
+  align-items: center; justify-content: center; opacity: 0;
+  pointer-events: none; transition: opacity 0.3s;
+}
+.modal-overlay.show { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--surface); border-radius: 16px; width: 560px;
+  max-height: 85vh; overflow-y: auto; box-shadow: var(--shadow-lg);
+  transform: scale(0.95) translateY(10px); transition: transform 0.3s;
+}
+.modal-overlay.show .modal { transform: scale(1) translateY(0); }
+.modal-header {
+  padding: 20px 24px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.modal-header h3 { font-size: 16px; font-weight: 600; }
+.modal-close {
+  width: 32px; height: 32px; border-radius: 8px; border: none;
+  background: var(--bg); cursor: pointer; font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.modal-close:hover { background: var(--danger); color: white; }
+.modal-body { padding: 24px; }
+.modal-footer {
+  padding: 16px 24px; border-top: 1px solid var(--border);
+  display: flex; justify-content: flex-end; gap: 8px;
+}
+
+/* Form */
+.form-group { margin-bottom: 16px; }
+.form-group label {
+  display: block; font-size: 13px; font-weight: 500;
+  margin-bottom: 6px; color: var(--text);
+}
+.form-control {
+  width: 100%; padding: 10px 14px; border: 1px solid var(--border);
+  border-radius: 8px; font-size: 13px; transition: border-color 0.2s;
+  background: var(--surface); color: var(--text);
+}
+.form-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
+select.form-control { cursor: pointer; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+/* Page sections */
+.page { display: none; }
+.page.active { display: block; }
+
+/* Schedule Grid */
+.schedule-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;
+  background: var(--border); border-radius: var(--radius); overflow: hidden;
+  margin-bottom: 24px;
+}
+.schedule-header {
+  background: var(--primary); color: white; padding: 10px;
+  text-align: center; font-size: 13px; font-weight: 600;
+}
+.schedule-cell {
+  background: var(--surface); min-height: 100px; padding: 8px;
+  position: relative;
+}
+.schedule-cell .date-num {
+  font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;
+}
+.schedule-cell.today { background: #EEF2FF; }
+.schedule-cell.other-month { opacity: 0.4; }
+.schedule-event {
+  font-size: 11px; padding: 3px 6px; border-radius: 4px;
+  margin-bottom: 3px; cursor: pointer; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.schedule-event.course { background: #DBEAFE; color: #1E40AF; border-left: 3px solid #3B82F6; }
+.schedule-event.exam { background: #FEE2E2; color: #991B1B; border-left: 3px solid #EF4444; }
+.schedule-event.meeting { background: #ECFDF5; color: #065F46; border-left: 3px solid #10B981; }
+
+/* Attendance */
+.attendance-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px; margin-bottom: 24px;
+}
+.attendance-card {
+  background: var(--surface); border-radius: var(--radius); padding: 16px;
+  box-shadow: var(--shadow); text-align: center; cursor: pointer;
+  transition: all 0.2s; border: 2px solid transparent;
+}
+.attendance-card:hover { border-color: var(--primary); }
+.attendance-card.checked { border-color: var(--success); background: #F0FDF4; }
+.attendance-card .name { font-weight: 600; font-size: 14px; margin: 8px 0 4px; }
+.attendance-card .id { font-size: 12px; color: var(--text-secondary); }
+.attendance-card .status-icon {
+  width: 48px; height: 48px; border-radius: 50%; margin: 0 auto;
+  display: flex; align-items: center; justify-content: center; font-size: 22px;
+  background: #F1F5F9;
+}
+.attendance-card.checked .status-icon { background: #D1FAE5; color: var(--success); }
+
+/* Progress bars */
+.progress-bar { height: 6px; background: #E2E8F0; border-radius: 3px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 3px; transition: width 0.8s ease; }
+.progress-fill.blue { background: linear-gradient(90deg, var(--primary-light), var(--primary)); }
+.progress-fill.green { background: linear-gradient(90deg, #6EE7B7, var(--success)); }
+.progress-fill.amber { background: linear-gradient(90deg, #FCD34D, var(--accent)); }
+
+/* Quick Actions */
+.quick-actions {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px;
+}
+.quick-action {
+  background: var(--surface); border-radius: var(--radius); padding: 20px;
+  box-shadow: var(--shadow); cursor: pointer; transition: all 0.2s;
+  display: flex; align-items: center; gap: 12px;
+}
+.quick-action:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.quick-action .qa-icon {
+  width: 40px; height: 40px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; font-size: 18px;
+}
+.quick-action .qa-text { font-size: 13px; font-weight: 600; }
+.quick-action .qa-desc { font-size: 11px; color: var(--text-secondary); }
+
+/* Recent Activity */
+.activity-list { display: flex; flex-direction: column; gap: 12px; }
+.activity-item {
+  display: flex; gap: 12px; padding: 12px; border-radius: 8px;
+  transition: background 0.2s;
+}
+.activity-item:hover { background: var(--bg); }
+.activity-dot {
+  width: 8px; height: 8px; border-radius: 50%; margin-top: 6px; flex-shrink: 0;
+}
+.activity-content { flex: 1; }
+.activity-content p { font-size: 13px; }
+.activity-content .time { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .charts-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .main { margin-left: 0; }
+  .stats-grid { grid-template-columns: 1fr; }
+  .quick-actions { grid-template-columns: repeat(2, 1fr); }
+  .content { padding: 16px; }
+  .form-row { grid-template-columns: 1fr; }
+}
+
+/* Pagination */
+.pagination {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 24px; border-top: 1px solid var(--border);
+}
+.pagination .info { font-size: 13px; color: var(--text-secondary); }
+.pagination .pages { display: flex; gap: 4px; }
+.page-btn {
+  width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border);
+  background: var(--surface); cursor: pointer; font-size: 13px;
+  display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+}
+.page-btn:hover { border-color: var(--primary); color: var(--primary); }
+.page-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+/* Filter Bar */
+.filter-bar {
+  display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center;
+}
+.filter-bar .form-control { width: auto; min-width: 150px; }
+
+/* Tab */
+.tabs { display: flex; gap: 0; margin-bottom: 20px; border-bottom: 2px solid var(--border); }
+.tab {
+  padding: 10px 20px; font-size: 14px; font-weight: 500; cursor: pointer;
+  color: var(--text-secondary); border-bottom: 2px solid transparent;
+  margin-bottom: -2px; transition: all 0.2s;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+/* Empty State */
+.empty-state {
+  text-align: center; padding: 60px 20px; color: var(--text-secondary);
+}
+.empty-state .icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+.empty-state h3 { font-size: 16px; color: var(--text); margin-bottom: 8px; }
+
+/* Toast */
+.toast-container { position: fixed; top: 80px; right: 24px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; }
+.toast {
+  background: var(--surface); border-radius: 10px; padding: 14px 20px;
+  box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 10px;
+  font-size: 13px; animation: slideIn 0.3s ease; min-width: 280px;
+  border-left: 4px solid var(--success);
+}
+.toast.error { border-left-color: var(--danger); }
+@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="logo">智</div>
+    <div>
+      <h1>智学通</h1>
+      <small>教务培训管理平台</small>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-title">主要功能</div>
+      <div class="nav-item active" data-page="dashboard">
+        <span class="icon">📊</span> 工作台
+      </div>
+      <div class="nav-item" data-page="students">
+        <span class="icon">👥</span> 学员管理
+      </div>
+      <div class="nav-item" data-page="courses">
+        <span class="icon">📚</span> 课程管理
+      </div>
+      <div class="nav-item" data-page="schedule">
+        <span class="icon">📅</span> 排课系统
+      </div>
+      <div class="nav-item" data-page="attendance">
+        <span class="icon">✅</span> 考勤管理
+        <span class="badge">3</span>
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">教务管理</div>
+      <div class="nav-item" data-page="grades">
+        <span class="icon">📝</span> 成绩管理
+      </div>
+      <div class="nav-item" data-page="teachers">
+        <span class="icon">🎓</span> 教师管理
+      </div>
+      <div class="nav-item" data-page="classroom">
+        <span class="icon">🏫</span> 教室管理
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">系统</div>
+      <div class="nav-item" data-page="reports">
+        <span class="icon">📈</span> 数据报表
+      </div>
+      <div class="nav-item" data-page="settings">
+        <span class="icon">⚙️</span> 系统设置
+      </div>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="avatar">管</div>
+    <div class="user-info">
+      <div class="user-name">管理员</div>
+      <div class="user-role">超级管理员</div>
+    </div>
+  </div>
+</aside>
+
+<!-- Main Content -->
+<div class="main">
+  <header class="header">
+    <div class="header-left">
+      <h2 id="pageTitle">工作台</h2>
+      <div class="breadcrumb">首页 / <span id="breadcrumb">工作台</span></div>
+    </div>
+    <div class="header-right">
+      <div class="search-box">
+        <span class="icon">🔍</span>
+        <input type="text" placeholder="搜索学员、课程...">
+      </div>
+      <button class="header-btn"><span class="dot"></span>🔔</button>
+      <button class="header-btn">💬</button>
+    </div>
+  </header>
+
+  <!-- Dashboard -->
+  <div class="content">
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue">👥</div>
+          <div class="stat-info">
+            <h3>1,286</h3>
+            <p>在读学员</p>
+            <div class="trend up">↑ 12.5% 较上月</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">📚</div>
+          <div class="stat-info">
+            <h3>48</h3>
+            <p>开课课程</p>
+            <div class="trend up">↑ 8.3% 较上月</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon amber">✅</div>
+          <div class="stat-info">
+            <h3>96.8%</h3>
+            <p>平均出勤率</p>
+            <div class="trend up">↑ 2.1% 较上月</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon red">📊</div>
+          <div class="stat-info">
+            <h3>87.3</h3>
+            <p>平均成绩</p>
+            <div class="trend down">↓ 1.2 较上月</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="quick-actions">
+        <div class="quick-action" onclick="navigateTo('students'); showModal('addStudentModal')">
+          <div class="qa-icon" style="background:#EEF2FF;color:var(--primary)">➕</div>
+          <div><div class="qa-text">新增学员</div><div class="qa-desc">录入学员信息</div></div>
+        </div>
+        <div class="quick-action" onclick="navigateTo('courses'); showModal('addCourseModal')">
+          <div class="qa-icon" style="background:#ECFDF5;color:var(--success)">📖</div>
+          <div><div class="qa-text">创建课程</div><div class="qa-desc">开设新课程</div></div>
+        </div>
+        <div class="quick-action" onclick="navigateTo('attendance')">
+          <div class="qa-icon" style="background:#FFFBEB;color:var(--accent)">📋</div>
+          <div><div class="qa-text">今日考勤</div><div class="qa-desc">查看出勤情况</div></div>
+        </div>
+        <div class="quick-action" onclick="navigateTo('schedule')">
+          <div class="qa-icon" style="background:#FEF2F2;color:var(--danger)">🗓️</div>
+          <div><div class="qa-text">排课管理</div><div class="qa-desc">安排课程表</div></div>
+        </div>
+      </div>
+
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h3>📊 月度招生趋势</h3>
+          <div class="chart-placeholder">
+            <div class="bar-chart" id="enrollmentChart">
+              <!-- Generated by JS -->
+            </div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h3>🎯 课程类型分布</h3>
+          <div class="donut-chart">
+            <div style="position:relative">
+              <div class="donut-ring"></div>
+              <div class="donut-center">
+                <strong>48</strong>
+                <span>总课程</span>
+              </div>
+            </div>
+            <div class="donut-legend">
+              <div class="legend-item"><div class="legend-dot" style="background:var(--primary)"></div>语言培训 35%</div>
+              <div class="legend-item"><div class="legend-dot" style="background:var(--success)"></div>职业技能 20%</div>
+              <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div>艺术特长 20%</div>
+              <div class="legend-item"><div class="legend-dot" style="background:var(--info)"></div>学科辅导 13%</div>
+              <div class="legend-item"><div class="legend-dot" style="background:#CBD5E1"></div>其他 12%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="charts-grid">
+        <div class="table-card">
+          <div class="table-header">
+            <h3>📋 最近报名</h3>
+            <button class="btn btn-outline btn-sm" onclick="navigateTo('students')">查看全部</button>
+          </div>
+          <table>
+            <thead><tr><th>学员</th><th>课程</th><th>报名时间</th><th>状态</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><div class="avatar-cell"><div class="avatar-sm" style="background:#6366F1">李</div>李明华</div></td>
+                <td>商务英语高级班</td><td>2026-05-06</td>
+                <td><span class="status-tag active">已确认</span></td>
+              </tr>
+              <tr>
+                <td><div class="avatar-cell"><div class="avatar-sm" style="background:#EC4899">王</div>王思雨</div></td>
+                <td>Python全栈开发</td><td>2026-05-05</td>
+                <td><span class="status-tag pending">待缴费</span></td>
+              </tr>
+              <tr>
+                <td><div class="avatar-cell"><div class="avatar-sm" style="background:#F59E0B">张</div>张天一</div></td>
+                <td>少儿美术启蒙</td><td>2026-05-05</td>
+                <td><span class="status-tag active">已确认</span></td>
+              </tr>
+              <tr>
+                <td><div class="avatar-cell"><div class="avatar-sm" style="background:#10B981">陈</div>陈晓峰</div></td>
+                <td>雅思冲刺班</td><td>2026-05-04</td>
+                <td><span class="status-tag completed">已完成</span></td>
+              </tr>
+              <tr>
+                <td><div class="avatar-cell"><div class="avatar-sm" style="background:#8B5CF6">刘</div>刘雨萱</div></td>
+                <td>钢琴进阶课</td><td>2026-05-04</td>
+                <td><span class="status-tag active">已确认</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="chart-card">
+          <h3>🕐 最近动态</h3>
+          <div class="activity-list">
+            <div class="activity-item">
+              <div class="activity-dot" style="background:var(--success)"></div>
+              <div class="activity-content">
+                <p><strong>李明华</strong> 报名了 商务英语高级班</p>
+                <div class="time">10 分钟前</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot" style="background:var(--primary)"></div>
+              <div class="activity-content">
+                <p><strong>张老师</strong> 提交了期中成绩</p>
+                <div class="time">32 分钟前</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot" style="background:var(--accent)"></div>
+              <div class="activity-content">
+                <p>教室 A301 排课冲突已解决</p>
+                <div class="time">1 小时前</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot" style="background:var(--danger)"></div>
+              <div class="activity-content">
+                <p><strong>王思雨</strong> 缴费即将到期</p>
+                <div class="time">2 小时前</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot" style="background:var(--info)"></div>
+              <div class="activity-content">
+                <p>新增教室 B205 已启用</p>
+                <div class="time">3 小时前</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Students Page -->
+    <div class="page" id="page-students">
+      <div class="filter-bar">
+        <select class="form-control" style="width:140px"><option>全部状态</option><option>在读</option><option>休学</option><option>毕业</option></select>
+        <select class="form-control" style="width:140px"><option>全部课程</option><option>商务英语</option><option>Python开发</option><option>雅思冲刺</option></select>
+        <select class="form-control" style="width:120px"><option>全部班级</option><option>2026春季</option><option>2025秋季</option></select>
+        <div style="flex:1"></div>
+        <button class="btn btn-outline">📥 导入</button>
+        <button class="btn btn-outline">📤 导出</button>
+        <button class="btn btn-primary" onclick="showModal('addStudentModal')">➕ 新增学员</button>
+      </div>
+      <div class="table-card">
+        <table>
+          <thead><tr><th>学员</th><th>学号</th><th>联系电话</th><th>报名课程</th><th>班级</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody id="studentTableBody">
+            <!-- Generated by JS -->
+          </tbody>
+        </table>
+        <div class="pagination">
+          <div class="info">显示 1-10 共 1,286 条</div>
+          <div class="pages">
+            <button class="page-btn">‹</button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn">3</button>
+            <button class="page-btn">...</button>
+            <button class="page-btn">129</button>
+            <button class="page-btn">›</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Courses Page -->
+    <div class="page" id="page-courses">
+      <div class="filter-bar">
+        <select class="form-control" style="width:140px"><option>全部类型</option><option>语言培训</option><option>职业技能</option><option>艺术特长</option><option>学科辅导</option></select>
+        <select class="form-control" style="width:140px"><option>全部状态</option><option>开课中</option><option>未开课</option><option>已结课</option></select>
+        <div style="flex:1"></div>
+        <button class="btn btn-primary" onclick="showModal('addCourseModal')">➕ 创建课程</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px" id="courseGrid">
+        <!-- Generated by JS -->
+      </div>
+    </div>
+
+    <!-- Schedule Page -->
+    <div class="page" id="page-schedule">
+      <div class="filter-bar">
+        <button class="btn btn-outline btn-sm">‹ 上一周</button>
+        <div style="font-weight:600;font-size:15px;padding:0 12px">2026年5月4日 — 5月10日</div>
+        <button class="btn btn-outline btn-sm">下一周 ›</button>
+        <div style="flex:1"></div>
+        <select class="form-control" style="width:160px"><option>全部教室</option><option>A301 多媒体教室</option><option>A302 语音室</option><option>B201 计算机房</option></select>
+        <button class="btn btn-primary" onclick="showModal('addScheduleModal')">➕ 新增排课</button>
+      </div>
+      <div class="schedule-grid" id="scheduleGrid">
+        <!-- Generated by JS -->
+      </div>
+    </div>
+
+    <!-- Attendance Page -->
+    <div class="page" id="page-attendance">
+      <div class="tabs">
+        <div class="tab active">今日考勤</div>
+        <div class="tab">考勤统计</div>
+        <div class="tab">异常记录</div>
+      </div>
+      <div class="filter-bar">
+        <select class="form-control" style="width:180px"><option>商务英语高级班 (09:00)</option><option>Python全栈开发 (10:30)</option><option>雅思冲刺班 (14:00)</option></select>
+        <select class="form-control" style="width:120px"><option>2026-05-06</option></select>
+        <div style="flex:1"></div>
+        <button class="btn btn-outline">📊 导出考勤</button>
+      </div>
+      <div class="attendance-grid" id="attendanceGrid">
+        <!-- Generated by JS -->
+      </div>
+      <div class="table-card" style="margin-top:20px">
+        <div class="table-header">
+          <h3>考勤汇总</h3>
+        </div>
+        <table>
+          <thead><tr><th>课程</th><th>时间</th><th>应到</th><th>实到</th><th>迟到</th><th>缺勤</th><th>出勤率</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>商务英语高级班</td><td>09:00-11:00</td><td>32</td><td>30</td><td>1</td><td>1</td>
+              <td><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:100px"><div class="progress-fill green" style="width:93.7%"></div></div>93.7%</div></td>
+            </tr>
+            <tr>
+              <td>Python全栈开发</td><td>10:30-12:30</td><td>28</td><td>27</td><td>0</td><td>1</td>
+              <td><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:100px"><div class="progress-fill blue" style="width:96.4%"></div></div>96.4%</div></td>
+            </tr>
+            <tr>
+              <td>雅思冲刺班</td><td>14:00-16:00</td><td>25</td><td>25</td><td>0</td><td>0</td>
+              <td><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:100px"><div class="progress-fill green" style="width:100%"></div></div>100%</div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Grades Page -->
+    <div class="page" id="page-grades">
+      <div class="filter-bar">
+        <select class="form-control" style="width:180px"><option>全部课程</option><option>商务英语高级班</option><option>Python全栈开发</option><option>雅思冲刺班</option></select>
+        <select class="form-control" style="width:140px"><option>期中考试</option><option>期末考试</option><option>平时成绩</option></select>
+        <div style="flex:1"></div>
+        <button class="btn btn-outline">📥 导入成绩</button>
+        <button class="btn btn-outline">📤 导出报表</button>
+        <button class="btn btn-primary">➕ 录入成绩</button>
+      </div>
+      <div class="table-card">
+        <table>
+          <thead><tr><th>学员</th><th>学号</th><th>课程</th><th>平时成绩</th><th>期中</th><th>期末</th><th>总评</th><th>等级</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><div class="avatar-cell"><div class="avatar-sm" style="background:#6366F1">李</div>李明华</div></td>
+              <td>S20260001</td><td>商务英语高级班</td><td>92</td><td>88</td><td>91</td>
+              <td><strong>90.4</strong></td><td><span class="status-tag active">优秀</span></td>
+            </tr>
+            <tr>
+              <td><div class="avatar-cell"><div class="avatar-sm" style="background:#EC4899">王</div>王思雨</div></td>
+              <td>S20260002</td><td>Python全栈开发</td><td>85</td><td>78</td><td>82</td>
+              <td><strong>81.7</strong></td><td><span class="status-tag pending">良好</span></td>
+            </tr>
+            <tr>
+              <td><div class="avatar-cell"><div class="avatar-sm" style="background:#F59E0B">张</div>张天一</div></td>
+              <td>S20260003</td><td>少儿美术启蒙</td><td>95</td><td>92</td><td>96</td>
+              <td><strong>94.3</strong></td><td><span class="status-tag active">优秀</span></td>
+            </tr>
+            <tr>
+              <td><div class="avatar-cell"><div class="avatar-sm" style="background:#10B981">陈</div>陈晓峰</div></td>
+              <td>S20260004</td><td>雅思冲刺班</td><td>76</td><td>72</td><td>68</td>
+              <td><strong>71.6</strong></td><td><span class="status-tag inactive">及格</span></td>
+            </tr>
+            <tr>
+              <td><div class="avatar-cell"><div class="avatar-sm" style="background:#8B5CF6">刘</div>刘雨萱</div></td>
+              <td>S20260005</td><td>钢琴进阶课</td><td>88</td><td>85</td><td>90</td>
+              <td><strong>87.8</strong></td><td><span class="status-tag pending">良好</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="pagination">
+          <div class="info">显示 1-5 共 1,286 条</div>
+          <div class="pages">
+            <button class="page-btn">‹</button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn">3</button>
+            <button class="page-btn">›</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Teachers Page -->
+    <div class="page" id="page-teachers">
+      <div class="filter-bar">
+        <select class="form-control" style="width:140px"><option>全部学科</option><option>英语</option><option>计算机</option><option>美术</option><option>音乐</option></select>
+        <div style="flex:1"></div>
+        <button class="btn btn-primary">➕ 新增教师</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+        <div class="chart-card" style="display:flex;gap:16px;align-items:center;cursor:pointer" onmouseover="this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.boxShadow='var(--shadow)'">
+          <div class="avatar-sm" style="width:56px;height:56px;font-size:20px;background:linear-gradient(135deg,#6366F1,#8B5CF6)">张</div>
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:15px">张明辉</div>
+            <div style="font-size:12px;color:var(--text-secondary)">英语教研组 · 高级讲师</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">教授 3 个班级 · 96 名学员</div>
+          </div>
+          <span class="status-tag active">在职</span>
+        </div>
+        <div class="chart-card" style="display:flex;gap:16px;align-items:center;cursor:pointer" onmouseover="this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.boxShadow='var(--shadow)'">
+          <div class="avatar-sm" style="width:56px;height:56px;font-size:20px;background:linear-gradient(135deg,#EC4899,#F43F5E)">李</div>
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:15px">李文静</div>
+            <div style="font-size:12px;color:var(--text-secondary)">计算机教研组 · 讲师</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">教授 2 个班级 · 56 名学员</div>
+          </div>
+          <span class="status-tag active">在职</span>
+        </div>
+        <div class="chart-card" style="display:flex;gap:16px;align-items:center;cursor:pointer" onmouseover="this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.boxShadow='var(--shadow)'">
+          <div class="avatar-sm" style="width:56px;height:56px;font-size:20px;background:linear-gradient(135deg,#F59E0B,#F97316)">王</div>
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:15px">王艺萌</div>
+            <div style="font-size:12px;color:var(--text-secondary)">艺术教研组 · 特聘教师</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">教授 4 个班级 · 120 名学员</div>
+          </div>
+          <span class="status-tag active">在职</span>
+        </div>
+        <div class="chart-card" style="display:flex;gap:16px;align-items:center;cursor:pointer" onmouseover="this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.boxShadow='var(--shadow)'">
+          <div class="avatar-sm" style="width:56px;height:56px;font-size:20px;background:linear-gradient(135deg,#10B981,#059669)">赵</div>
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:15px">赵国强</div>
+            <div style="font-size:12px;color:var(--text-secondary)">数学教研组 · 高级讲师</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">教授 2 个班级 · 48 名学员</div>
+          </div>
+          <span class="status-tag active">在职</span>
+        </div>
+        <div class="chart-card" style="display:flex;gap:16px;align-items:center;cursor:pointer" onmouseover="this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.boxShadow='var(--shadow)'">
+          <div class="avatar-sm" style="width:56px;height:56px;font-size:20px;background:linear-gradient(135deg,#3B82F6,#2563EB)">刘</div>
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:15px">刘思远</div>
+            <div style="font-size:12px;color:var(--text-secondary)">英语教研组 · 外教</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">教授 2 个班级 · 50 名学员</div>
+          </div>
+          <span class="status-tag active">在职</span>
+        </div>
+        <div class="chart-card" style="display:flex;gap:16px;align-items:center;cursor:pointer" onmouseover="this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.boxShadow='var(--shadow)'">
+          <div class="avatar-sm" style="width:56px;height:56px;font-size:20px;background:linear-gradient(135deg,#8B5CF6,#7C3AED)">周</div>
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:15px">周雅琴</div>
+            <div style="font-size:12px;color:var(--text-secondary)">音乐教研组 · 讲师</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">教授 3 个班级 · 72 名学员</div>
+          </div>
+          <span class="status-tag pending">休假</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Classroom Page -->
+    <div class="page" id="page-classroom">
+      <div class="filter-bar">
+        <select class="form-control" style="width:140px"><option>全部楼层</option><option>A栋</option><option>B栋</option></select>
+        <select class="form-control" style="width:140px"><option>全部类型</option><option>普通教室</option><option>多媒体教室</option><option>计算机房</option><option>语音室</option></select>
+        <div style="flex:1"></div>
+        <button class="btn btn-primary">➕ 新增教室</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+        <div class="chart-card" style="text-align:center">
+          <div style="font-size:32px;margin-bottom:8px">🏫</div>
+          <div style="font-weight:700;font-size:18px">A301</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin:4px 0 12px">多媒体教室 · 50人</div>
+          <span class="status-tag active">空闲</span>
+          <div style="margin-top:12px;font-size:12px;color:var(--text-secondary)">今日使用: 3/8 课时</div>
+        </div>
+        <div class="chart-card" style="text-align:center">
+          <div style="font-size:32px;margin-bottom:8px">🎙️</div>
+          <div style="font-weight:700;font-size:18px">A302</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin:4px 0 12px">语音室 · 40人</div>
+          <span class="status-tag inactive">使用中</span>
+          <div style="margin-top:12px;font-size:12px;color:var(--text-secondary)">今日使用: 5/8 课时</div>
+        </div>
+        <div class="chart-card" style="text-align:center">
+          <div style="font-size:32px;margin-bottom:8px">💻</div>
+          <div style="font-weight:700;font-size:18px">B201</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin:4px 0 12px">计算机房 · 45人</div>
+          <span class="status-tag active">空闲</span>
+          <div style="margin-top:12px;font-size:12px;color:var(--text-secondary)">今日使用: 2/8 课时</div>
+        </div>
+        <div class="chart-card" style="text-align:center">
+          <div style="font-size:32px;margin-bottom:8px">🎨</div>
+          <div style="font-weight:700;font-size:18px">B205</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin:4px 0 12px">画室 · 30人</div>
+          <span class="status-tag active">空闲</span>
+          <div style="margin-top:12px;font-size:12px;color:var(--text-secondary)">今日使用: 4/8 课时</div>
+        </div>
+        <div class="chart-card" style="text-align:center">
+          <div style="font-size:32px;margin-bottom:8px">🎹</div>
+          <div style="font-weight:700;font-size:18px">B301</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin:4px 0 12px">琴房 · 20人</div>
+          <span class="status-tag pending">维护中</span>
+          <div style="margin-top:12px;font-size:12px;color:var(--text-secondary)">预计明日恢复</div>
+        </div>
+        <div class="chart-card" style="text-align:center">
+          <div style="font-size:32px;margin-bottom:8px">📐</div>
+          <div style="font-weight:700;font-size:18px">A201</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin:4px 0 12px">普通教室 · 60人</div>
+          <span class="status-tag active">空闲</span>
+          <div style="margin-top:12px;font-size:12px;color:var(--text-secondary)">今日使用: 6/8 课时</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reports Page -->
+    <div class="page" id="page-reports">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue">📊</div>
+          <div class="stat-info">
+            <h3>¥328.5万</h3>
+            <p>年度营收</p>
+            <div class="trend up">↑ 18.2%</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">📈</div>
+          <div class="stat-info">
+            <h3>2,450</h3>
+            <p>年度招生</p>
+            <div class="trend up">↑ 23.5%</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon amber">⭐</div>
+          <div class="stat-info">
+            <h3>4.8</h3>
+            <p>教学满意度</p>
+            <div class="trend up">↑ 0.3</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon red">🔄</div>
+          <div class="stat-info">
+            <h3>89.2%</h3>
+            <p>续费率</p>
+            <div class="trend up">↑ 5.1%</div>
+          </div>
+        </div>
+      </div>
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h3>📈 月度收支趋势</h3>
+          <div class="bar-chart" id="revenueChart"></div>
+        </div>
+        <div class="chart-card">
+          <h3>🎯 各课程招生占比</h3>
+          <div style="padding:20px">
+            <div style="margin-bottom:16px">
+              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>商务英语</span><span>320人</span></div>
+              <div class="progress-bar"><div class="progress-fill blue" style="width:75%"></div></div>
+            </div>
+            <div style="margin-bottom:16px">
+              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>Python开发</span><span>280人</span></div>
+              <div class="progress-bar"><div class="progress-fill green" style="width:65%"></div></div>
+            </div>
+            <div style="margin-bottom:16px">
+              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>雅思托福</span><span>245人</span></div>
+              <div class="progress-bar"><div class="progress-fill amber" style="width:57%"></div></div>
+            </div>
+            <div style="margin-bottom:16px">
+              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>少儿美术</span><span>198人</span></div>
+              <div class="progress-bar"><div class="progress-fill blue" style="width:46%"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>钢琴音乐</span><span>156人</span></div>
+              <div class="progress-bar"><div class="progress-fill green" style="width:36%"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Page -->
+    <div class="page" id="page-settings">
+      <div class="tabs">
+        <div class="tab active">基本信息</div>
+        <div class="tab">通知设置</div>
+        <div class="tab">角色权限</div>
+        <div class="tab">系统日志</div>
+      </div>
+      <div class="chart-card">
+        <h3>🏫 机构信息</h3>
+        <div style="padding:8px 0">
+          <div class="form-row">
+            <div class="form-group">
+              <label>机构名称</label>
+              <input class="form-control" value="智学通教育培训中心">
+            </div>
+            <div class="form-group">
+              <label>联系电话</label>
+              <input class="form-control" value="400-888-9999">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>负责人</label>
+              <input class="form-control" value="张校长">
+            </div>
+            <div class="form-group">
+              <label>邮箱</label>
+              <input class="form-control" value="admin@zhixuetong.com">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>机构地址</label>
+            <input class="form-control" value="北京市海淀区中关村大街1号智慧大厦3层">
+          </div>
+          <div class="form-group">
+            <label>机构简介</label>
+            <textarea class="form-control" rows="3" style="resize:vertical">智学通教育培训中心成立于2018年，专注于语言培训、职业技能提升和艺术素质教育。拥有专业的教师团队和先进的教学设施，致力于为学员提供优质的教育培训服务。</textarea>
+          </div>
+          <div style="margin-top:20px">
+            <button class="btn btn-primary">保存修改</button>
+            <button class="btn btn-outline" style="margin-left:8px">重置</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Student Modal -->
+<div class="modal-overlay" id="addStudentModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>➕ 新增学员</h3>
+      <button class="modal-close" onclick="hideModal('addStudentModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>姓名 *</label>
+          <input class="form-control" placeholder="请输入学员姓名">
+        </div>
+        <div class="form-group">
+          <label>性别</label>
+          <select class="form-control"><option>男</option><option>女</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>联系电话 *</label>
+          <input class="form-control" placeholder="请输入手机号">
+        </div>
+        <div class="form-group">
+          <label>身份证号</label>
+          <input class="form-control" placeholder="请输入身份证号">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>报名课程 *</label>
+          <select class="form-control">
+            <option>请选择课程</option>
+            <option>商务英语高级班</option>
+            <option>Python全栈开发</option>
+            <option>雅思冲刺班</option>
+            <option>少儿美术启蒙</option>
+            <option>钢琴进阶课</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>班级</label>
+          <select class="form-control"><option>2026春季班</option><option>2025秋季班</option></select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>备注</label>
+        <textarea class="form-control" rows="2" placeholder="选填" style="resize:vertical"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="hideModal('addStudentModal')">取消</button>
+      <button class="btn btn-primary" onclick="hideModal('addStudentModal'); showToast('学员添加成功！')">确认添加</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Course Modal -->
+<div class="modal-overlay" id="addCourseModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>📖 创建课程</h3>
+      <button class="modal-close" onclick="hideModal('addCourseModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>课程名称 *</label>
+        <input class="form-control" placeholder="请输入课程名称">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>课程类型 *</label>
+          <select class="form-control"><option>语言培训</option><option>职业技能</option><option>艺术特长</option><option>学科辅导</option></select>
+        </div>
+        <div class="form-group">
+          <label>授课教师</label>
+          <select class="form-control"><option>张明辉</option><option>李文静</option><option>王艺萌</option><option>赵国强</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>课时数</label>
+          <input class="form-control" type="number" placeholder="如: 48">
+        </div>
+        <div class="form-group">
+          <label>学费 (元)</label>
+          <input class="form-control" type="number" placeholder="如: 6800">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>开课日期</label>
+          <input class="form-control" type="date">
+        </div>
+        <div class="form-group">
+          <label>结课日期</label>
+          <input class="form-control" type="date">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>课程简介</label>
+        <textarea class="form-control" rows="3" placeholder="请输入课程简介" style="resize:vertical"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="hideModal('addCourseModal')">取消</button>
+      <button class="btn btn-primary" onclick="hideModal('addCourseModal'); showToast('课程创建成功！')">确认创建</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Schedule Modal -->
+<div class="modal-overlay" id="addScheduleModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>📅 新增排课</h3>
+      <button class="modal-close" onclick="hideModal('addScheduleModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>课程 *</label>
+        <select class="form-control"><option>商务英语高级班</option><option>Python全栈开发</option><option>雅思冲刺班</option><option>少儿美术启蒙</option></select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>上课日期 *</label>
+          <input class="form-control" type="date">
+        </div>
+        <div class="form-group">
+          <label>教室 *</label>
+          <select class="form-control"><option>A301 多媒体教室</option><option>A302 语音室</option><option>B201 计算机房</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>开始时间 *</label>
+          <input class="form-control" type="time">
+        </div>
+        <div class="form-group">
+          <label>结束时间 *</label>
+          <input class="form-control" type="time">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>授课教师</label>
+        <select class="form-control"><option>张明辉</option><option>李文静</option><option>王艺萌</option></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="hideModal('addScheduleModal')">取消</button>
+      <button class="btn btn-primary" onclick="hideModal('addScheduleModal'); showToast('排课成功！')">确认排课</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// Navigation
+const navItems = document.querySelectorAll('.nav-item');
+const pages = document.querySelectorAll('.page');
+const pageTitles = {
+  dashboard: '工作台', students: '学员管理', courses: '课程管理',
+  schedule: '排课系统', attendance: '考勤管理', grades: '成绩管理',
+  teachers: '教师管理', classroom: '教室管理', reports: '数据报表', settings: '系统设置'
+};
+
+function navigateTo(page) {
+  navItems.forEach(n => n.classList.remove('active'));
+  document.querySelector(`[data-page="${page}"]`)?.classList.add('active');
+  pages.forEach(p => p.classList.remove('active'));
+  document.getElementById(`page-${page}`)?.classList.add('active');
+  document.getElementById('pageTitle').textContent = pageTitles[page] || page;
+  document.getElementById('breadcrumb').textContent = pageTitles[page] || page;
+}
+
+navItems.forEach(item => {
+  item.addEventListener('click', () => navigateTo(item.dataset.page));
+});
+
+// Modal
+function showModal(id) { document.getElementById(id).classList.add('show'); }
+function hideModal(id) { document.getElementById(id).classList.remove('show'); }
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('show'); });
+});
+
+// Toast
+function showToast(msg, isError = false) {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast' + (isError ? ' error' : '');
+  t.innerHTML = `<span>${isError ? '❌' : '✅'}</span> ${msg}`;
+  c.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3000);
+}
+
+// Student data
+const students = [
+  { name: '李明华', id: 'S20260001', phone: '138****1234', course: '商务英语高级班', cls: '2026春季', status: 'active', color: '#6366F1' },
+  { name: '王思雨', id: 'S20260002', phone: '139****5678', course: 'Python全栈开发', cls: '2026春季', status: 'pending', color: '#EC4899' },
+  { name: '张天一', id: 'S20260003', phone: '136****9012', course: '少儿美术启蒙', cls: '2026春季', status: 'active', color: '#F59E0B' },
+  { name: '陈晓峰', id: 'S20260004', phone: '137****3456', course: '雅思冲刺班', cls: '2025秋季', status: 'completed', color: '#10B981' },
+  { name: '刘雨萱', id: 'S20260005', phone: '135****7890', course: '钢琴进阶课', cls: '2026春季', status: 'active', color: '#8B5CF6' },
+  { name: '赵雅琪', id: 'S20260006', phone: '133****2345', course: '商务英语高级班', cls: '2026春季', status: 'active', color: '#F43F5E' },
+  { name: '孙浩然', id: 'S20260007', phone: '131****6789', course: 'Python全栈开发', cls: '2026春季', status: 'active', color: '#0EA5E9' },
+  { name: '周美琳', id: 'S20260008', phone: '132****0123', course: '雅思冲刺班', cls: '2025秋季', status: 'inactive', color: '#A855F7' },
+];
+
+const statusMap = { active: '在读', pending: '待确认', completed: '已毕业', inactive: '休学' };
+const tbody = document.getElementById('studentTableBody');
+tbody.innerHTML = students.map(s => `
+  <tr>
+    <td><div class="avatar-cell"><div class="avatar-sm" style="background:${s.color}">${s.name[0]}</div>${s.name}</div></td>
+    <td>${s.id}</td><td>${s.phone}</td><td>${s.course}</td><td>${s.cls}</td>
+    <td><span class="status-tag ${s.status}">${statusMap[s.status]}</span></td>
+    <td><button class="btn btn-outline btn-sm">编辑</button> <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger)">删除</button></td>
+  </tr>
+`).join('');
+
+// Course cards
+const courses = [
+  { name: '商务英语高级班', type: '语言培训', teacher: '张明辉', students: 32, price: '¥6,800', hours: 48, progress: 65, color: '#3B82F6' },
+  { name: 'Python全栈开发', type: '职业技能', teacher: '李文静', students: 28, price: '¥8,900', hours: 64, progress: 45, color: '#10B981' },
+  { name: '雅思冲刺班', type: '语言培训', teacher: '刘思远', students: 25, price: '¥12,000', hours: 80, progress: 30, color: '#F59E0B' },
+  { name: '少儿美术启蒙', type: '艺术特长', teacher: '王艺萌', students: 20, price: '¥4,200', hours: 32, progress: 80, color: '#EC4899' },
+  { name: '钢琴进阶课', type: '艺术特长', teacher: '周雅琴', students: 15, price: '¥5,600', hours: 24, progress: 55, color: '#8B5CF6' },
+  { name: '中考数学冲刺', type: '学科辅导', teacher: '赵国强', students: 35, price: '¥3,800', hours: 40, progress: 70, color: '#EF4444' },
+];
+const courseGrid = document.getElementById('courseGrid');
+courseGrid.innerHTML = courses.map(c => `
+  <div class="chart-card" style="cursor:pointer" onmouseover="this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.boxShadow='var(--shadow)'">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+      <div style="width:40px;height:40px;border-radius:10px;background:${c.color}20;color:${c.color};display:flex;align-items:center;justify-content:center;font-size:18px">📚</div>
+      <span class="status-tag ${c.progress > 60 ? 'active' : 'pending'}">${c.progress > 60 ? '开课中' : '进行中'}</span>
+    </div>
+    <h3 style="font-size:15px;margin-bottom:4px">${c.name}</h3>
+    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px">${c.type} · ${c.teacher}</div>
+    <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary);margin-bottom:8px">
+      <span>👥 ${c.students}人</span><span>⏱ ${c.hours}课时</span><span>${c.price}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+      <span>教学进度</span><span>${c.progress}%</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill blue" style="width:${c.progress}%"></div></div>
+  </div>
+`).join('');
+
+// Schedule grid
+const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+const scheduleGrid = document.getElementById('scheduleGrid');
+const scheduleData = {
+  '5/4': [{ name: '商务英语', type: 'course' }, { name: '教研会议', type: 'meeting' }],
+  '5/5': [{ name: 'Python开发', type: 'course' }, { name: '雅思冲刺', type: 'course' }],
+  '5/6': [{ name: '商务英语', type: 'course' }, { name: '少儿美术', type: 'course' }, { name: '月度考试', type: 'exam' }],
+  '5/7': [{ name: 'Python开发', type: 'course' }],
+  '5/8': [{ name: '商务英语', type: 'course' }, { name: '钢琴课', type: 'course' }],
+  '5/9': [{ name: '雅思冲刺', type: 'course' }, { name: '数学辅导', type: 'course' }],
+  '5/10': [{ name: '家长会', type: 'meeting' }],
+};
+const dates = ['5/4', '5/5', '5/6', '5/7', '5/8', '5/9', '5/10'];
+scheduleGrid.innerHTML = days.map((d, i) => `<div class="schedule-header">${d}</div>`).join('') +
+  dates.map((d, i) => {
+    const events = scheduleData[d] || [];
+    const isToday = d === '5/6';
+    return `<div class="schedule-cell ${isToday ? 'today' : ''}">
+      <div class="date-num">${d.split('/')[1]}日</div>
+      ${events.map(e => `<div class="schedule-event ${e.type}">${e.name}</div>`).join('')}
+    </div>`;
+  }).join('');
+
+// Attendance grid
+const attendanceStudents = [
+  { name: '李明华', status: 'present' }, { name: '王思雨', status: 'present' },
+  { name: '张天一', status: 'late' }, { name: '陈晓峰', status: 'present' },
+  { name: '刘雨萱', status: 'present' }, { name: '赵雅琪', status: 'absent' },
+  { name: '孙浩然', status: 'present' }, { name: '周美琳', status: 'present' },
+  { name: '吴佳怡', status: 'present' }, { name: '郑浩宇', status: 'present' },
+  { name: '黄诗涵', status: 'present' }, { name: '马子轩', status: 'present' },
+];
+const statusIcons = { present: '✓', late: '⏰', absent: '✗' };
+const statusColors = { present: 'var(--success)', late: 'var(--accent)', absent: 'var(--danger)' };
+const attendanceGrid = document.getElementById('attendanceGrid');
+attendanceGrid.innerHTML = attendanceStudents.map(s => `
+  <div class="attendance-card ${s.status === 'present' ? 'checked' : ''}" onclick="this.classList.toggle('checked')">
+    <div class="status-icon" style="${s.status !== 'present' ? `background:${statusColors[s.status]}20;color:${statusColors[s.status]}` : ''}">${statusIcons[s.status]}</div>
+    <div class="name">${s.name}</div>
+    <div class="id">${s.status === 'present' ? '已签到' : s.status === 'late' ? '迟到' : '缺勤'}</div>
+  </div>
+`).join('');
+
+// Enrollment chart
+const months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+const values = [85, 72, 95, 110, 128, 0, 0, 0, 0, 0, 0, 0];
+const maxVal = Math.max(...values.filter(v => v > 0));
+const chart = document.getElementById('enrollmentChart');
+chart.innerHTML = months.map((m, i) => `
+  <div class="bar-group">
+    <div class="bar primary" style="height:${values[i] ? (values[i] / maxVal * 180) : 4}px" title="${values[i]}人"></div>
+    <div class="bar-label">${m}</div>
+  </div>
+`).join('');
+
+// Revenue chart
+const revValues = [22, 18, 28, 35, 42, 38, 30, 25, 45, 48, 52, 55];
+const revMax = Math.max(...revValues);
+const revChart = document.getElementById('revenueChart');
+revChart.innerHTML = months.map((m, i) => `
+  <div class="bar-group">
+    <div class="bar ${i < 5 ? 'primary' : 'accent'}" style="height:${(revValues[i] / revMax * 180)}px" title="${revValues[i]}万"></div>
+    <div class="bar-label">${m}</div>
+  </div>
+`).join('');
+
+// Tabs
+document.querySelectorAll('.tabs').forEach(tabGroup => {
+  tabGroup.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabGroup.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+    });
+  });
+});
+</script>
+</body>
+</html>
