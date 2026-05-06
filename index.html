@@ -1145,26 +1145,26 @@ select.form-control { cursor: pointer; }
     <div class="modal-body">
       <div class="form-group">
         <label>课程名称 *</label>
-        <input class="form-control" placeholder="请输入课程名称">
+        <input class="form-control" id="courseName" placeholder="请输入课程名称">
       </div>
       <div class="form-row">
         <div class="form-group">
           <label>课程类型 *</label>
-          <select class="form-control"><option>语言培训</option><option>职业技能</option><option>艺术特长</option><option>学科辅导</option></select>
+          <select class="form-control" id="courseType"><option>语言培训</option><option>职业技能</option><option>艺术特长</option><option>学科辅导</option></select>
         </div>
         <div class="form-group">
           <label>授课教师</label>
-          <select class="form-control"><option>张明辉</option><option>李文静</option><option>王艺萌</option><option>赵国强</option></select>
+          <select class="form-control" id="courseTeacher"><option>张明辉</option><option>李文静</option><option>王艺萌</option><option>赵国强</option></select>
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
           <label>课时数</label>
-          <input class="form-control" type="number" placeholder="如: 48">
+          <input class="form-control" id="courseHours" type="number" placeholder="如: 48">
         </div>
         <div class="form-group">
           <label>学费 (元)</label>
-          <input class="form-control" type="number" placeholder="如: 6800">
+          <input class="form-control" id="coursePrice" type="number" placeholder="如: 6800">
         </div>
       </div>
       <div class="form-row">
@@ -1184,7 +1184,7 @@ select.form-control { cursor: pointer; }
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="hideModal('addCourseModal')">取消</button>
-      <button class="btn btn-primary" onclick="hideModal('addCourseModal'); showToast('课程创建成功！')">确认创建</button>
+      <button class="btn btn-primary" onclick="addCourse()">确认创建</button>
     </div>
   </div>
 </div>
@@ -1356,8 +1356,8 @@ function addStudent() {
   showToast(`学员「${name}」添加成功！`);
 }
 
-// Course cards
-const courses = [
+// Course cards — persisted in localStorage
+const defaultCourses = [
   { name: '商务英语高级班', type: '语言培训', teacher: '张明辉', students: 32, price: '¥6,800', hours: 48, progress: 65, color: '#3B82F6' },
   { name: 'Python全栈开发', type: '职业技能', teacher: '李文静', students: 28, price: '¥8,900', hours: 64, progress: 45, color: '#10B981' },
   { name: '雅思冲刺班', type: '语言培训', teacher: '刘思远', students: 25, price: '¥12,000', hours: 80, progress: 30, color: '#F59E0B' },
@@ -1365,24 +1365,78 @@ const courses = [
   { name: '钢琴进阶课', type: '艺术特长', teacher: '周雅琴', students: 15, price: '¥5,600', hours: 24, progress: 55, color: '#8B5CF6' },
   { name: '中考数学冲刺', type: '学科辅导', teacher: '赵国强', students: 35, price: '¥3,800', hours: 40, progress: 70, color: '#EF4444' },
 ];
-const courseGrid = document.getElementById('courseGrid');
-courseGrid.innerHTML = courses.map(c => `
-  <div class="chart-card" style="cursor:pointer" onmouseover="this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.boxShadow='var(--shadow)'">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
-      <div style="width:40px;height:40px;border-radius:10px;background:${c.color}20;color:${c.color};display:flex;align-items:center;justify-content:center;font-size:18px">📚</div>
-      <span class="status-tag ${c.progress > 60 ? 'active' : 'pending'}">${c.progress > 60 ? '开课中' : '进行中'}</span>
+
+function loadCourses() {
+  const saved = localStorage.getItem('liming_courses');
+  return saved ? JSON.parse(saved) : [...defaultCourses];
+}
+function saveCourses() {
+  localStorage.setItem('liming_courses', JSON.stringify(courses));
+}
+
+let courses = loadCourses();
+
+function renderCourses() {
+  const courseGrid = document.getElementById('courseGrid');
+  courseGrid.innerHTML = courses.map((c, i) => `
+    <div class="chart-card" style="cursor:pointer" onmouseover="this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.boxShadow='var(--shadow)'">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+        <div style="width:40px;height:40px;border-radius:10px;background:${c.color}20;color:${c.color};display:flex;align-items:center;justify-content:center;font-size:18px">📚</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="status-tag ${c.progress > 60 ? 'active' : 'pending'}">${c.progress > 60 ? '开课中' : '进行中'}</span>
+          <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger);padding:2px 8px;font-size:11px" onclick="event.stopPropagation(); deleteCourse(${i})">删除</button>
+        </div>
+      </div>
+      <h3 style="font-size:15px;margin-bottom:4px">${c.name}</h3>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px">${c.type} · ${c.teacher}</div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary);margin-bottom:8px">
+        <span>👥 ${c.students}人</span><span>⏱ ${c.hours}课时</span><span>${c.price}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+        <span>教学进度</span><span>${c.progress}%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill blue" style="width:${c.progress}%"></div></div>
     </div>
-    <h3 style="font-size:15px;margin-bottom:4px">${c.name}</h3>
-    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px">${c.type} · ${c.teacher}</div>
-    <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary);margin-bottom:8px">
-      <span>👥 ${c.students}人</span><span>⏱ ${c.hours}课时</span><span>${c.price}</span>
-    </div>
-    <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
-      <span>教学进度</span><span>${c.progress}%</span>
-    </div>
-    <div class="progress-bar"><div class="progress-fill blue" style="width:${c.progress}%"></div></div>
-  </div>
-`).join('');
+  `).join('');
+}
+renderCourses();
+
+function deleteCourse(idx) {
+  const c = courses[idx];
+  if (!c) return;
+  if (!confirm(`确定要删除课程「${c.name}」吗？`)) return;
+  courses.splice(idx, 1);
+  saveCourses();
+  renderCourses();
+  showToast(`已删除课程「${c.name}」`);
+}
+
+function addCourse() {
+  const name = document.getElementById('courseName').value.trim();
+  const type = document.getElementById('courseType').value;
+  const teacher = document.getElementById('courseTeacher').value;
+  const hours = parseInt(document.getElementById('courseHours').value) || 0;
+  const priceVal = parseInt(document.getElementById('coursePrice').value) || 0;
+  if (!name) { showToast('请输入课程名称', true); return; }
+
+  const colors = ['#3B82F6','#10B981','#F59E0B','#EC4899','#8B5CF6','#EF4444','#6366F1','#0EA5E9'];
+  courses.push({
+    name, type, teacher,
+    students: 0,
+    price: '¥' + priceVal.toLocaleString(),
+    hours,
+    progress: 0,
+    color: colors[Math.floor(Math.random() * colors.length)]
+  });
+
+  saveCourses();
+  renderCourses();
+  hideModal('addCourseModal');
+  document.getElementById('courseName').value = '';
+  document.getElementById('courseHours').value = '';
+  document.getElementById('coursePrice').value = '';
+  showToast(`课程「${name}」创建成功！`);
+}
 
 // Schedule grid
 const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
