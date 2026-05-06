@@ -1089,28 +1089,28 @@ select.form-control { cursor: pointer; }
       <div class="form-row">
         <div class="form-group">
           <label>姓名 *</label>
-          <input class="form-control" placeholder="请输入学员姓名">
+          <input class="form-control" id="stuName" placeholder="请输入学员姓名">
         </div>
         <div class="form-group">
           <label>性别</label>
-          <select class="form-control"><option>男</option><option>女</option></select>
+          <select class="form-control" id="stuGender"><option>男</option><option>女</option></select>
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
           <label>联系电话 *</label>
-          <input class="form-control" placeholder="请输入手机号">
+          <input class="form-control" id="stuPhone" placeholder="请输入手机号">
         </div>
         <div class="form-group">
           <label>身份证号</label>
-          <input class="form-control" placeholder="请输入身份证号">
+          <input class="form-control" id="stuIdCard" placeholder="请输入身份证号">
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
           <label>报名课程 *</label>
-          <select class="form-control">
-            <option>请选择课程</option>
+          <select class="form-control" id="stuCourse">
+            <option value="">请选择课程</option>
             <option>商务英语高级班</option>
             <option>Python全栈开发</option>
             <option>雅思冲刺班</option>
@@ -1120,17 +1120,17 @@ select.form-control { cursor: pointer; }
         </div>
         <div class="form-group">
           <label>班级</label>
-          <select class="form-control"><option>2026春季班</option><option>2025秋季班</option></select>
+          <select class="form-control" id="stuClass"><option>2026春季</option><option>2025秋季</option></select>
         </div>
       </div>
       <div class="form-group">
         <label>备注</label>
-        <textarea class="form-control" rows="2" placeholder="选填" style="resize:vertical"></textarea>
+        <textarea class="form-control" id="stuNote" rows="2" placeholder="选填" style="resize:vertical"></textarea>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="hideModal('addStudentModal')">取消</button>
-      <button class="btn btn-primary" onclick="hideModal('addStudentModal'); showToast('学员添加成功！')">确认添加</button>
+      <button class="btn btn-primary" onclick="addStudent()">确认添加</button>
     </div>
   </div>
 </div>
@@ -1276,8 +1276,8 @@ function showToast(msg, isError = false) {
   setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3000);
 }
 
-// Student data
-const students = [
+// Student data — persisted in localStorage
+const defaultStudents = [
   { name: '李明华', id: 'S20260001', phone: '138****1234', course: '商务英语高级班', cls: '2026春季', status: 'active', color: '#6366F1' },
   { name: '王思雨', id: 'S20260002', phone: '139****5678', course: 'Python全栈开发', cls: '2026春季', status: 'pending', color: '#EC4899' },
   { name: '张天一', id: 'S20260003', phone: '136****9012', course: '少儿美术启蒙', cls: '2026春季', status: 'active', color: '#F59E0B' },
@@ -1288,16 +1288,73 @@ const students = [
   { name: '周美琳', id: 'S20260008', phone: '132****0123', course: '雅思冲刺班', cls: '2025秋季', status: 'inactive', color: '#A855F7' },
 ];
 
+function loadStudents() {
+  const saved = localStorage.getItem('liming_students');
+  return saved ? JSON.parse(saved) : [...defaultStudents];
+}
+function saveStudents() {
+  localStorage.setItem('liming_students', JSON.stringify(students));
+}
+
+let students = loadStudents();
 const statusMap = { active: '在读', pending: '待确认', completed: '已毕业', inactive: '休学' };
-const tbody = document.getElementById('studentTableBody');
-tbody.innerHTML = students.map(s => `
-  <tr>
-    <td><div class="avatar-cell"><div class="avatar-sm" style="background:${s.color}">${s.name[0]}</div>${s.name}</div></td>
-    <td>${s.id}</td><td>${s.phone}</td><td>${s.course}</td><td>${s.cls}</td>
-    <td><span class="status-tag ${s.status}">${statusMap[s.status]}</span></td>
-    <td><button class="btn btn-outline btn-sm">编辑</button> <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger)">删除</button></td>
-  </tr>
-`).join('');
+
+function renderStudents() {
+  const tbody = document.getElementById('studentTableBody');
+  tbody.innerHTML = students.map(s => `
+    <tr>
+      <td><div class="avatar-cell"><div class="avatar-sm" style="background:${s.color}">${s.name[0]}</div>${s.name}</div></td>
+      <td>${s.id}</td><td>${s.phone}</td><td>${s.course}</td><td>${s.cls}</td>
+      <td><span class="status-tag ${s.status}">${statusMap[s.status]}</span></td>
+      <td><button class="btn btn-outline btn-sm">编辑</button> <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger)" onclick="deleteStudent('${s.id}')">删除</button></td>
+    </tr>
+  `).join('');
+}
+renderStudents();
+
+function deleteStudent(id) {
+  const s = students.find(x => x.id === id);
+  if (!s) return;
+  if (!confirm(`确定要删除学员「${s.name}」吗？`)) return;
+  const idx = students.findIndex(x => x.id === id);
+  students.splice(idx, 1);
+  saveStudents();
+  renderStudents();
+  showToast(`已删除学员「${s.name}」`);
+}
+
+function addStudent() {
+  const name = document.getElementById('stuName').value.trim();
+  const phone = document.getElementById('stuPhone').value.trim();
+  const course = document.getElementById('stuCourse').value;
+  if (!name) { showToast('请输入学员姓名', true); return; }
+  if (!phone) { showToast('请输入联系电话', true); return; }
+  if (!course) { showToast('请选择报名课程', true); return; }
+
+  const colors = ['#6366F1','#EC4899','#F59E0B','#10B981','#8B5CF6','#F43F5E','#0EA5E9','#A855F7','#EF4444','#3B82F6'];
+  const maxNum = students.reduce((m, s) => { const n = parseInt(s.id.replace('S','')); return n > m ? n : m; }, 0);
+  const newId = 'S' + String(maxNum + 1).padStart(8, '0');
+
+  students.push({
+    name,
+    id: newId,
+    phone: phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2'),
+    course,
+    cls: document.getElementById('stuClass').value,
+    status: 'active',
+    color: colors[Math.floor(Math.random() * colors.length)]
+  });
+
+  saveStudents();
+  renderStudents();
+  hideModal('addStudentModal');
+  document.getElementById('stuName').value = '';
+  document.getElementById('stuPhone').value = '';
+  document.getElementById('stuIdCard').value = '';
+  document.getElementById('stuNote').value = '';
+  document.getElementById('stuCourse').selectedIndex = 0;
+  showToast(`学员「${name}」添加成功！`);
+}
 
 // Course cards
 const courses = [
