@@ -211,7 +211,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC'
 .btn-outline { background: var(--surface); color: var(--text); border-color: var(--border); }
 .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
 .btn-success { background: var(--success); color: white; }
+.btn-success:hover { background: #059669; }
 .btn-danger { background: var(--danger); color: white; }
+.btn-danger:hover { background: #DC2626; }
+.btn-warning { background: var(--warning); color: white; }
 .btn-sm { padding: 5px 12px; font-size: 12px; }
 table { width: 100%; border-collapse: collapse; }
 thead { background: #F8FAFC; }
@@ -230,6 +233,9 @@ tr:hover { background: #F8FAFC; }
 .status-tag.pending { background: #FFFBEB; color: #92400E; }
 .status-tag.inactive { background: #FEF2F2; color: #991B1B; }
 .status-tag.completed { background: #EEF2FF; color: #3730A3; }
+.status-tag.rollcall-done { background: #D1FAE5; color: #065F46; }
+.status-tag.rollcall-pending { background: #FEF3C7; color: #92400E; }
+.status-tag.rollcall-ongoing { background: #DBEAFE; color: #1E40AF; }
 .avatar-cell { display: flex; align-items: center; gap: 10px; }
 .avatar-sm {
   width: 32px; height: 32px; border-radius: 50%; display: flex;
@@ -246,7 +252,7 @@ tr:hover { background: #F8FAFC; }
 }
 .modal-overlay.show { opacity: 1; pointer-events: all; }
 .modal {
-  background: var(--surface); border-radius: 16px; width: 560px;
+  background: var(--surface); border-radius: 16px;
   max-height: 85vh; overflow-y: auto; box-shadow: var(--shadow-lg);
   transform: scale(0.95) translateY(10px); transition: transform 0.3s;
 }
@@ -254,6 +260,7 @@ tr:hover { background: #F8FAFC; }
 .modal-header {
   padding: 20px 24px; border-bottom: 1px solid var(--border);
   display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; background: var(--surface); z-index: 1; border-radius: 16px 16px 0 0;
 }
 .modal-header h3 { font-size: 16px; font-weight: 600; }
 .modal-close {
@@ -267,6 +274,7 @@ tr:hover { background: #F8FAFC; }
 .modal-footer {
   padding: 16px 24px; border-top: 1px solid var(--border);
   display: flex; justify-content: flex-end; gap: 8px;
+  position: sticky; bottom: 0; background: var(--surface); border-radius: 0 0 16px 16px;
 }
 
 /* Form */
@@ -438,6 +446,106 @@ select.form-control { cursor: pointer; }
 }
 .toast.error { border-left-color: var(--danger); }
 @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+/* ========== 上课点名专用样式 ========== */
+
+/* 点名详情弹窗 */
+.rollcall-modal { width: 900px; max-width: 95vw; }
+.rollcall-info-bar {
+  display: flex; gap: 24px; padding: 16px 20px; background: #F8FAFC;
+  border-radius: 10px; margin-bottom: 20px; flex-wrap: wrap;
+}
+.rollcall-info-item {
+  display: flex; align-items: center; gap: 8px; font-size: 13px;
+}
+.rollcall-info-item .label { color: var(--text-secondary); }
+.rollcall-info-item .value { font-weight: 600; }
+
+/* 点名学生列表 */
+.rollcall-student-list { display: flex; flex-direction: column; gap: 8px; }
+.rollcall-student-row {
+  display: flex; align-items: center; padding: 12px 16px;
+  border: 1px solid var(--border); border-radius: 10px;
+  transition: all 0.2s; gap: 12px;
+}
+.rollcall-student-row:hover { background: #F8FAFC; }
+.rollcall-student-row .student-name {
+  flex: 1; display: flex; align-items: center; gap: 10px; font-weight: 500;
+}
+.rollcall-status-btns { display: flex; gap: 6px; }
+.rollcall-status-btn {
+  padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 500;
+  cursor: pointer; border: 1px solid var(--border); background: var(--surface);
+  transition: all 0.2s;
+}
+.rollcall-status-btn:hover { border-color: var(--primary); }
+.rollcall-status-btn.selected { color: white; border-color: transparent; }
+.rollcall-status-btn.present.selected { background: var(--success); }
+.rollcall-status-btn.absent.selected { background: var(--danger); }
+.rollcall-status-btn.late.selected { background: var(--warning); }
+.rollcall-status-btn.leave.selected { background: var(--info); }
+
+/* 点名统计 */
+.rollcall-stats {
+  display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap;
+}
+.rollcall-stat-item {
+  flex: 1; min-width: 120px; background: var(--surface); border-radius: 10px;
+  padding: 16px; text-align: center; box-shadow: var(--shadow);
+}
+.rollcall-stat-item .num { font-size: 28px; font-weight: 700; line-height: 1.2; }
+.rollcall-stat-item .label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+.rollcall-stat-item.total .num { color: var(--primary); }
+.rollcall-stat-item.present .num { color: var(--success); }
+.rollcall-stat-item.absent .num { color: var(--danger); }
+.rollcall-stat-item.late .num { color: var(--warning); }
+.rollcall-stat-item.leave .num { color: var(--info); }
+
+/* 待办课节卡片式列表 */
+.session-list { display: flex; flex-direction: column; gap: 12px; }
+.session-card {
+  background: var(--surface); border-radius: var(--radius); padding: 20px 24px;
+  box-shadow: var(--shadow); display: flex; align-items: center; gap: 20px;
+  cursor: pointer; transition: all 0.2s; border: 1px solid transparent;
+}
+.session-card:hover { box-shadow: var(--shadow-lg); border-color: var(--primary-light); }
+.session-card .session-time {
+  text-align: center; min-width: 80px;
+}
+.session-card .session-time .time { font-size: 18px; font-weight: 700; color: var(--primary); }
+.session-card .session-time .date { font-size: 12px; color: var(--text-secondary); }
+.session-card .session-divider {
+  width: 1px; height: 48px; background: var(--border);
+}
+.session-card .session-info { flex: 1; }
+.session-card .session-info .class-name { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+.session-card .session-info .teacher { font-size: 13px; color: var(--text-secondary); }
+.session-card .session-info .meta {
+  display: flex; gap: 16px; margin-top: 6px; font-size: 12px; color: var(--text-secondary);
+}
+.session-card .session-status { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+
+/* 快速点名面板 */
+.quick-rollcall-panel {
+  background: var(--surface); border-radius: var(--radius); padding: 24px;
+  box-shadow: var(--shadow); margin-bottom: 24px;
+}
+.quick-rollcall-panel h3 {
+  font-size: 15px; font-weight: 600; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+.rollcall-quick-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px;
+}
+.rollcall-quick-card {
+  padding: 14px; border-radius: 10px; text-align: center; cursor: pointer;
+  border: 2px solid var(--border); transition: all 0.2s; background: var(--surface);
+}
+.rollcall-quick-card:hover { border-color: var(--primary); }
+.rollcall-quick-card.done { border-color: var(--success); background: #F0FDF4; }
+.rollcall-quick-card .rc-name { font-weight: 600; font-size: 14px; margin-top: 6px; }
+.rollcall-quick-card .rc-status { font-size: 11px; margin-top: 4px; }
+.rollcall-quick-card.done .rc-status { color: var(--success); }
 </style>
 </head>
 <body>
@@ -455,36 +563,48 @@ select.form-control { cursor: pointer; }
     <div class="nav-section">
       <div class="nav-section-title">主要功能</div>
       <div class="nav-item active" data-page="dashboard">
-        <span class="icon">📊</span> 工作台
+        <span class="icon">🏠</span> 首页
       </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">招生营销</div>
       <div class="nav-item" data-page="students">
-        <span class="icon">👥</span> 学员管理
+        <span class="icon">👥</span> 学员列表
       </div>
       <div class="nav-item" data-page="courses">
         <span class="icon">📚</span> 课程管理
       </div>
-      <div class="nav-item" data-page="schedule">
-        <span class="icon">📅</span> 排课系统
-      </div>
-      <div class="nav-item" data-page="attendance">
-        <span class="icon">✅</span> 考勤管理
-        <span class="badge">3</span>
-      </div>
     </div>
     <div class="nav-section">
-      <div class="nav-section-title">教务管理</div>
-      <div class="nav-item" data-page="grades">
-        <span class="icon">📝</span> 成绩管理
+      <div class="nav-section-title">教学教务</div>
+      <div class="nav-item" data-page="classManage">
+        <span class="icon">📋</span> 班级列表
       </div>
-      <div class="nav-item" data-page="teachers">
-        <span class="icon">🎓</span> 教师管理
+      <div class="nav-item" data-page="rollcall">
+        <span class="icon">✋</span> 上课点名
+        <span class="badge" id="rollcallBadge">3</span>
+      </div>
+      <div class="nav-item" data-page="schedule">
+        <span class="icon">📅</span> 课表管理
       </div>
       <div class="nav-item" data-page="classroom">
         <span class="icon">🏫</span> 教室管理
       </div>
     </div>
     <div class="nav-section">
-      <div class="nav-section-title">系统</div>
+      <div class="nav-section-title">家校互动</div>
+      <div class="nav-item" data-page="grades">
+        <span class="icon">📝</span> 成绩管理
+      </div>
+      <div class="nav-item" data-page="attendance">
+        <span class="icon">📊</span> 考勤统计
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">机构管理</div>
+      <div class="nav-item" data-page="teachers">
+        <span class="icon">🎓</span> 老师管理
+      </div>
       <div class="nav-item" data-page="reports">
         <span class="icon">📈</span> 数据报表
       </div>
@@ -506,21 +626,22 @@ select.form-control { cursor: pointer; }
 <div class="main">
   <header class="header">
     <div class="header-left">
-      <h2 id="pageTitle">工作台</h2>
+      <h2 id="pageTitle">首页</h2>
       <div class="breadcrumb">首页 / <span id="breadcrumb">工作台</span></div>
     </div>
     <div class="header-right">
       <div class="search-box">
         <span class="icon">🔍</span>
-        <input type="text" placeholder="搜索学员、课程...">
+        <input type="text" placeholder="输入学员姓名、手机号搜索">
       </div>
       <button class="header-btn"><span class="dot"></span>🔔</button>
       <button class="header-btn">💬</button>
     </div>
   </header>
 
-  <!-- Dashboard -->
   <div class="content">
+
+    <!-- ==================== 首页 Dashboard ==================== -->
     <div class="page active" id="page-dashboard">
       <div class="stats-grid">
         <div class="stat-card">
@@ -557,22 +678,42 @@ select.form-control { cursor: pointer; }
         </div>
       </div>
 
+      <!-- 待办课节 -->
+      <div class="chart-card" style="margin-bottom:24px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <h3 style="margin-bottom:0">📋 待办课节</h3>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-sm btn-primary" onclick="navigateTo('rollcall')">查看全部 ></button>
+          </div>
+        </div>
+        <div class="tabs" style="margin-bottom:16px">
+          <div class="tab active" onclick="switchDashboardTab(this,'dashPending')">未完成点名</div>
+          <div class="tab" onclick="switchDashboardTab(this,'dashUnfinished')">未结课</div>
+        </div>
+        <div id="dashPending">
+          <div class="session-list" id="dashPendingList"></div>
+        </div>
+        <div id="dashUnfinished" style="display:none">
+          <div class="empty-state" style="padding:30px"><div class="icon">🎉</div><h3>所有课程均已结课</h3></div>
+        </div>
+      </div>
+
       <div class="quick-actions">
         <div class="quick-action" onclick="navigateTo('students'); showModal('addStudentModal')">
           <div class="qa-icon" style="background:#EEF2FF;color:var(--primary)">➕</div>
-          <div><div class="qa-text">新增学员</div><div class="qa-desc">录入学员信息</div></div>
+          <div><div class="qa-text">报名/续费</div><div class="qa-desc">录入学员信息</div></div>
         </div>
-        <div class="quick-action" onclick="navigateTo('courses'); showModal('addCourseModal')">
-          <div class="qa-icon" style="background:#ECFDF5;color:var(--success)">📖</div>
-          <div><div class="qa-text">创建课程</div><div class="qa-desc">开设新课程</div></div>
-        </div>
-        <div class="quick-action" onclick="navigateTo('attendance')">
-          <div class="qa-icon" style="background:#FFFBEB;color:var(--accent)">📋</div>
-          <div><div class="qa-text">今日考勤</div><div class="qa-desc">查看出勤情况</div></div>
+        <div class="quick-action" onclick="navigateTo('rollcall')">
+          <div class="qa-icon" style="background:#ECFDF5;color:var(--success)">✋</div>
+          <div><div class="qa-text">上课点名</div><div class="qa-desc">今日待点名 3 节</div></div>
         </div>
         <div class="quick-action" onclick="navigateTo('schedule')">
-          <div class="qa-icon" style="background:#FEF2F2;color:var(--danger)">🗓️</div>
-          <div><div class="qa-text">排课管理</div><div class="qa-desc">安排课程表</div></div>
+          <div class="qa-icon" style="background:#FFFBEB;color:var(--accent)">🗓️</div>
+          <div><div class="qa-text">快速排课</div><div class="qa-desc">安排课程表</div></div>
+        </div>
+        <div class="quick-action" onclick="navigateTo('courses')">
+          <div class="qa-icon" style="background:#FEF2F2;color:var(--danger)">📖</div>
+          <div><div class="qa-text">课时查询</div><div class="qa-desc">查看课时消耗</div></div>
         </div>
       </div>
 
@@ -580,9 +721,7 @@ select.form-control { cursor: pointer; }
         <div class="chart-card">
           <h3>📊 月度招生趋势</h3>
           <div class="chart-placeholder">
-            <div class="bar-chart" id="enrollmentChart">
-              <!-- Generated by JS -->
-            </div>
+            <div class="bar-chart" id="enrollmentChart"></div>
           </div>
         </div>
         <div class="chart-card">
@@ -605,88 +744,56 @@ select.form-control { cursor: pointer; }
           </div>
         </div>
       </div>
+    </div>
 
-      <div class="charts-grid">
+    <!-- ==================== 上课点名页面 ==================== -->
+    <div class="page" id="page-rollcall">
+      <div class="tabs">
+        <div class="tab active" onclick="switchRollcallTab(this,'rollcallPending')">待点名</div>
+        <div class="tab" onclick="switchRollcallTab(this,'rollcallDone')">已完成</div>
+        <div class="tab" onclick="switchRollcallTab(this,'rollcallAll')">全部课节</div>
+      </div>
+
+      <div class="filter-bar">
+        <input class="form-control" type="date" id="rollcallDateFilter" style="width:160px" onchange="renderRollcallSessions()">
+        <select class="form-control" id="rollcallClassFilter" style="width:180px" onchange="renderRollcallSessions()">
+          <option value="">全部班级</option>
+        </select>
+        <select class="form-control" id="rollcallTeacherFilter" style="width:160px" onchange="renderRollcallSessions()">
+          <option value="">全部老师</option>
+        </select>
+        <div style="flex:1"></div>
+        <button class="btn btn-outline" onclick="exportRollcallData()">📤 导出考勤</button>
+        <button class="btn btn-primary" onclick="showModal('addSessionModal')">➕ 新增课节</button>
+      </div>
+
+      <!-- 待点名列表 -->
+      <div id="rollcallPending">
+        <div class="session-list" id="rollcallPendingList"></div>
+      </div>
+
+      <!-- 已完成列表 -->
+      <div id="rollcallDone" style="display:none">
         <div class="table-card">
-          <div class="table-header">
-            <h3>📋 最近报名</h3>
-            <button class="btn btn-outline btn-sm" onclick="navigateTo('students')">查看全部</button>
-          </div>
           <table>
-            <thead><tr><th>学员</th><th>课程</th><th>报名时间</th><th>状态</th></tr></thead>
-            <tbody>
-              <tr>
-                <td><div class="avatar-cell"><div class="avatar-sm" style="background:#6366F1">李</div>李明华</div></td>
-                <td>商务英语高级班</td><td>2026-05-06</td>
-                <td><span class="status-tag active">已确认</span></td>
-              </tr>
-              <tr>
-                <td><div class="avatar-cell"><div class="avatar-sm" style="background:#EC4899">王</div>王思雨</div></td>
-                <td>Python全栈开发</td><td>2026-05-05</td>
-                <td><span class="status-tag pending">待缴费</span></td>
-              </tr>
-              <tr>
-                <td><div class="avatar-cell"><div class="avatar-sm" style="background:#F59E0B">张</div>张天一</div></td>
-                <td>少儿美术启蒙</td><td>2026-05-05</td>
-                <td><span class="status-tag active">已确认</span></td>
-              </tr>
-              <tr>
-                <td><div class="avatar-cell"><div class="avatar-sm" style="background:#10B981">陈</div>陈晓峰</div></td>
-                <td>雅思冲刺班</td><td>2026-05-04</td>
-                <td><span class="status-tag completed">已完成</span></td>
-              </tr>
-              <tr>
-                <td><div class="avatar-cell"><div class="avatar-sm" style="background:#8B5CF6">刘</div>刘雨萱</div></td>
-                <td>钢琴进阶课</td><td>2026-05-04</td>
-                <td><span class="status-tag active">已确认</span></td>
-              </tr>
-            </tbody>
+            <thead><tr><th>上课时间</th><th>班级名称</th><th>授课老师</th><th>应到</th><th>实到</th><th>出勤率</th><th>操作</th></tr></thead>
+            <tbody id="rollcallDoneBody"></tbody>
           </table>
         </div>
-        <div class="chart-card">
-          <h3>🕐 最近动态</h3>
-          <div class="activity-list">
-            <div class="activity-item">
-              <div class="activity-dot" style="background:var(--success)"></div>
-              <div class="activity-content">
-                <p><strong>李明华</strong> 报名了 商务英语高级班</p>
-                <div class="time">10 分钟前</div>
-              </div>
-            </div>
-            <div class="activity-item">
-              <div class="activity-dot" style="background:var(--primary)"></div>
-              <div class="activity-content">
-                <p><strong>张老师</strong> 提交了期中成绩</p>
-                <div class="time">32 分钟前</div>
-              </div>
-            </div>
-            <div class="activity-item">
-              <div class="activity-dot" style="background:var(--accent)"></div>
-              <div class="activity-content">
-                <p>教室 A301 排课冲突已解决</p>
-                <div class="time">1 小时前</div>
-              </div>
-            </div>
-            <div class="activity-item">
-              <div class="activity-dot" style="background:var(--danger)"></div>
-              <div class="activity-content">
-                <p><strong>王思雨</strong> 缴费即将到期</p>
-                <div class="time">2 小时前</div>
-              </div>
-            </div>
-            <div class="activity-item">
-              <div class="activity-dot" style="background:var(--info)"></div>
-              <div class="activity-content">
-                <p>新增教室 B205 已启用</p>
-                <div class="time">3 小时前</div>
-              </div>
-            </div>
-          </div>
+      </div>
+
+      <!-- 全部课节 -->
+      <div id="rollcallAll" style="display:none">
+        <div class="table-card">
+          <table>
+            <thead><tr><th>上课时间</th><th>班级名称</th><th>授课老师</th><th>状态</th><th>应到</th><th>实到</th><th>操作</th></tr></thead>
+            <tbody id="rollcallAllBody"></tbody>
+          </table>
         </div>
       </div>
     </div>
 
-    <!-- Students Page -->
+    <!-- ==================== 学员管理 ==================== -->
     <div class="page" id="page-students">
       <div class="filter-bar">
         <select class="form-control" style="width:140px"><option>全部状态</option><option>在读</option><option>休学</option><option>毕业</option></select>
@@ -700,26 +807,22 @@ select.form-control { cursor: pointer; }
       <div class="table-card">
         <table>
           <thead><tr><th>学员</th><th>学号</th><th>联系电话</th><th>报名课程</th><th>班级</th><th>状态</th><th>操作</th></tr></thead>
-          <tbody id="studentTableBody">
-            <!-- Generated by JS -->
-          </tbody>
+          <tbody id="studentTableBody"></tbody>
         </table>
         <div class="pagination">
-          <div class="info">显示 1-10 共 1,286 条</div>
+          <div class="info" id="studentPagInfo">显示 1-10 共 0 条</div>
           <div class="pages">
             <button class="page-btn">‹</button>
             <button class="page-btn active">1</button>
             <button class="page-btn">2</button>
             <button class="page-btn">3</button>
-            <button class="page-btn">...</button>
-            <button class="page-btn">129</button>
             <button class="page-btn">›</button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Courses Page -->
+    <!-- ==================== 课程管理 ==================== -->
     <div class="page" id="page-courses">
       <div class="filter-bar">
         <select class="form-control" style="width:140px"><option>全部类型</option><option>语言培训</option><option>职业技能</option><option>艺术特长</option><option>学科辅导</option></select>
@@ -727,67 +830,58 @@ select.form-control { cursor: pointer; }
         <div style="flex:1"></div>
         <button class="btn btn-primary" onclick="showModal('addCourseModal')">➕ 创建课程</button>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px" id="courseGrid">
-        <!-- Generated by JS -->
-      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px" id="courseGrid"></div>
     </div>
 
-    <!-- Schedule Page -->
-    <div class="page" id="page-schedule">
+    <!-- ==================== 班级管理 ==================== -->
+    <div class="page" id="page-classManage">
       <div class="filter-bar">
-        <button class="btn btn-outline btn-sm">‹ 上一周</button>
-        <div style="font-weight:600;font-size:15px;padding:0 12px">2026年5月4日 — 5月10日</div>
-        <button class="btn btn-outline btn-sm">下一周 ›</button>
+        <select class="form-control" style="width:140px"><option>全部状态</option><option>开课中</option><option>未开课</option><option>已结课</option></select>
         <div style="flex:1"></div>
-        <select class="form-control" style="width:160px"><option>全部教室</option><option>A301 多媒体教室</option><option>A302 语音室</option><option>B201 计算机房</option></select>
-        <button class="btn btn-primary" onclick="showModal('addScheduleModal')">➕ 新增排课</button>
+        <button class="btn btn-primary" onclick="showModal('addClassModal')">➕ 新增班级</button>
       </div>
-      <div class="schedule-grid" id="scheduleGrid">
-        <!-- Generated by JS -->
-      </div>
-    </div>
-
-    <!-- Attendance Page -->
-    <div class="page" id="page-attendance">
-      <div class="tabs">
-        <div class="tab active">今日考勤</div>
-        <div class="tab">考勤统计</div>
-        <div class="tab">异常记录</div>
-      </div>
-      <div class="filter-bar">
-        <select class="form-control" style="width:180px"><option>商务英语高级班 (09:00)</option><option>Python全栈开发 (10:30)</option><option>雅思冲刺班 (14:00)</option></select>
-        <select class="form-control" style="width:120px"><option>2026-05-06</option></select>
-        <div style="flex:1"></div>
-        <button class="btn btn-outline">📊 导出考勤</button>
-      </div>
-      <div class="attendance-grid" id="attendanceGrid">
-        <!-- Generated by JS -->
-      </div>
-      <div class="table-card" style="margin-top:20px">
-        <div class="table-header">
-          <h3>考勤汇总</h3>
-        </div>
+      <div class="table-card">
         <table>
-          <thead><tr><th>课程</th><th>时间</th><th>应到</th><th>实到</th><th>迟到</th><th>缺勤</th><th>出勤率</th></tr></thead>
-          <tbody>
-            <tr>
-              <td>商务英语高级班</td><td>09:00-11:00</td><td>32</td><td>30</td><td>1</td><td>1</td>
-              <td><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:100px"><div class="progress-fill green" style="width:93.7%"></div></div>93.7%</div></td>
-            </tr>
-            <tr>
-              <td>Python全栈开发</td><td>10:30-12:30</td><td>28</td><td>27</td><td>0</td><td>1</td>
-              <td><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:100px"><div class="progress-fill blue" style="width:96.4%"></div></div>96.4%</div></td>
-            </tr>
-            <tr>
-              <td>雅思冲刺班</td><td>14:00-16:00</td><td>25</td><td>25</td><td>0</td><td>0</td>
-              <td><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:100px"><div class="progress-fill green" style="width:100%"></div></div>100%</div></td>
-            </tr>
-          </tbody>
+          <thead><tr><th>班级名称</th><th>课程</th><th>授课老师</th><th>学员数</th><th>已上课时</th><th>总课时</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody id="classTableBody"></tbody>
         </table>
       </div>
     </div>
 
-    <!-- Grades Page -->
+    <!-- ==================== 排课系统 ==================== -->
+    <div class="page" id="page-schedule">
+      <div class="filter-bar">
+        <button class="btn btn-outline btn-sm" onclick="changeWeek(-1)">‹ 上一周</button>
+        <div style="font-weight:600;font-size:15px;padding:0 12px" id="weekTitle">2026年5月4日 — 5月10日</div>
+        <button class="btn btn-outline btn-sm" onclick="changeWeek(1)">下一周 ›</button>
+        <div style="flex:1"></div>
+        <select class="form-control" style="width:160px"><option>全部教室</option><option>A301 多媒体教室</option><option>A302 语音室</option><option>B201 计算机房</option></select>
+        <button class="btn btn-primary" onclick="showModal('addScheduleModal')">➕ 新增排课</button>
+      </div>
+      <div class="schedule-grid" id="scheduleGrid"></div>
+    </div>
+
+    <!-- ==================== 考勤统计 ==================== -->
+    <div class="page" id="page-attendance">
+      <div class="tabs">
+        <div class="tab active">考勤统计</div>
+        <div class="tab">异常记录</div>
+      </div>
+      <div class="filter-bar">
+        <select class="form-control" style="width:180px"><option>全部课程</option><option>商务英语高级班</option><option>Python全栈开发</option><option>雅思冲刺班</option></select>
+        <input class="form-control" type="date" style="width:160px">
+        <div style="flex:1"></div>
+        <button class="btn btn-outline">📊 导出报表</button>
+      </div>
+      <div class="table-card">
+        <table>
+          <thead><tr><th>课程</th><th>时间</th><th>应到</th><th>实到</th><th>迟到</th><th>缺勤</th><th>出勤率</th></tr></thead>
+          <tbody id="attendanceBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== 成绩管理 ==================== -->
     <div class="page" id="page-grades">
       <div class="filter-bar">
         <select class="form-control" style="width:180px"><option>全部课程</option><option>商务英语高级班</option><option>Python全栈开发</option><option>雅思冲刺班</option></select>
@@ -801,22 +895,19 @@ select.form-control { cursor: pointer; }
         <table>
           <thead><tr><th>学员</th><th>学号</th><th>课程</th><th>平时成绩</th><th>期中</th><th>期末</th><th>总评</th><th>等级</th><th>操作</th></tr></thead>
           <tbody id="gradesBody"></tbody>
-
         </table>
         <div class="pagination">
-          <div class="info">显示 1-5 共 1,286 条</div>
+          <div class="info">显示 1-5 共 5 条</div>
           <div class="pages">
             <button class="page-btn">‹</button>
             <button class="page-btn active">1</button>
-            <button class="page-btn">2</button>
-            <button class="page-btn">3</button>
             <button class="page-btn">›</button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Teachers Page -->
+    <!-- ==================== 教师管理 ==================== -->
     <div class="page" id="page-teachers">
       <div class="filter-bar">
         <select class="form-control" style="width:140px"><option>全部学科</option><option>英语</option><option>计算机</option><option>美术</option><option>音乐</option></select>
@@ -826,7 +917,7 @@ select.form-control { cursor: pointer; }
       <div id="teacherGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px"></div>
     </div>
 
-    <!-- Classroom Page -->
+    <!-- ==================== 教室管理 ==================== -->
     <div class="page" id="page-classroom">
       <div class="filter-bar">
         <select class="form-control" style="width:140px"><option>全部楼层</option><option>A栋</option><option>B栋</option></select>
@@ -837,7 +928,7 @@ select.form-control { cursor: pointer; }
       <div id="classroomGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px"></div>
     </div>
 
-    <!-- Reports Page -->
+    <!-- ==================== 数据报表 ==================== -->
     <div class="page" id="page-reports">
       <div class="stats-grid">
         <div class="stat-card">
@@ -906,7 +997,7 @@ select.form-control { cursor: pointer; }
       </div>
     </div>
 
-    <!-- Settings Page -->
+    <!-- ==================== 系统设置 ==================== -->
     <div class="page" id="page-settings">
       <div class="tabs">
         <div class="tab active">基本信息</div>
@@ -943,7 +1034,7 @@ select.form-control { cursor: pointer; }
           </div>
           <div class="form-group">
             <label>机构简介</label>
-            <textarea class="form-control" rows="3" style="resize:vertical">智学通教育培训中心成立于2018年，专注于语言培训、职业技能提升和艺术素质教育。拥有专业的教师团队和先进的教学设施，致力于为学员提供优质的教育培训服务。</textarea>
+            <textarea class="form-control" rows="3" style="resize:vertical">智学通教育培训中心成立于2018年，专注于语言培训、职业技能提升和艺术素质教育。</textarea>
           </div>
           <div style="margin-top:20px">
             <button class="btn btn-primary">保存修改</button>
@@ -952,12 +1043,15 @@ select.form-control { cursor: pointer; }
         </div>
       </div>
     </div>
+
   </div>
 </div>
 
-<!-- Add Student Modal -->
+<!-- ==================== Modals ==================== -->
+
+<!-- 新增学员 Modal -->
 <div class="modal-overlay" id="addStudentModal">
-  <div class="modal">
+  <div class="modal" style="width:560px">
     <div class="modal-header">
       <h3>➕ 新增学员</h3>
       <button class="modal-close" onclick="hideModal('addStudentModal')">✕</button>
@@ -1012,9 +1106,9 @@ select.form-control { cursor: pointer; }
   </div>
 </div>
 
-<!-- Add Course Modal -->
+<!-- 新增课程 Modal -->
 <div class="modal-overlay" id="addCourseModal">
-  <div class="modal">
+  <div class="modal" style="width:560px">
     <div class="modal-header">
       <h3>📖 创建课程</h3>
       <button class="modal-close" onclick="hideModal('addCourseModal')">✕</button>
@@ -1030,12 +1124,6 @@ select.form-control { cursor: pointer; }
           <select class="form-control" id="courseType"><option>语言培训</option><option>职业技能</option><option>艺术特长</option><option>学科辅导</option></select>
         </div>
         <div class="form-group">
-          <label>类型</label>
-          <select class="form-control" id="schedType"><option value="course">课程</option><option value="meeting">会议</option><option value="exam">考试</option></select>
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
           <label>授课教师</label>
           <select class="form-control" id="courseTeacher"><option>张明辉</option><option>李文静</option><option>王艺萌</option><option>赵国强</option></select>
         </div>
@@ -1050,16 +1138,6 @@ select.form-control { cursor: pointer; }
           <input class="form-control" id="coursePrice" type="number" placeholder="如: 6800">
         </div>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>开课日期</label>
-          <input class="form-control" type="date">
-        </div>
-        <div class="form-group">
-          <label>结课日期</label>
-          <input class="form-control" type="date">
-        </div>
-      </div>
       <div class="form-group">
         <label>课程简介</label>
         <textarea class="form-control" rows="3" placeholder="请输入课程简介" style="resize:vertical"></textarea>
@@ -1072,9 +1150,9 @@ select.form-control { cursor: pointer; }
   </div>
 </div>
 
-<!-- Add Schedule Modal -->
+<!-- 新增排课 Modal -->
 <div class="modal-overlay" id="addScheduleModal">
-  <div class="modal">
+  <div class="modal" style="width:560px">
     <div class="modal-header">
       <h3>📅 新增排课</h3>
       <button class="modal-close" onclick="hideModal('addScheduleModal')">✕</button>
@@ -1087,7 +1165,7 @@ select.form-control { cursor: pointer; }
       <div class="form-row">
         <div class="form-group">
           <label>上课日期 *</label>
-          <input class="form-control" id="schedDate" type="date" value="5/4">
+          <input class="form-control" type="date">
         </div>
         <div class="form-group">
           <label>教室 *</label>
@@ -1111,15 +1189,14 @@ select.form-control { cursor: pointer; }
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="hideModal('addScheduleModal')">取消</button>
-      <button class="btn btn-primary" onclick="addScheduleEvent()">确认排课</button>
+      <button class="btn btn-primary">确认排课</button>
     </div>
   </div>
 </div>
 
-
-<!-- Add Teacher Modal -->
+<!-- 新增教师 Modal -->
 <div class="modal-overlay" id="addTeacherModal">
-  <div class="modal">
+  <div class="modal" style="width:560px">
     <div class="modal-header">
       <h3>🎓 新增教师</h3>
       <button class="modal-close" onclick="hideModal('addTeacherModal')">✕</button>
@@ -1153,9 +1230,9 @@ select.form-control { cursor: pointer; }
   </div>
 </div>
 
-<!-- Add Classroom Modal -->
+<!-- 新增教室 Modal -->
 <div class="modal-overlay" id="addClassroomModal">
-  <div class="modal">
+  <div class="modal" style="width:560px">
     <div class="modal-header">
       <h3>🏫 新增教室</h3>
       <button class="modal-close" onclick="hideModal('addClassroomModal')">✕</button>
@@ -1189,40 +1266,325 @@ select.form-control { cursor: pointer; }
   </div>
 </div>
 
+<!-- 新增班级 Modal -->
+<div class="modal-overlay" id="addClassModal">
+  <div class="modal" style="width:560px">
+    <div class="modal-header">
+      <h3>📋 新增班级</h3>
+      <button class="modal-close" onclick="hideModal('addClassModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>班级名称 *</label>
+          <input class="form-control" id="className" placeholder="如: 商务英语高级1班">
+        </div>
+        <div class="form-group">
+          <label>所属课程 *</label>
+          <select class="form-control" id="classCourse"><option>商务英语高级班</option><option>Python全栈开发</option><option>雅思冲刺班</option><option>少儿美术启蒙</option><option>钢琴进阶课</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>授课老师 *</label>
+          <select class="form-control" id="classTeacher"><option>张明辉</option><option>李文静</option><option>王艺萌</option><option>赵国强</option></select>
+        </div>
+        <div class="form-group">
+          <label>总课时</label>
+          <input class="form-control" id="classHours" type="number" placeholder="如: 48">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="hideModal('addClassModal')">取消</button>
+      <button class="btn btn-primary" onclick="addClass()">确认创建</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新增课节 Modal -->
+<div class="modal-overlay" id="addSessionModal">
+  <div class="modal" style="width:560px">
+    <div class="modal-header">
+      <h3>📅 新增课节</h3>
+      <button class="modal-close" onclick="hideModal('addSessionModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>班级 *</label>
+        <select class="form-control" id="sessionClass">
+          <option>商务英语高级1班</option>
+          <option>Python全栈开发1班</option>
+          <option>雅思冲刺1班</option>
+          <option>少儿美术启蒙1班</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>上课日期 *</label>
+          <input class="form-control" id="sessionDate" type="date">
+        </div>
+        <div class="form-group">
+          <label>教室</label>
+          <select class="form-control"><option>A301 多媒体教室</option><option>A302 语音室</option><option>B201 计算机房</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>开始时间 *</label>
+          <input class="form-control" id="sessionStart" type="time" value="09:00">
+        </div>
+        <div class="form-group">
+          <label>结束时间 *</label>
+          <input class="form-control" id="sessionEnd" type="time" value="11:00">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>授课老师</label>
+        <select class="form-control"><option>张明辉</option><option>李文静</option><option>王艺萌</option><option>赵国强</option></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="hideModal('addSessionModal')">取消</button>
+      <button class="btn btn-primary" onclick="addSession()">确认创建</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 点名详情 Modal ==================== -->
+<div class="modal-overlay" id="rollcallDetailModal">
+  <div class="modal rollcall-modal">
+    <div class="modal-header">
+      <h3>✋ 上课点名</h3>
+      <button class="modal-close" onclick="hideModal('rollcallDetailModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- 课节信息 -->
+      <div class="rollcall-info-bar" id="rollcallInfoBar"></div>
+
+      <!-- 出勤统计 -->
+      <div class="rollcall-stats" id="rollcallStatsArea"></div>
+
+      <!-- 学生列表 -->
+      <div class="rollcall-student-list" id="rollcallStudentList"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="hideModal('rollcallDetailModal')">取消</button>
+      <button class="btn btn-success" onclick="saveRollcall()">✓ 保存点名</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看点名详情 Modal -->
+<div class="modal-overlay" id="viewRollcallModal">
+  <div class="modal rollcall-modal">
+    <div class="modal-header">
+      <h3>📋 点名详情</h3>
+      <button class="modal-close" onclick="hideModal('viewRollcallModal')">✕</button>
+    </div>
+    <div class="modal-body" id="viewRollcallBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="hideModal('viewRollcallModal')">关闭</button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast Container -->
 <div class="toast-container" id="toastContainer"></div>
 
 <script>
-// Navigation
-const navItems = document.querySelectorAll('.nav-item');
-const pages = document.querySelectorAll('.page');
+// ==================== 核心数据 ====================
+const LS = {
+  get(k, d) { try { const s = localStorage.getItem('liming_' + k); return s ? JSON.parse(s) : d; } catch { return d; } },
+  set(k, v) { localStorage.setItem('liming_' + k, JSON.stringify(v)); }
+};
+
+// 学员数据
+const defaultStudents = [
+  { name:'李明华', id:'S20260001', phone:'138****1234', course:'商务英语高级班', cls:'商务英语高级1班', status:'active', color:'#6366F1' },
+  { name:'王思雨', id:'S20260002', phone:'139****5678', course:'Python全栈开发', cls:'Python全栈开发1班', status:'pending', color:'#EC4899' },
+  { name:'张天一', id:'S20260003', phone:'136****9012', course:'少儿美术启蒙', cls:'少儿美术启蒙1班', status:'active', color:'#F59E0B' },
+  { name:'陈晓峰', id:'S20260004', phone:'137****3456', course:'雅思冲刺班', cls:'雅思冲刺1班', status:'completed', color:'#10B981' },
+  { name:'刘雨萱', id:'S20260005', phone:'135****7890', course:'钢琴进阶课', cls:'钢琴进阶1班', status:'active', color:'#8B5CF6' },
+  { name:'赵雅琪', id:'S20260006', phone:'133****2345', course:'商务英语高级班', cls:'商务英语高级1班', status:'active', color:'#F43F5E' },
+  { name:'孙浩然', id:'S20260007', phone:'131****6789', course:'Python全栈开发', cls:'Python全栈开发1班', status:'active', color:'#0EA5E9' },
+  { name:'周美琳', id:'S20260008', phone:'132****0123', course:'雅思冲刺班', cls:'雅思冲刺1班', status:'inactive', color:'#A855F7' },
+  { name:'吴佳怡', id:'S20260009', phone:'134****4567', course:'商务英语高级班', cls:'商务英语高级1班', status:'active', color:'#F97316' },
+  { name:'郑浩宇', id:'S20260010', phone:'130****8901', course:'Python全栈开发', cls:'Python全栈开发1班', status:'active', color:'#14B8A6' },
+  { name:'黄诗涵', id:'S20260011', phone:'129****2345', course:'少儿美术启蒙', cls:'少儿美术启蒙1班', status:'active', color:'#E11D48' },
+  { name:'马子轩', id:'S20260012', phone:'128****6789', course:'商务英语高级班', cls:'商务英语高级1班', status:'active', color:'#7C3AED' },
+];
+let students = LS.get('students', defaultStudents);
+
+// 班级数据
+const defaultClasses = [
+  { name:'商务英语高级1班', course:'商务英语高级班', teacher:'张明辉', students:32, doneHours:20, totalHours:48, status:'active' },
+  { name:'Python全栈开发1班', course:'Python全栈开发', teacher:'李文静', students:28, doneHours:15, totalHours:64, status:'active' },
+  { name:'雅思冲刺1班', course:'雅思冲刺班', teacher:'刘思远', students:25, doneHours:8, totalHours:80, status:'active' },
+  { name:'少儿美术启蒙1班', course:'少儿美术启蒙', teacher:'王艺萌', students:20, doneHours:25, totalHours:32, status:'active' },
+  { name:'钢琴进阶1班', course:'钢琴进阶课', teacher:'周雅琴', students:15, doneHours:12, totalHours:24, status:'active' },
+];
+let classList = LS.get('classes', defaultClasses);
+
+// 课节课节数据 - 上课点名核心
+const today = new Date();
+const todayStr = today.toISOString().split('T')[0];
+const yesterdayStr = new Date(today - 86400000).toISOString().split('T')[0];
+const tomorrowStr = new Date(today.getTime() + 86400000).toISOString().split('T')[0];
+
+const defaultSessions = [
+  { id:'SESS001', date:todayStr, start:'09:00', end:'11:00', className:'商务英语高级1班', course:'商务英语高级班', teacher:'张明辉', classroom:'A301', status:'pending',
+    students: [
+      {id:'S20260001',name:'李明华',attendance:null},
+      {id:'S20260006',name:'赵雅琪',attendance:null},
+      {id:'S20260009',name:'吴佳怡',attendance:null},
+      {id:'S20260012',name:'马子轩',attendance:null},
+    ]
+  },
+  { id:'SESS002', date:todayStr, start:'10:30', end:'12:30', className:'Python全栈开发1班', course:'Python全栈开发', teacher:'李文静', classroom:'B201', status:'pending',
+    students: [
+      {id:'S20260002',name:'王思雨',attendance:null},
+      {id:'S20260007',name:'孙浩然',attendance:null},
+      {id:'S20260010',name:'郑浩宇',attendance:null},
+    ]
+  },
+  { id:'SESS003', date:todayStr, start:'14:00', end:'16:00', className:'雅思冲刺1班', course:'雅思冲刺班', teacher:'刘思远', classroom:'A302', status:'pending',
+    students: [
+      {id:'S20260004',name:'陈晓峰',attendance:null},
+      {id:'S20260008',name:'周美琳',attendance:null},
+    ]
+  },
+  { id:'SESS004', date:yesterdayStr, start:'09:00', end:'11:00', className:'商务英语高级1班', course:'商务英语高级班', teacher:'张明辉', classroom:'A301', status:'done',
+    students: [
+      {id:'S20260001',name:'李明华',attendance:'present'},
+      {id:'S20260006',name:'赵雅琪',attendance:'present'},
+      {id:'S20260009',name:'吴佳怡',attendance:'late'},
+      {id:'S20260012',name:'马子轩',attendance:'present'},
+    ]
+  },
+  { id:'SESS005', date:yesterdayStr, start:'14:00', end:'16:00', className:'少儿美术启蒙1班', course:'少儿美术启蒙', teacher:'王艺萌', classroom:'B205', status:'done',
+    students: [
+      {id:'S20260003',name:'张天一',attendance:'present'},
+      {id:'S20260011',name:'黄诗涵',attendance:'absent'},
+    ]
+  },
+  { id:'SESS006', date:tomorrowStr, start:'09:00', end:'11:00', className:'商务英语高级1班', course:'商务英语高级班', teacher:'张明辉', classroom:'A301', status:'pending',
+    students: [
+      {id:'S20260001',name:'李明华',attendance:null},
+      {id:'S20260006',name:'赵雅琪',attendance:null},
+      {id:'S20260009',name:'吴佳怡',attendance:null},
+      {id:'S20260012',name:'马子轩',attendance:null},
+    ]
+  },
+  { id:'SESS007', date:tomorrowStr, start:'10:30', end:'12:30', className:'Python全栈开发1班', course:'Python全栈开发', teacher:'李文静', classroom:'B201', status:'pending',
+    students: [
+      {id:'S20260002',name:'王思雨',attendance:null},
+      {id:'S20260007',name:'孙浩然',attendance:null},
+      {id:'S20260010',name:'郑浩宇',attendance:null},
+    ]
+  },
+];
+let sessions = LS.get('sessions', defaultSessions);
+
+// 课程数据
+const defaultCourses = [
+  { name:'商务英语高级班', type:'语言培训', teacher:'张明辉', students:32, price:'¥6,800', hours:48, progress:65, color:'#3B82F6' },
+  { name:'Python全栈开发', type:'职业技能', teacher:'李文静', students:28, price:'¥8,900', hours:64, progress:45, color:'#10B981' },
+  { name:'雅思冲刺班', type:'语言培训', teacher:'刘思远', students:25, price:'¥12,000', hours:80, progress:30, color:'#F59E0B' },
+  { name:'少儿美术启蒙', type:'艺术特长', teacher:'王艺萌', students:20, price:'¥4,200', hours:32, progress:80, color:'#EC4899' },
+  { name:'钢琴进阶课', type:'艺术特长', teacher:'周雅琴', students:15, price:'¥5,600', hours:24, progress:55, color:'#8B5CF6' },
+];
+let courses = LS.get('courses', defaultCourses);
+
+// 教师数据
+const defaultTeachers = [
+  { name:'张明辉', subject:'英语', title:'高级讲师', dept:'英语教研组', classes:3, students:96, status:'active', gradient:'linear-gradient(135deg,#6366F1,#8B5CF6)' },
+  { name:'李文静', subject:'计算机', title:'讲师', dept:'计算机教研组', classes:2, students:56, status:'active', gradient:'linear-gradient(135deg,#EC4899,#F43F5E)' },
+  { name:'王艺萌', subject:'美术', title:'特聘教师', dept:'艺术教研组', classes:4, students:120, status:'active', gradient:'linear-gradient(135deg,#F59E0B,#F97316)' },
+  { name:'赵国强', subject:'数学', title:'高级讲师', dept:'数学教研组', classes:2, students:48, status:'active', gradient:'linear-gradient(135deg,#10B981,#059669)' },
+  { name:'刘思远', subject:'英语', title:'外教', dept:'英语教研组', classes:2, students:50, status:'active', gradient:'linear-gradient(135deg,#3B82F6,#2563EB)' },
+  { name:'周雅琴', subject:'音乐', title:'讲师', dept:'音乐教研组', classes:3, students:72, status:'pending', gradient:'linear-gradient(135deg,#8B5CF6,#7C3AED)' },
+];
+let teachers = LS.get('teachers', defaultTeachers);
+
+// 教室数据
+const defaultClassrooms = [
+  { name:'A301', type:'多媒体教室', capacity:50, floor:'A栋', icon:'🏫', status:'active', usage:'3/8' },
+  { name:'A302', type:'语音室', capacity:40, floor:'A栋', icon:'🎙️', status:'inactive', usage:'5/8' },
+  { name:'B201', type:'计算机房', capacity:45, floor:'B栋', icon:'💻', status:'active', usage:'2/8' },
+  { name:'B205', type:'画室', capacity:30, floor:'B栋', icon:'🎨', status:'active', usage:'4/8' },
+  { name:'A201', type:'普通教室', capacity:60, floor:'A栋', icon:'📐', status:'active', usage:'6/8' },
+];
+let classrooms = LS.get('classrooms', defaultClassrooms);
+
+// 成绩数据
+const defaultGrades = [
+  { name:'李明华', id:'S20260001', course:'商务英语高级班', daily:92, midterm:88, final:91, total:90.4, level:'优秀', color:'#6366F1' },
+  { name:'王思雨', id:'S20260002', course:'Python全栈开发', daily:85, midterm:78, final:82, total:81.7, level:'良好', color:'#EC4899' },
+  { name:'张天一', id:'S20260003', course:'少儿美术启蒙', daily:95, midterm:92, final:96, total:94.3, level:'优秀', color:'#F59E0B' },
+  { name:'陈晓峰', id:'S20260004', course:'雅思冲刺班', daily:76, midterm:72, final:68, total:71.6, level:'及格', color:'#10B981' },
+  { name:'刘雨萱', id:'S20260005', course:'钢琴进阶课', daily:88, midterm:85, final:90, total:87.8, level:'良好', color:'#8B5CF6' },
+];
+let gradesData = LS.get('grades', defaultGrades);
+
+// 排课数据
+const defaultSchedule = {
+  '5/4': [{ name:'商务英语', type:'course' }, { name:'教研会议', type:'meeting' }],
+  '5/5': [{ name:'Python开发', type:'course' }, { name:'雅思冲刺', type:'course' }],
+  '5/6': [{ name:'商务英语', type:'course' }, { name:'少儿美术', type:'course' }, { name:'月度考试', type:'exam' }],
+  '5/7': [{ name:'Python开发', type:'course' }],
+  '5/8': [{ name:'商务英语', type:'course' }, { name:'钢琴课', type:'course' }],
+  '5/9': [{ name:'雅思冲刺', type:'course' }, { name:'数学辅导', type:'course' }],
+  '5/10': [{ name:'家长会', type:'meeting' }],
+};
+let scheduleData = LS.get('schedule', defaultSchedule);
+
+// 保存函数
+function saveAll() {
+  LS.set('students', students);
+  LS.set('classes', classList);
+  LS.set('sessions', sessions);
+  LS.set('courses', courses);
+  LS.set('teachers', teachers);
+  LS.set('classrooms', classrooms);
+  LS.set('grades', gradesData);
+  LS.set('schedule', scheduleData);
+}
+
+// ==================== 导航 ====================
 const pageTitles = {
-  dashboard: '工作台', students: '学员管理', courses: '课程管理',
-  schedule: '排课系统', attendance: '考勤管理', grades: '成绩管理',
-  teachers: '教师管理', classroom: '教室管理', reports: '数据报表', settings: '系统设置'
+  dashboard:'首页', students:'学员列表', courses:'课程管理', classManage:'班级列表',
+  rollcall:'上课点名', schedule:'课表管理', classroom:'教室管理',
+  grades:'成绩管理', attendance:'考勤统计', teachers:'老师管理',
+  reports:'数据报表', settings:'系统设置'
 };
 
 function navigateTo(page) {
-  navItems.forEach(n => n.classList.remove('active'));
-  document.querySelector(`[data-page="${page}"]`)?.classList.add('active');
-  pages.forEach(p => p.classList.remove('active'));
-  document.getElementById(`page-${page}`)?.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const navItem = document.querySelector(`[data-page="${page}"]`);
+  if (navItem) navItem.classList.add('active');
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const pageEl = document.getElementById(`page-${page}`);
+  if (pageEl) pageEl.classList.add('active');
   document.getElementById('pageTitle').textContent = pageTitles[page] || page;
   document.getElementById('breadcrumb').textContent = pageTitles[page] || page;
+  // 触发页面渲染
+  if (page === 'rollcall') renderRollcallSessions();
+  if (page === 'dashboard') renderDashboard();
 }
 
-navItems.forEach(item => {
+document.querySelectorAll('.nav-item').forEach(item => {
   item.addEventListener('click', () => navigateTo(item.dataset.page));
 });
 
-// Modal
+// ==================== Modal ====================
 function showModal(id) { document.getElementById(id).classList.add('show'); }
 function hideModal(id) { document.getElementById(id).classList.remove('show'); }
 document.querySelectorAll('.modal-overlay').forEach(m => {
   m.addEventListener('click', e => { if (e.target === m) m.classList.remove('show'); });
 });
 
-// Toast
+// ==================== Toast ====================
 function showToast(msg, isError = false) {
   const c = document.getElementById('toastContainer');
   const t = document.createElement('div');
@@ -1232,28 +1594,320 @@ function showToast(msg, isError = false) {
   setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3000);
 }
 
-// Student data — persisted in localStorage
-const defaultStudents = [
-  { name: '李明华', id: 'S20260001', phone: '138****1234', course: '商务英语高级班', cls: '2026春季', status: 'active', color: '#6366F1' },
-  { name: '王思雨', id: 'S20260002', phone: '139****5678', course: 'Python全栈开发', cls: '2026春季', status: 'pending', color: '#EC4899' },
-  { name: '张天一', id: 'S20260003', phone: '136****9012', course: '少儿美术启蒙', cls: '2026春季', status: 'active', color: '#F59E0B' },
-  { name: '陈晓峰', id: 'S20260004', phone: '137****3456', course: '雅思冲刺班', cls: '2025秋季', status: 'completed', color: '#10B981' },
-  { name: '刘雨萱', id: 'S20260005', phone: '135****7890', course: '钢琴进阶课', cls: '2026春季', status: 'active', color: '#8B5CF6' },
-  { name: '赵雅琪', id: 'S20260006', phone: '133****2345', course: '商务英语高级班', cls: '2026春季', status: 'active', color: '#F43F5E' },
-  { name: '孙浩然', id: 'S20260007', phone: '131****6789', course: 'Python全栈开发', cls: '2026春季', status: 'active', color: '#0EA5E9' },
-  { name: '周美琳', id: 'S20260008', phone: '132****0123', course: '雅思冲刺班', cls: '2025秋季', status: 'inactive', color: '#A855F7' },
-];
+// ==================== 上课点名功能 ====================
+let currentRollcallSession = null;
 
-function loadStudents() {
-  const saved = localStorage.getItem('liming_students');
-  return saved ? JSON.parse(saved) : [...defaultStudents];
-}
-function saveStudents() {
-  localStorage.setItem('liming_students', JSON.stringify(students));
+// 渲染待点名/已完成列表
+function renderRollcallSessions() {
+  const dateFilter = document.getElementById('rollcallDateFilter').value;
+  const classFilter = document.getElementById('rollcallClassFilter').value;
+  const teacherFilter = document.getElementById('rollcallTeacherFilter').value;
+
+  // 填充筛选器选项
+  const classNames = [...new Set(sessions.map(s => s.className))];
+  const teacherNames = [...new Set(sessions.map(s => s.teacher))];
+  const classSelect = document.getElementById('rollcallClassFilter');
+  const teacherSelect = document.getElementById('rollcallTeacherFilter');
+  const curClass = classSelect.value;
+  const curTeacher = teacherSelect.value;
+  classSelect.innerHTML = '<option value="">全部班级</option>' + classNames.map(c => `<option value="${c}" ${c===curClass?'selected':''}>${c}</option>`).join('');
+  teacherSelect.innerHTML = '<option value="">全部老师</option>' + teacherNames.map(t => `<option value="${t}" ${t===curTeacher?'selected':''}>${t}</option>`).join('');
+
+  let filtered = sessions.filter(s => {
+    if (dateFilter && s.date !== dateFilter) return false;
+    if (classFilter && s.className !== classFilter) return false;
+    if (teacherFilter && s.teacher !== teacherFilter) return false;
+    return true;
+  });
+
+  // 待点名
+  const pending = filtered.filter(s => s.status === 'pending');
+  const pendingList = document.getElementById('rollcallPendingList');
+  if (pending.length === 0) {
+    pendingList.innerHTML = '<div class="empty-state" style="padding:40px"><div class="icon">🎉</div><h3>暂无待点名课节</h3><p style="color:var(--text-secondary)">所有课节已完成点名</p></div>';
+  } else {
+    pendingList.innerHTML = pending.map(s => renderSessionCard(s)).join('');
+  }
+
+  // 已完成
+  const done = filtered.filter(s => s.status === 'done');
+  const doneBody = document.getElementById('rollcallDoneBody');
+  doneBody.innerHTML = done.map(s => {
+    const total = s.students.length;
+    const present = s.students.filter(st => st.attendance === 'present').length;
+    const rate = total > 0 ? (present / total * 100).toFixed(1) : 0;
+    return `<tr>
+      <td>${s.date} ${s.start}-${s.end}</td>
+      <td>${s.className}</td>
+      <td>${s.teacher}</td>
+      <td>${total}</td>
+      <td>${present}</td>
+      <td><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:80px"><div class="progress-fill green" style="width:${rate}%"></div></div>${rate}%</div></td>
+      <td><button class="btn btn-outline btn-sm" onclick="viewRollcallDetail('${s.id}')">查看详情</button></td>
+    </tr>`;
+  }).join('');
+
+  // 全部
+  const allBody = document.getElementById('rollcallAllBody');
+  allBody.innerHTML = filtered.map(s => {
+    const total = s.students.length;
+    const present = s.students.filter(st => st.attendance === 'present').length;
+    const statusTag = s.status === 'done'
+      ? `<span class="status-tag rollcall-done">已完成</span>`
+      : `<span class="status-tag rollcall-pending">待点名</span>`;
+    return `<tr>
+      <td>${s.date} ${s.start}-${s.end}</td>
+      <td>${s.className}</td>
+      <td>${s.teacher}</td>
+      <td>${statusTag}</td>
+      <td>${total}</td>
+      <td>${s.status === 'done' ? present : '-'}</td>
+      <td>${s.status === 'done'
+        ? `<button class="btn btn-outline btn-sm" onclick="viewRollcallDetail('${s.id}')">查看详情</button>`
+        : `<button class="btn btn-primary btn-sm" onclick="openRollcall('${s.id}')">去点名</button>`
+      }</td>
+    </tr>`;
+  }).join('');
+
+  // 更新 badge
+  const todayPending = sessions.filter(s => s.date === todayStr && s.status === 'pending').length;
+  const badge = document.getElementById('rollcallBadge');
+  badge.textContent = todayPending;
+  badge.style.display = todayPending > 0 ? 'inline' : 'none';
 }
 
-let students = loadStudents();
-const statusMap = { active: '在读', pending: '待确认', completed: '已毕业', inactive: '休学' };
+function renderSessionCard(s) {
+  const total = s.students.length;
+  return `<div class="session-card" onclick="openRollcall('${s.id}')">
+    <div class="session-time">
+      <div class="time">${s.start}</div>
+      <div class="date">${s.date}</div>
+    </div>
+    <div class="session-divider"></div>
+    <div class="session-info">
+      <div class="class-name">${s.className}</div>
+      <div class="teacher">👤 ${s.teacher}　　🏫 ${s.classroom}</div>
+      <div class="meta">
+        <span>📚 ${s.course}</span>
+        <span>👥 ${total}人</span>
+        <span>⏰ ${s.start}-${s.end}</span>
+      </div>
+    </div>
+    <div class="session-status">
+      <span class="status-tag rollcall-pending">待点名</span>
+      <button class="btn btn-primary btn-sm">开始点名</button>
+    </div>
+  </div>`;
+}
+
+// 打开点名弹窗
+function openRollcall(sessionId) {
+  const session = sessions.find(s => s.id === sessionId);
+  if (!session) return;
+  currentRollcallSession = session;
+
+  // 渲染课节信息
+  document.getElementById('rollcallInfoBar').innerHTML = `
+    <div class="rollcall-info-item"><span class="label">班级：</span><span class="value">${session.className}</span></div>
+    <div class="rollcall-info-item"><span class="label">课程：</span><span class="value">${session.course}</span></div>
+    <div class="rollcall-info-item"><span class="label">老师：</span><span class="value">${session.teacher}</span></div>
+    <div class="rollcall-info-item"><span class="label">时间：</span><span class="value">${session.date} ${session.start}-${session.end}</span></div>
+    <div class="rollcall-info-item"><span class="label">教室：</span><span class="value">${session.classroom}</span></div>
+  `;
+
+  renderRollcallStudents();
+  showModal('rollcallDetailModal');
+}
+
+function renderRollcallStudents() {
+  if (!currentRollcallSession) return;
+  const s = currentRollcallSession;
+
+  // 统计
+  const total = s.students.length;
+  const present = s.students.filter(st => st.attendance === 'present').length;
+  const absent = s.students.filter(st => st.attendance === 'absent').length;
+  const late = s.students.filter(st => st.attendance === 'late').length;
+  const leave = s.students.filter(st => st.attendance === 'leave').length;
+
+  document.getElementById('rollcallStatsArea').innerHTML = `
+    <div class="rollcall-stat-item total"><div class="num">${total}</div><div class="label">应到人数</div></div>
+    <div class="rollcall-stat-item present"><div class="num">${present}</div><div class="label">实到</div></div>
+    <div class="rollcall-stat-item late"><div class="num">${late}</div><div class="label">迟到</div></div>
+    <div class="rollcall-stat-item absent"><div class="num">${absent}</div><div class="label">缺勤</div></div>
+    <div class="rollcall-stat-item leave"><div class="num">${leave}</div><div class="label">请假</div></div>
+  `;
+
+  // 学生列表
+  const list = document.getElementById('rollcallStudentList');
+  list.innerHTML = s.students.map((st, i) => {
+    const student = students.find(x => x.id === st.id);
+    const color = student ? student.color : '#6366F1';
+    return `<div class="rollcall-student-row">
+      <div class="student-name">
+        <div class="avatar-sm" style="background:${color}">${st.name[0]}</div>
+        <div>
+          <div style="font-weight:600">${st.name}</div>
+          <div style="font-size:12px;color:var(--text-secondary)">${st.id}</div>
+        </div>
+      </div>
+      <div class="rollcall-status-btns">
+        <div class="rollcall-status-btn present ${st.attendance==='present'?'selected':''}" onclick="setAttendance(${i},'present')">✓ 出勤</div>
+        <div class="rollcall-status-btn late ${st.attendance==='late'?'selected':''}" onclick="setAttendance(${i},'late')">⏰ 迟到</div>
+        <div class="rollcall-status-btn absent ${st.attendance==='absent'?'selected':''}" onclick="setAttendance(${i},'absent')">✗ 缺勤</div>
+        <div class="rollcall-status-btn leave ${st.attendance==='leave'?'selected':''}" onclick="setAttendance(${i},'leave')">📋 请假</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setAttendance(studentIdx, status) {
+  if (!currentRollcallSession) return;
+  currentRollcallSession.students[studentIdx].attendance = status;
+  renderRollcallStudents();
+}
+
+function saveRollcall() {
+  if (!currentRollcallSession) return;
+  const unmarked = currentRollcallSession.students.filter(s => !s.attendance).length;
+  if (unmarked > 0) {
+    if (!confirm(`还有 ${unmarked} 名学生未标记出勤状态，确定要保存吗？`)) return;
+  }
+  // 标记未标记的为缺勤
+  currentRollcallSession.students.forEach(s => {
+    if (!s.attendance) s.attendance = 'absent';
+  });
+  currentRollcallSession.status = 'done';
+  saveAll();
+  hideModal('rollcallDetailModal');
+  renderRollcallSessions();
+  showToast('点名已保存！');
+}
+
+// 查看点名详情
+function viewRollcallDetail(sessionId) {
+  const session = sessions.find(s => s.id === sessionId);
+  if (!session) return;
+
+  const total = session.students.length;
+  const present = session.students.filter(s => s.attendance === 'present').length;
+  const late = session.students.filter(s => s.attendance === 'late').length;
+  const absent = session.students.filter(s => s.attendance === 'absent').length;
+  const leave = session.students.filter(s => s.attendance === 'leave').length;
+  const rate = total > 0 ? (present / total * 100).toFixed(1) : 0;
+
+  const statusMap = { present:'出勤', late:'迟到', absent:'缺勤', leave:'请假' };
+  const statusColorMap = { present:'var(--success)', late:'var(--warning)', absent:'var(--danger)', leave:'var(--info)' };
+
+  document.getElementById('viewRollcallBody').innerHTML = `
+    <div class="rollcall-info-bar">
+      <div class="rollcall-info-item"><span class="label">班级：</span><span class="value">${session.className}</span></div>
+      <div class="rollcall-info-item"><span class="label">课程：</span><span class="value">${session.course}</span></div>
+      <div class="rollcall-info-item"><span class="label">老师：</span><span class="value">${session.teacher}</span></div>
+      <div class="rollcall-info-item"><span class="label">时间：</span><span class="value">${session.date} ${session.start}-${session.end}</span></div>
+      <div class="rollcall-info-item"><span class="label">出勤率：</span><span class="value" style="color:var(--success)">${rate}%</span></div>
+    </div>
+    <div class="rollcall-stats">
+      <div class="rollcall-stat-item total"><div class="num">${total}</div><div class="label">应到</div></div>
+      <div class="rollcall-stat-item present"><div class="num">${present}</div><div class="label">实到</div></div>
+      <div class="rollcall-stat-item late"><div class="num">${late}</div><div class="label">迟到</div></div>
+      <div class="rollcall-stat-item absent"><div class="num">${absent}</div><div class="label">缺勤</div></div>
+      <div class="rollcall-stat-item leave"><div class="num">${leave}</div><div class="label">请假</div></div>
+    </div>
+    <div class="rollcall-student-list">
+      ${session.students.map(st => {
+        const student = students.find(x => x.id === st.id);
+        const color = student ? student.color : '#6366F1';
+        return `<div class="rollcall-student-row">
+          <div class="student-name">
+            <div class="avatar-sm" style="background:${color}">${st.name[0]}</div>
+            <div><div style="font-weight:600">${st.name}</div><div style="font-size:12px;color:var(--text-secondary)">${st.id}</div></div>
+          </div>
+          <span class="status-tag" style="background:${statusColorMap[st.attendance]}20;color:${statusColorMap[st.attendance]}">${statusMap[st.attendance] || '未标记'}</span>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+  showModal('viewRollcallModal');
+}
+
+// 导出考勤
+function exportRollcallData() {
+  const done = sessions.filter(s => s.status === 'done');
+  if (done.length === 0) { showToast('暂无已完成的点名数据', true); return; }
+  let csv = '上课时间,班级名称,授课老师,学员姓名,学号,出勤状态\n';
+  done.forEach(s => {
+    s.students.forEach(st => {
+      const statusMap = { present:'出勤', late:'迟到', absent:'缺勤', leave:'请假' };
+      csv += `${s.date} ${s.start}-${s.end},${s.className},${s.teacher},${st.name},${st.id},${statusMap[st.attendance]||'未标记'}\n`;
+    });
+  });
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `考勤记录_${todayStr}.csv`;
+  a.click();
+  showToast('考勤数据已导出');
+}
+
+// 切换点名 Tab
+function switchRollcallTab(el, panelId) {
+  el.parentElement.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  ['rollcallPending', 'rollcallDone', 'rollcallAll'].forEach(id => {
+    document.getElementById(id).style.display = id === panelId ? 'block' : 'none';
+  });
+}
+
+// 首页待办 Tab
+function switchDashboardTab(el, panelId) {
+  el.parentElement.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('dashPending').style.display = panelId === 'dashPending' ? 'block' : 'none';
+  document.getElementById('dashUnfinished').style.display = panelId === 'dashUnfinished' ? 'block' : 'none';
+}
+
+// 新增课节
+function addSession() {
+  const cls = document.getElementById('sessionClass').value;
+  const date = document.getElementById('sessionDate').value;
+  const start = document.getElementById('sessionStart').value;
+  const end = document.getElementById('sessionEnd').value;
+  if (!date) { showToast('请选择上课日期', true); return; }
+
+  const classInfo = classList.find(c => c.name === cls);
+  const studentsInClass = students.filter(s => s.cls === cls).map(s => ({ id: s.id, name: s.name, attendance: null }));
+
+  sessions.push({
+    id: 'SESS' + String(Date.now()).slice(-6),
+    date, start, end,
+    className: cls,
+    course: classInfo ? classInfo.course : cls,
+    teacher: classInfo ? classInfo.teacher : '未指定',
+    classroom: 'A301',
+    status: 'pending',
+    students: studentsInClass
+  });
+  saveAll();
+  hideModal('addSessionModal');
+  renderRollcallSessions();
+  showToast(`课节已创建：${cls} ${date} ${start}-${end}`);
+}
+
+// ==================== Dashboard ====================
+function renderDashboard() {
+  // 待办课节
+  const pendingSessions = sessions.filter(s => s.status === 'pending').slice(0, 5);
+  const dashList = document.getElementById('dashPendingList');
+  if (pendingSessions.length === 0) {
+    dashList.innerHTML = '<div class="empty-state" style="padding:20px"><div class="icon">🎉</div><h3>暂无待点名课节</h3></div>';
+  } else {
+    dashList.innerHTML = pendingSessions.map(s => renderSessionCard(s)).join('');
+  }
+}
+
+// ==================== 学员管理 ====================
+const statusMap = { active:'在读', pending:'待确认', completed:'已毕业', inactive:'休学' };
 
 function renderStudents() {
   const tbody = document.getElementById('studentTableBody');
@@ -1265,17 +1919,14 @@ function renderStudents() {
       <td><button class="btn btn-outline btn-sm">编辑</button> <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger)" onclick="deleteStudent('${s.id}')">删除</button></td>
     </tr>
   `).join('');
+  document.getElementById('studentPagInfo').textContent = `显示 1-${students.length} 共 ${students.length} 条`;
 }
-renderStudents();
 
 function deleteStudent(id) {
   const s = students.find(x => x.id === id);
-  if (!s) return;
-  if (!confirm(`确定要删除学员「${s.name}」吗？`)) return;
-  const idx = students.findIndex(x => x.id === id);
-  students.splice(idx, 1);
-  saveStudents();
-  renderStudents();
+  if (!s || !confirm(`确定要删除学员「${s.name}」吗？`)) return;
+  students = students.filter(x => x.id !== id);
+  saveAll(); renderStudents();
   showToast(`已删除学员「${s.name}」`);
 }
 
@@ -1290,52 +1941,26 @@ function addStudent() {
   const colors = ['#6366F1','#EC4899','#F59E0B','#10B981','#8B5CF6','#F43F5E','#0EA5E9','#A855F7','#EF4444','#3B82F6'];
   const maxNum = students.reduce((m, s) => { const n = parseInt(s.id.replace('S','')); return n > m ? n : m; }, 0);
   const newId = 'S' + String(maxNum + 1).padStart(8, '0');
+  const cls = document.getElementById('stuClass').value;
+  const classInfo = classList.find(c => c.course === course);
 
   students.push({
-    name,
-    id: newId,
+    name, id: newId,
     phone: phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2'),
-    course,
-    cls: document.getElementById('stuClass').value,
+    course, cls: classInfo ? classInfo.name : cls,
     status: 'active',
     color: colors[Math.floor(Math.random() * colors.length)]
   });
-
-  saveStudents();
-  renderStudents();
-  hideModal('addStudentModal');
-  document.getElementById('stuName').value = '';
-  document.getElementById('stuPhone').value = '';
-  document.getElementById('stuIdCard').value = '';
-  document.getElementById('stuNote').value = '';
+  saveAll(); renderStudents(); hideModal('addStudentModal');
+  ['stuName','stuPhone','stuIdCard','stuNote'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('stuCourse').selectedIndex = 0;
   showToast(`学员「${name}」添加成功！`);
 }
 
-// Course cards — persisted in localStorage
-const defaultCourses = [
-  { name: '商务英语高级班', type: '语言培训', teacher: '张明辉', students: 32, price: '¥6,800', hours: 48, progress: 65, color: '#3B82F6' },
-  { name: 'Python全栈开发', type: '职业技能', teacher: '李文静', students: 28, price: '¥8,900', hours: 64, progress: 45, color: '#10B981' },
-  { name: '雅思冲刺班', type: '语言培训', teacher: '刘思远', students: 25, price: '¥12,000', hours: 80, progress: 30, color: '#F59E0B' },
-  { name: '少儿美术启蒙', type: '艺术特长', teacher: '王艺萌', students: 20, price: '¥4,200', hours: 32, progress: 80, color: '#EC4899' },
-  { name: '钢琴进阶课', type: '艺术特长', teacher: '周雅琴', students: 15, price: '¥5,600', hours: 24, progress: 55, color: '#8B5CF6' },
-  { name: '中考数学冲刺', type: '学科辅导', teacher: '赵国强', students: 35, price: '¥3,800', hours: 40, progress: 70, color: '#EF4444' },
-];
-
-function loadCourses() {
-  const saved = localStorage.getItem('liming_courses');
-  return saved ? JSON.parse(saved) : [...defaultCourses];
-}
-function saveCourses() {
-  localStorage.setItem('liming_courses', JSON.stringify(courses));
-}
-
-let courses = loadCourses();
-
+// ==================== 课程管理 ====================
 function renderCourses() {
-  const courseGrid = document.getElementById('courseGrid');
-  courseGrid.innerHTML = courses.map((c, i) => `
-    <div class="chart-card" style="cursor:pointer" onmouseover="this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.boxShadow='var(--shadow)'">
+  document.getElementById('courseGrid').innerHTML = courses.map((c, i) => `
+    <div class="chart-card" style="cursor:pointer">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
         <div style="width:40px;height:40px;border-radius:10px;background:${c.color}20;color:${c.color};display:flex;align-items:center;justify-content:center;font-size:18px">📚</div>
         <div style="display:flex;align-items:center;gap:8px">
@@ -1348,68 +1973,101 @@ function renderCourses() {
       <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary);margin-bottom:8px">
         <span>👥 ${c.students}人</span><span>⏱ ${c.hours}课时</span><span>${c.price}</span>
       </div>
-      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
-        <span>教学进度</span><span>${c.progress}%</span>
-      </div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>教学进度</span><span>${c.progress}%</span></div>
       <div class="progress-bar"><div class="progress-fill blue" style="width:${c.progress}%"></div></div>
     </div>
   `).join('');
 }
-renderCourses();
 
 function deleteCourse(idx) {
-  const c = courses[idx];
-  if (!c) return;
-  if (!confirm(`确定要删除课程「${c.name}」吗？`)) return;
-  courses.splice(idx, 1);
-  saveCourses();
-  renderCourses();
-  showToast(`已删除课程「${c.name}」`);
+  const c = courses[idx]; if (!c || !confirm(`确定要删除课程「${c.name}」吗？`)) return;
+  courses.splice(idx, 1); saveAll(); renderCourses(); showToast(`已删除课程「${c.name}」`);
 }
 
 function addCourse() {
   const name = document.getElementById('courseName').value.trim();
-  const type = document.getElementById('courseType').value;
-  const teacher = document.getElementById('courseTeacher').value;
-  const hours = parseInt(document.getElementById('courseHours').value) || 0;
-  const priceVal = parseInt(document.getElementById('coursePrice').value) || 0;
   if (!name) { showToast('请输入课程名称', true); return; }
-
   const colors = ['#3B82F6','#10B981','#F59E0B','#EC4899','#8B5CF6','#EF4444','#6366F1','#0EA5E9'];
   courses.push({
-    name, type, teacher,
-    students: 0,
-    price: '¥' + priceVal.toLocaleString(),
-    hours,
-    progress: 0,
-    color: colors[Math.floor(Math.random() * colors.length)]
+    name, type: document.getElementById('courseType').value,
+    teacher: document.getElementById('courseTeacher').value,
+    students: 0, price: '¥' + (parseInt(document.getElementById('coursePrice').value) || 0).toLocaleString(),
+    hours: parseInt(document.getElementById('courseHours').value) || 0,
+    progress: 0, color: colors[Math.floor(Math.random() * colors.length)]
   });
-
-  saveCourses();
-  renderCourses();
-  hideModal('addCourseModal');
+  saveAll(); renderCourses(); hideModal('addCourseModal');
   document.getElementById('courseName').value = '';
   document.getElementById('courseHours').value = '';
   document.getElementById('coursePrice').value = '';
   showToast(`课程「${name}」创建成功！`);
 }
 
-// ============ Teachers — localStorage ============
-const defaultTeachers = [
-  { name: '张明辉', subject: '英语', title: '高级讲师', dept: '英语教研组', classes: 3, students: 96, status: 'active', gradient: 'linear-gradient(135deg,#6366F1,#8B5CF6)' },
-  { name: '李文静', subject: '计算机', title: '讲师', dept: '计算机教研组', classes: 2, students: 56, status: 'active', gradient: 'linear-gradient(135deg,#EC4899,#F43F5E)' },
-  { name: '王艺萌', subject: '美术', title: '特聘教师', dept: '艺术教研组', classes: 4, students: 120, status: 'active', gradient: 'linear-gradient(135deg,#F59E0B,#F97316)' },
-  { name: '赵国强', subject: '数学', title: '高级讲师', dept: '数学教研组', classes: 2, students: 48, status: 'active', gradient: 'linear-gradient(135deg,#10B981,#059669)' },
-  { name: '刘思远', subject: '英语', title: '外教', dept: '英语教研组', classes: 2, students: 50, status: 'active', gradient: 'linear-gradient(135deg,#3B82F6,#2563EB)' },
-  { name: '周雅琴', subject: '音乐', title: '讲师', dept: '音乐教研组', classes: 3, students: 72, status: 'pending', gradient: 'linear-gradient(135deg,#8B5CF6,#7C3AED)' },
-];
-function loadTeachers() { const s = localStorage.getItem('liming_teachers'); return s ? JSON.parse(s) : [...defaultTeachers]; }
-function saveTeachers() { localStorage.setItem('liming_teachers', JSON.stringify(teachers)); }
-let teachers = loadTeachers();
+// ==================== 班级管理 ====================
+function renderClasses() {
+  document.getElementById('classTableBody').innerHTML = classList.map((c, i) => `
+    <tr>
+      <td><strong>${c.name}</strong></td>
+      <td>${c.course}</td>
+      <td>${c.teacher}</td>
+      <td>${c.students}</td>
+      <td>${c.doneHours}</td>
+      <td>${c.totalHours}</td>
+      <td><span class="status-tag ${c.status}">${c.status === 'active' ? '开课中' : '已结课'}</span></td>
+      <td>
+        <button class="btn btn-outline btn-sm" onclick="navigateTo('rollcall')">点名</button>
+        <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger)" onclick="deleteClass(${i})">删除</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function deleteClass(idx) {
+  const c = classList[idx]; if (!c || !confirm(`确定要删除班级「${c.name}」吗？`)) return;
+  classList.splice(idx, 1); saveAll(); renderClasses(); showToast(`已删除班级「${c.name}」`);
+}
+
+function addClass() {
+  const name = document.getElementById('className').value.trim();
+  if (!name) { showToast('请输入班级名称', true); return; }
+  classList.push({
+    name, course: document.getElementById('classCourse').value,
+    teacher: document.getElementById('classTeacher').value,
+    students: 0, doneHours: 0,
+    totalHours: parseInt(document.getElementById('classHours').value) || 48,
+    status: 'active'
+  });
+  saveAll(); renderClasses(); hideModal('addClassModal');
+  document.getElementById('className').value = '';
+  document.getElementById('classHours').value = '';
+  showToast(`班级「${name}」创建成功！`);
+}
+
+// ==================== 排课系统 ====================
+const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+function renderSchedule() {
+  const dates = Object.keys(scheduleData).sort();
+  document.getElementById('scheduleGrid').innerHTML = days.map(d => `<div class="schedule-header">${d}</div>`).join('') +
+    dates.map(d => {
+      const events = scheduleData[d] || [];
+      const isToday = d === '5/6';
+      return `<div class="schedule-cell ${isToday ? 'today' : ''}">
+        <div class="date-num">${d.split('/')[1]}日</div>
+        ${events.map((e, ei) => `<div class="schedule-event ${e.type}" onclick="deleteScheduleEvent('${d}',${ei})" title="点击删除">${e.name} ✕</div>`).join('')}
+      </div>`;
+    }).join('');
+}
+
+function deleteScheduleEvent(date, idx) {
+  const events = scheduleData[date]; if (!events || !events[idx]) return;
+  const name = events[idx].name;
+  if (!confirm(`确定要删除「${name}」吗？`)) return;
+  events.splice(idx, 1); saveAll(); renderSchedule(); showToast(`已删除排课「${name}」`);
+}
+
+// ==================== 教师管理 ====================
 function renderTeachers() {
-  const grid = document.getElementById('teacherGrid');
-  grid.innerHTML = teachers.map((t, i) => `
-    <div class="chart-card" style="display:flex;gap:16px;align-items:center;cursor:pointer" onmouseover="this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.boxShadow='var(--shadow)'">
+  document.getElementById('teacherGrid').innerHTML = teachers.map((t, i) => `
+    <div class="chart-card" style="display:flex;gap:16px;align-items:center">
       <div class="avatar-sm" style="width:56px;height:56px;font-size:20px;background:${t.gradient}">${t.name[0]}</div>
       <div style="flex:1">
         <div style="font-weight:600;font-size:15px">${t.name}</div>
@@ -1423,43 +2081,34 @@ function renderTeachers() {
     </div>
   `).join('');
 }
-renderTeachers();
+
 function deleteTeacher(idx) {
-  const t = teachers[idx]; if (!t) return;
-  if (!confirm(`确定要删除教师「${t.name}」吗？`)) return;
-  teachers.splice(idx, 1); saveTeachers(); renderTeachers(); showToast(`已删除教师「${t.name}」`);
+  const t = teachers[idx]; if (!t || !confirm(`确定要删除教师「${t.name}」吗？`)) return;
+  teachers.splice(idx, 1); saveAll(); renderTeachers(); showToast(`已删除教师「${t.name}」`);
 }
+
 function addTeacher() {
   const name = document.getElementById('teacherName').value.trim();
   if (!name) { showToast('请输入教师姓名', true); return; }
-  const subject = document.getElementById('teacherSubject').value;
-  const title = document.getElementById('teacherTitle').value;
-  const status = document.getElementById('teacherStatus').value;
   const gradients = ['linear-gradient(135deg,#6366F1,#8B5CF6)','linear-gradient(135deg,#EC4899,#F43F5E)','linear-gradient(135deg,#F59E0B,#F97316)','linear-gradient(135deg,#10B981,#059669)','linear-gradient(135deg,#3B82F6,#2563EB)','linear-gradient(135deg,#8B5CF6,#7C3AED)'];
-  teachers.push({ name, subject, title, dept: subject + '教研组', classes: 0, students: 0, status, gradient: gradients[Math.floor(Math.random() * gradients.length)] });
-  saveTeachers(); renderTeachers(); hideModal('addTeacherModal');
+  teachers.push({
+    name, subject: document.getElementById('teacherSubject').value,
+    title: document.getElementById('teacherTitle').value,
+    dept: document.getElementById('teacherSubject').value + '教研组',
+    classes: 0, students: 0,
+    status: document.getElementById('teacherStatus').value,
+    gradient: gradients[Math.floor(Math.random() * gradients.length)]
+  });
+  saveAll(); renderTeachers(); hideModal('addTeacherModal');
   document.getElementById('teacherName').value = '';
   showToast(`教师「${name}」添加成功！`);
 }
 
-// ============ Classrooms — localStorage ============
-const defaultClassrooms = [
-  { name: 'A301', type: '多媒体教室', capacity: 50, floor: 'A栋', icon: '🏫', status: 'active', usage: '3/8' },
-  { name: 'A302', type: '语音室', capacity: 40, floor: 'A栋', icon: '🎙️', status: 'inactive', usage: '5/8' },
-  { name: 'B201', type: '计算机房', capacity: 45, floor: 'B栋', icon: '💻', status: 'active', usage: '2/8' },
-  { name: 'B205', type: '画室', capacity: 30, floor: 'B栋', icon: '🎨', status: 'active', usage: '4/8' },
-  { name: 'B301', type: '琴房', capacity: 20, floor: 'B栋', icon: '🎹', status: 'pending', usage: '维护中' },
-  { name: 'A201', type: '普通教室', capacity: 60, floor: 'A栋', icon: '📐', status: 'active', usage: '6/8' },
-];
-function loadClassrooms() { const s = localStorage.getItem('liming_classrooms'); return s ? JSON.parse(s) : [...defaultClassrooms]; }
-function saveClassrooms() { localStorage.setItem('liming_classrooms', JSON.stringify(classrooms)); }
-let classrooms = loadClassrooms();
+// ==================== 教室管理 ====================
 function renderClassrooms() {
-  const grid = document.getElementById('classroomGrid');
-  grid.innerHTML = classrooms.map((c, i) => `
+  document.getElementById('classroomGrid').innerHTML = classrooms.map((c, i) => `
     <div class="chart-card" style="text-align:center">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <span></span>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span></span>
         <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger);padding:2px 8px;font-size:11px" onclick="deleteClassroom(${i})">删除</button>
       </div>
       <div style="font-size:32px;margin-bottom:8px">${c.icon}</div>
@@ -1470,16 +2119,16 @@ function renderClassrooms() {
     </div>
   `).join('');
 }
-renderClassrooms();
+
 function deleteClassroom(idx) {
-  const c = classrooms[idx]; if (!c) return;
-  if (!confirm(`确定要删除教室「${c.name}」吗？`)) return;
-  classrooms.splice(idx, 1); saveClassrooms(); renderClassrooms(); showToast(`已删除教室「${c.name}」`);
+  const c = classrooms[idx]; if (!c || !confirm(`确定要删除教室「${c.name}」吗？`)) return;
+  classrooms.splice(idx, 1); saveAll(); renderClassrooms(); showToast(`已删除教室「${c.name}」`);
 }
+
 function addClassroom() {
   const name = document.getElementById('roomName').value.trim();
   if (!name) { showToast('请输入教室编号', true); return; }
-  const icons = ['🏫','🎙️','💻','🎨','🎹','📐','🔬','🎭'];
+  const icons = ['🏫','🎙️','💻','🎨','🎹','📐'];
   classrooms.push({
     name, type: document.getElementById('roomType').value,
     capacity: parseInt(document.getElementById('roomCapacity').value) || 30,
@@ -1487,162 +2136,104 @@ function addClassroom() {
     icon: icons[Math.floor(Math.random() * icons.length)],
     status: 'active', usage: '0/8'
   });
-  saveClassrooms(); renderClassrooms(); hideModal('addClassroomModal');
+  saveAll(); renderClassrooms(); hideModal('addClassroomModal');
   document.getElementById('roomName').value = '';
   document.getElementById('roomCapacity').value = '';
   showToast(`教室「${name}」添加成功！`);
 }
 
-// ============ Schedule — localStorage ============
-const defaultSchedule = {
-  '5/4': [{ name: '商务英语', type: 'course' }, { name: '教研会议', type: 'meeting' }],
-  '5/5': [{ name: 'Python开发', type: 'course' }, { name: '雅思冲刺', type: 'course' }],
-  '5/6': [{ name: '商务英语', type: 'course' }, { name: '少儿美术', type: 'course' }, { name: '月度考试', type: 'exam' }],
-  '5/7': [{ name: 'Python开发', type: 'course' }],
-  '5/8': [{ name: '商务英语', type: 'course' }, { name: '钢琴课', type: 'course' }],
-  '5/9': [{ name: '雅思冲刺', type: 'course' }, { name: '数学辅导', type: 'course' }],
-  '5/10': [{ name: '家长会', type: 'meeting' }],
-};
-function loadSchedule() { const s = localStorage.getItem('liming_schedule'); return s ? JSON.parse(s) : {...defaultSchedule}; }
-function saveSchedule() { localStorage.setItem('liming_schedule', JSON.stringify(scheduleData)); }
-let scheduleData = loadSchedule();
-const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
-const dates = ['5/4', '5/5', '5/6', '5/7', '5/8', '5/9', '5/10'];
-function renderSchedule() {
-  const scheduleGrid = document.getElementById('scheduleGrid');
-  scheduleGrid.innerHTML = days.map(d => `<div class="schedule-header">${d}</div>`).join('') +
-    dates.map(d => {
-      const events = scheduleData[d] || [];
-      const isToday = d === '5/6';
-      return `<div class="schedule-cell ${isToday ? 'today' : ''}">
-        <div class="date-num">${d.split('/')[1]}日</div>
-        ${events.map((e, ei) => `<div class="schedule-event ${e.type}" style="cursor:pointer" onclick="deleteScheduleEvent('${d}',${ei})" title="点击删除">${e.name} ✕</div>`).join('')}
-      </div>`;
-    }).join('');
-}
-renderSchedule();
-function deleteScheduleEvent(date, idx) {
-  const events = scheduleData[date]; if (!events || !events[idx]) return;
-  const name = events[idx].name;
-  if (!confirm(`确定要删除「${name}」吗？`)) return;
-  events.splice(idx, 1); saveSchedule(); renderSchedule(); showToast(`已删除排课「${name}」`);
-}
-function addScheduleEvent() {
-  const course = document.getElementById('schedCourse').value;
-  const date = document.getElementById('schedDate').value;
-  const type = document.getElementById('schedType').value;
-  if (!course || !date) { showToast('请选择课程和日期', true); return; }
-  if (!scheduleData[date]) scheduleData[date] = [];
-  scheduleData[date].push({ name: course, type });
-  saveSchedule(); renderSchedule(); hideModal('addScheduleModal');
-  showToast(`排课「${course}」添加成功！`);
-}
-
-// ============ Grades — localStorage ============
-const defaultGrades = [
-  { name: '李明华', id: 'S20260001', course: '商务英语高级班', daily: 92, midterm: 88, final: 91, total: 90.4, level: '优秀', color: '#6366F1' },
-  { name: '王思雨', id: 'S20260002', course: 'Python全栈开发', daily: 85, midterm: 78, final: 82, total: 81.7, level: '良好', color: '#EC4899' },
-  { name: '张天一', id: 'S20260003', course: '少儿美术启蒙', daily: 95, midterm: 92, final: 96, total: 94.3, level: '优秀', color: '#F59E0B' },
-  { name: '陈晓峰', id: 'S20260004', course: '雅思冲刺班', daily: 76, midterm: 72, final: 68, total: 71.6, level: '及格', color: '#10B981' },
-  { name: '刘雨萱', id: 'S20260005', course: '钢琴进阶课', daily: 88, midterm: 85, final: 90, total: 87.8, level: '良好', color: '#8B5CF6' },
-];
-function loadGrades() { const s = localStorage.getItem('liming_grades'); return s ? JSON.parse(s) : [...defaultGrades]; }
-function saveGrades() { localStorage.setItem('liming_grades', JSON.stringify(gradesData)); }
-let gradesData = loadGrades();
+// ==================== 成绩管理 ====================
 function renderGrades() {
-  const tbody = document.getElementById('gradesBody');
-  if (!tbody) return;
-  tbody.innerHTML = gradesData.map((g, i) => `
+  document.getElementById('gradesBody').innerHTML = gradesData.map((g, i) => `
     <tr>
       <td><div class="avatar-cell"><div class="avatar-sm" style="background:${g.color}">${g.name[0]}</div>${g.name}</div></td>
       <td>${g.id}</td><td>${g.course}</td><td>${g.daily}</td><td>${g.midterm}</td><td>${g.final}</td>
-      <td><strong>${g.total}</strong></td><td><span class="status-tag ${g.level === '优秀' ? 'active' : g.level === '良好' ? 'pending' : 'inactive'}">${g.level}</span></td>
+      <td><strong>${g.total}</strong></td>
+      <td><span class="status-tag ${g.level === '优秀' ? 'active' : g.level === '良好' ? 'pending' : 'inactive'}">${g.level}</span></td>
       <td><button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger)" onclick="deleteGrade(${i})">删除</button></td>
     </tr>
   `).join('');
 }
-renderGrades();
+
 function deleteGrade(idx) {
-  const g = gradesData[idx]; if (!g) return;
-  if (!confirm(`确定要删除「${g.name}」的成绩吗？`)) return;
-  gradesData.splice(idx, 1); saveGrades(); renderGrades(); showToast(`已删除成绩记录`);
+  const g = gradesData[idx]; if (!g || !confirm(`确定要删除「${g.name}」的成绩吗？`)) return;
+  gradesData.splice(idx, 1); saveAll(); renderGrades(); showToast('已删除成绩记录');
 }
 
-// Schedule grid
-const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
-const scheduleGrid = document.getElementById('scheduleGrid');
-const scheduleData = {
-  '5/4': [{ name: '商务英语', type: 'course' }, { name: '教研会议', type: 'meeting' }],
-  '5/5': [{ name: 'Python开发', type: 'course' }, { name: '雅思冲刺', type: 'course' }],
-  '5/6': [{ name: '商务英语', type: 'course' }, { name: '少儿美术', type: 'course' }, { name: '月度考试', type: 'exam' }],
-  '5/7': [{ name: 'Python开发', type: 'course' }],
-  '5/8': [{ name: '商务英语', type: 'course' }, { name: '钢琴课', type: 'course' }],
-  '5/9': [{ name: '雅思冲刺', type: 'course' }, { name: '数学辅导', type: 'course' }],
-  '5/10': [{ name: '家长会', type: 'meeting' }],
-};
-const dates = ['5/4', '5/5', '5/6', '5/7', '5/8', '5/9', '5/10'];
-scheduleGrid.innerHTML = days.map((d, i) => `<div class="schedule-header">${d}</div>`).join('') +
-  dates.map((d, i) => {
-    const events = scheduleData[d] || [];
-    const isToday = d === '5/6';
-    return `<div class="schedule-cell ${isToday ? 'today' : ''}">
-      <div class="date-num">${d.split('/')[1]}日</div>
-      ${events.map(e => `<div class="schedule-event ${e.type}">${e.name}</div>`).join('')}
-    </div>`;
+// ==================== 考勤统计 ====================
+function renderAttendance() {
+  const doneSessions = sessions.filter(s => s.status === 'done');
+  document.getElementById('attendanceBody').innerHTML = doneSessions.map(s => {
+    const total = s.students.length;
+    const present = s.students.filter(st => st.attendance === 'present').length;
+    const late = s.students.filter(st => st.attendance === 'late').length;
+    const absent = s.students.filter(st => st.attendance === 'absent').length;
+    const rate = total > 0 ? (present / total * 100).toFixed(1) : 0;
+    return `<tr>
+      <td>${s.className}</td><td>${s.date} ${s.start}-${s.end}</td>
+      <td>${total}</td><td>${present}</td><td>${late}</td><td>${absent}</td>
+      <td><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:80px"><div class="progress-fill ${rate >= 90 ? 'green' : 'amber'}" style="width:${rate}%"></div></div>${rate}%</div></td>
+    </tr>`;
   }).join('');
+}
 
-// Attendance grid
-const attendanceStudents = [
-  { name: '李明华', status: 'present' }, { name: '王思雨', status: 'present' },
-  { name: '张天一', status: 'late' }, { name: '陈晓峰', status: 'present' },
-  { name: '刘雨萱', status: 'present' }, { name: '赵雅琪', status: 'absent' },
-  { name: '孙浩然', status: 'present' }, { name: '周美琳', status: 'present' },
-  { name: '吴佳怡', status: 'present' }, { name: '郑浩宇', status: 'present' },
-  { name: '黄诗涵', status: 'present' }, { name: '马子轩', status: 'present' },
-];
-const statusIcons = { present: '✓', late: '⏰', absent: '✗' };
-const statusColors = { present: 'var(--success)', late: 'var(--accent)', absent: 'var(--danger)' };
-const attendanceGrid = document.getElementById('attendanceGrid');
-attendanceGrid.innerHTML = attendanceStudents.map(s => `
-  <div class="attendance-card ${s.status === 'present' ? 'checked' : ''}" onclick="this.classList.toggle('checked')">
-    <div class="status-icon" style="${s.status !== 'present' ? `background:${statusColors[s.status]}20;color:${statusColors[s.status]}` : ''}">${statusIcons[s.status]}</div>
-    <div class="name">${s.name}</div>
-    <div class="id">${s.status === 'present' ? '已签到' : s.status === 'late' ? '迟到' : '缺勤'}</div>
-  </div>
-`).join('');
+// ==================== Charts ====================
+function renderCharts() {
+  // 招生趋势
+  const months = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  const values = [85,72,95,110,128,0,0,0,0,0,0,0];
+  const maxVal = Math.max(...values.filter(v => v > 0));
+  document.getElementById('enrollmentChart').innerHTML = months.map((m, i) => `
+    <div class="bar-group">
+      <div class="bar primary" style="height:${values[i] ? (values[i]/maxVal*180) : 4}px" title="${values[i]}人"></div>
+      <div class="bar-label">${m}</div>
+    </div>
+  `).join('');
 
-// Enrollment chart
-const months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
-const values = [85, 72, 95, 110, 128, 0, 0, 0, 0, 0, 0, 0];
-const maxVal = Math.max(...values.filter(v => v > 0));
-const chart = document.getElementById('enrollmentChart');
-chart.innerHTML = months.map((m, i) => `
-  <div class="bar-group">
-    <div class="bar primary" style="height:${values[i] ? (values[i] / maxVal * 180) : 4}px" title="${values[i]}人"></div>
-    <div class="bar-label">${m}</div>
-  </div>
-`).join('');
+  // 收支趋势
+  const revValues = [22,18,28,35,42,38,30,25,45,48,52,55];
+  const revMax = Math.max(...revValues);
+  document.getElementById('revenueChart').innerHTML = months.map((m, i) => `
+    <div class="bar-group">
+      <div class="bar ${i < 5 ? 'primary' : 'accent'}" style="height:${(revValues[i]/revMax*180)}px" title="${revValues[i]}万"></div>
+      <div class="bar-label">${m}</div>
+    </div>
+  `).join('');
+}
 
-// Revenue chart
-const revValues = [22, 18, 28, 35, 42, 38, 30, 25, 45, 48, 52, 55];
-const revMax = Math.max(...revValues);
-const revChart = document.getElementById('revenueChart');
-revChart.innerHTML = months.map((m, i) => `
-  <div class="bar-group">
-    <div class="bar ${i < 5 ? 'primary' : 'accent'}" style="height:${(revValues[i] / revMax * 180)}px" title="${revValues[i]}万"></div>
-    <div class="bar-label">${m}</div>
-  </div>
-`).join('');
+// ==================== 初始化 ====================
+function init() {
+  // 设置日期筛选器默认值
+  document.getElementById('rollcallDateFilter').value = todayStr;
+  document.getElementById('sessionDate').value = todayStr;
 
-// Tabs
-document.querySelectorAll('.tabs').forEach(tabGroup => {
-  tabGroup.querySelectorAll('.tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      tabGroup.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
+  // 渲染所有页面
+  renderStudents();
+  renderCourses();
+  renderClasses();
+  renderTeachers();
+  renderClassrooms();
+  renderGrades();
+  renderAttendance();
+  renderSchedule();
+  renderCharts();
+  renderRollcallSessions();
+  renderDashboard();
+
+  // Tab 切换
+  document.querySelectorAll('.tabs').forEach(tabGroup => {
+    tabGroup.querySelectorAll('.tab').forEach(tab => {
+      if (!tab.onclick) {
+        tab.addEventListener('click', () => {
+          tabGroup.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+        });
+      }
     });
   });
-});
+}
+
+init();
 </script>
 </body>
 </html>
