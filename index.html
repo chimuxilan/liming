@@ -1643,7 +1643,7 @@ function renderRollcallSessions() {
       <td>${total}</td>
       <td>${present}</td>
       <td><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:80px"><div class="progress-fill green" style="width:${rate}%"></div></div>${rate}%</div></td>
-      <td><button class="btn btn-outline btn-sm" onclick="viewRollcallDetail('${s.id}')">查看详情</button></td>
+      <td><button class="btn btn-outline btn-sm" onclick="viewRollcallDetail('${s.id}')">查看详情</button> <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger)" onclick="deleteSession('${s.id}')">删除</button></td>
     </tr>`;
   }).join('');
 
@@ -1663,8 +1663,8 @@ function renderRollcallSessions() {
       <td>${total}</td>
       <td>${s.status === 'done' ? present : '-'}</td>
       <td>${s.status === 'done'
-        ? `<button class="btn btn-outline btn-sm" onclick="viewRollcallDetail('${s.id}')">查看详情</button>`
-        : `<button class="btn btn-primary btn-sm" onclick="openRollcall('${s.id}')">去点名</button>`
+        ? `<button class="btn btn-outline btn-sm" onclick="viewRollcallDetail('${s.id}')">查看详情</button> <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger)" onclick="deleteSession('${s.id}')">删除</button>`
+        : `<button class="btn btn-primary btn-sm" onclick="openRollcall('${s.id}')">去点名</button> <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger)" onclick="deleteSession('${s.id}')">删除</button>`
       }</td>
     </tr>`;
   }).join('');
@@ -1696,6 +1696,7 @@ function renderSessionCard(s) {
     <div class="session-status">
       <span class="status-tag rollcall-pending">待点名</span>
       <button class="btn btn-primary btn-sm">开始点名</button>
+      <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger);margin-top:4px" onclick="event.stopPropagation();deleteSession('${s.id}')">🗑 删除</button>
     </div>
   </div>`;
 }
@@ -1782,6 +1783,19 @@ function saveRollcall() {
   hideModal('rollcallDetailModal');
   renderRollcallSessions();
   showToast('点名已保存！');
+}
+
+// 删除课节
+function deleteSession(sessionId) {
+  const session = sessions.find(s => s.id === sessionId);
+  if (!session) return;
+  const label = `${session.className} ${session.date} ${session.start}-${session.end}`;
+  if (!confirm(`确定要删除课节「${label}」吗？\n删除后不可恢复。`)) return;
+  sessions = sessions.filter(s => s.id !== sessionId);
+  saveAll();
+  renderRollcallSessions();
+  renderDashboard();
+  showToast(`已删除课节「${label}」`);
 }
 
 // 查看点名详情
