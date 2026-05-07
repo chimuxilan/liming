@@ -2484,10 +2484,19 @@ function renderRollcallStudents() {
 
   // 计算课时单价
   const courseInfo = courses.find(c => c.name === s.course);
-  const totalHours = courseInfo ? courseInfo.hours : 48;
-  const priceStr = courseInfo ? courseInfo.price : '¥0';
+  if (!courseInfo) {
+    document.getElementById('rollcallStudentList').innerHTML = '<div style="text-align:center;padding:40px;color:var(--danger)">⚠️ 找不到课程「' + s.course + '」信息，请先在课程管理中创建该课程</div>';
+    return;
+  }
+  const totalHours = courseInfo.hours || 0;
+  const priceStr = courseInfo.price || '¥0';
   const totalPrice = parseInt(priceStr.replace(/[^0-9]/g, '')) || 0;
   const perSessionFee = totalHours > 0 ? Math.round(totalPrice / totalHours) : 0;
+
+  if (perSessionFee <= 0) {
+    document.getElementById('rollcallStudentList').innerHTML = '<div style="text-align:center;padding:40px;color:var(--warning)">⚠️ 课程「' + s.course + '」课时单价为0（学费:' + priceStr + '，课时:' + totalHours + '），请检查课程管理中的学费和课时数</div>';
+    return;
+  }
 
   // 学生列表
   const list = document.getElementById('rollcallStudentList');
@@ -2496,6 +2505,7 @@ function renderRollcallStudents() {
     const color = student ? student.color : '#6366F1';
     const fee = student ? (student.fee || 0) : 0;
     const feeEnough = fee >= perSessionFee;
+    const afterFee = st.attendance === 'present' || st.attendance === 'late' ? Math.max(0, fee - perSessionFee) : fee;
     return `<div class="rollcall-student-row">
       <div class="student-name">
         <div class="avatar-sm" style="background:${color}">${st.name[0]}</div>
@@ -2505,6 +2515,7 @@ function renderRollcallStudents() {
           <div style="font-size:11px;margin-top:2px">
             <span style="color:${feeEnough ? 'var(--success)' : 'var(--danger)'};font-weight:600">剩余费用 ¥${fee.toLocaleString()}</span>
             <span style="color:var(--text-secondary);margin-left:6px">每课时扣 ¥${perSessionFee}</span>
+            ${st.attendance === 'present' || st.attendance === 'late' ? `<span style="color:var(--danger);margin-left:6px;font-weight:600">→ ¥${afterFee.toLocaleString()}</span>` : ''}
           </div>
         </div>
       </div>
@@ -2526,6 +2537,13 @@ function setAttendance(studentIdx, status) {
 
 function saveRollcall() {
   if (!currentRollcallSession) return;
+
+  // ========== 防重复扣费检查 ==========
+  if (currentRollcallSession.status === 'done') {
+    showToast('该课节已完成点名，无需重复保存', true);
+    return;
+  }
+
   const unmarked = currentRollcallSession.students.filter(s => !s.attendance).length;
   if (unmarked > 0) {
     if (!confirm(`还有 ${unmarked} 名学生未标记出勤状态，确定要保存吗？`)) return;
@@ -2538,10 +2556,19 @@ function saveRollcall() {
   // ========== 点名自动扣费 ==========
   const session = currentRollcallSession;
   const courseInfo = courses.find(c => c.name === session.course);
-  const totalHours = courseInfo ? courseInfo.hours : 48;
-  const priceStr = courseInfo ? courseInfo.price : '¥0';
+  if (!courseInfo) {
+    showToast('找不到课程「' + session.course + '」信息，无法计算扣费', true);
+    return;
+  }
+  const totalHours = courseInfo.hours || 0;
+  const priceStr = courseInfo.price || '¥0';
   const totalPrice = parseInt(priceStr.replace(/[^0-9]/g, '')) || 0;
   const perSessionFee = totalHours > 0 ? Math.round(totalPrice / totalHours) : 0;
+
+  if (perSessionFee <= 0) {
+    showToast('课程「' + session.course + '」的课时单价为0，请检查课程管理中的学费和课时数', true);
+    return;
+  }
 
   let deductedCount = 0;
   let deductedTotal = 0;
@@ -2551,7 +2578,7 @@ function saveRollcall() {
     if (st.attendance === 'present' || st.attendance === 'late') {
       const student = students.find(x => x.id === st.id);
       if (!student) return;
-      if (!student.fee) student.fee = 0;
+      if (student.fee === undefined || student.fee === null) student.fee = 0;
 
       if (student.fee >= perSessionFee) {
         student.fee -= perSessionFee;
@@ -2572,7 +2599,7 @@ function saveRollcall() {
         student.fee = 0;
         deductedCount++;
         deductedTotal += deducted;
-        insufficientStudents.push(`${student.name}(剩余¥${deducted})`);
+        insufficientStudents.push(`${student.name}(仅剩¥${deducted})`);
         if (!student.feeLogs) student.feeLogs = [];
         student.feeLogs.push({
           date: session.date,
@@ -2582,7 +2609,7 @@ function saveRollcall() {
           type: '余额不足扣费'
         });
       } else {
-        insufficientStudents.push(student.name);
+        insufficientStudents.push(student.name + '(余额¥0)');
       }
     }
   });
@@ -2601,18 +2628,20 @@ function saveRollcall() {
   saveAll();
   hideModal('rollcallDetailModal');
   renderRollcallSessions();
+  renderStudents();
   renderDashboard();
   renderAttendance();
   renderGrades();
+  renderCourses();
   renderCharts();
 
   // 显示扣费结果
   let msg = `点名已保存！本次扣费 ${deductedCount} 人，共 ¥${deductedTotal.toLocaleString()}`;
-  if (perSessionFee > 0) msg += ` (课时单价 ¥${perSessionFee})`;
+  msg += ` (课时单价 ¥${perSessionFee}，课程: ${session.course})`;
   // 显示课程进度更新
   var updatedCourse = courses.find(function(c) { return c.name === session.course; });
   if (updatedCourse) {
-    msg += `\n📚 ${session.course} 进度已更新: ${updatedCourse.progress}%`;
+    msg += `\n📚 ${session.course} 进度: ${updatedCourse.progress}%`;
   }
   if (insufficientStudents.length > 0) {
     msg += `\n⚠️ 余额不足：${insufficientStudents.join('、')}`;
@@ -4450,26 +4479,25 @@ function viewStudentDetail(id) {
 function reRollcall(sessionId) {
   var session = sessions.find(function(s) { return s.id === sessionId; });
   if (!session) return;
+  if (session.status !== 'done') {
+    // 还没完成过点名，直接打开
+    openRollcall(sessionId);
+    return;
+  }
   if (!confirm('确定要重新点名「' + session.className + ' ' + session.date + '」吗？\n当前考勤记录将被清除，已扣费用将退回。')) return;
 
   // ========== 退回已扣费用 ==========
   session.students.forEach(function(st) {
-    if (st.attendance === 'present' || st.attendance === 'late') {
-      var student = students.find(function(x) { return x.id === st.id; });
-      if (!student) return;
-      // 找到对应的扣费记录并退回
-      var feeLogs = student.feeLogs || [];
-      var logIdx = -1;
-      for (var i = feeLogs.length - 1; i >= 0; i--) {
-        if (feeLogs[i].date === session.date && feeLogs[i].session === session.className && feeLogs[i].amount < 0) {
-          logIdx = i;
-          break;
-        }
-      }
-      if (logIdx >= 0) {
-        var refundAmount = Math.abs(feeLogs[logIdx].amount);
+    var student = students.find(function(x) { return x.id === st.id; });
+    if (!student) return;
+    // 找到对应的扣费记录并退回
+    var feeLogs = student.feeLogs || [];
+    for (var i = feeLogs.length - 1; i >= 0; i--) {
+      if (feeLogs[i].date === session.date && feeLogs[i].session === session.className && feeLogs[i].amount < 0) {
+        var refundAmount = Math.abs(feeLogs[i].amount);
         student.fee = (student.fee || 0) + refundAmount;
-        feeLogs.splice(logIdx, 1);
+        feeLogs.splice(i, 1);
+        break;
       }
     }
   });
@@ -4480,13 +4508,16 @@ function reRollcall(sessionId) {
     matchedClass.doneHours -= 1;
   }
 
+  // 重置考勤状态
   session.status = 'pending';
   session.students.forEach(function(st) { st.attendance = null; });
+
+  // 同步数据（更新课程进度等）
   saveAll();
-  renderRollcallSessions();
-  renderDashboard();
-  showToast('已重置点名，费用已退回，正在进入点名界面...', false, 2000);
-  setTimeout(function() { openRollcall(sessionId); }, 500);
+
+  // 打开点名弹窗
+  openRollcall(sessionId);
+  showToast('已重置点名，费用已退回', false, 3000);
 }
 
 // ==================== 【优化6】删课程检查关联数据 ====================
