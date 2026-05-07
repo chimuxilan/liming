@@ -2833,6 +2833,13 @@ function renderCourses() {
       <div class="progress-bar"><div class="progress-fill blue" style="width:${c.progress}%"></div></div>
     </div>
   `).join('');
+  // 同步新增班级弹窗的课程下拉框
+  var classCourseSel = document.getElementById("classCourse");
+  if (classCourseSel) {
+    classCourseSel.innerHTML = courses.map(function(c) {
+      return '<option value="' + c.name + '">' + c.name + '</option>';
+    }).join("");
+  }
   updateBatchButtons();
 }
 
