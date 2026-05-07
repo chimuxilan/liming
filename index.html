@@ -811,7 +811,7 @@ select.form-control { cursor: pointer; }
       <div id="studentFeeStats" style="display:flex;gap:16px;margin-bottom:16px"></div>
       <div class="filter-bar">
         <select class="form-control" id="studentStatusFilter" style="width:140px" onchange="studentPage=1;renderStudents()"><option value="">全部状态</option><option value="active">在读</option><option value="pending">待确认</option><option value="completed">已毕业</option><option value="inactive">休学</option></select>
-        <select class="form-control" style="width:140px"><option>全部课程</option><option>商务英语</option><option>Python开发</option><option>雅思冲刺</option></select>
+        <select class="form-control" style="width:140px" id="studentCourseFilter"><option value="">全部课程</option></select>
         <select class="form-control" style="width:120px"><option>全部班级</option><option>2026春季</option><option>2025秋季</option></select>
         <div style="flex:1"></div>
         <button class="btn btn-outline" onclick="importStudents()">📥 导入</button>
@@ -840,7 +840,7 @@ select.form-control { cursor: pointer; }
     <!-- ==================== 课程管理 ==================== -->
     <div class="page" id="page-courses">
       <div class="filter-bar">
-        <select class="form-control" style="width:140px"><option>全部类型</option><option>语言培训</option><option>职业技能</option><option>艺术特长</option><option>学科辅导</option></select>
+        <select class="form-control" style="width:140px" id="courseTypeFilter"><option value="">全部类型</option></select>
         <select class="form-control" style="width:140px"><option>全部状态</option><option>开课中</option><option>未开课</option><option>已结课</option></select>
         <div style="flex:1"></div>
         <button class="btn btn-outline batch-del-btn" id="batchDeleteCourseBtn" style="display:none" onclick="batchDeleteCourses()">🗑️ 批量删除(<span id="courseSelectedCount">0</span>)</button>
@@ -872,7 +872,7 @@ select.form-control { cursor: pointer; }
         <div style="font-weight:600;font-size:15px;padding:0 12px" id="weekTitle">2026年5月4日 — 5月10日</div>
         <button class="btn btn-outline btn-sm" onclick="changeWeek(1)">下一周 ›</button>
         <div style="flex:1"></div>
-        <select class="form-control" style="width:160px"><option>全部教室</option><option>A301 多媒体教室</option><option>A302 语音室</option><option>B201 计算机房</option></select>
+        <select class="form-control" style="width:160px" id="scheduleClassroomFilter"><option value="">全部教室</option></select>
         <button class="btn btn-outline batch-del-btn" id="batchDeleteScheduleBtn" style="display:none" onclick="batchDeleteSchedule()">🗑️ 批量删除(<span id="scheduleSelectedCount">0</span>)</button>
         <button class="btn btn-primary" onclick="showModal('addScheduleModal')">➕ 新增排课</button>
       </div>
@@ -886,7 +886,7 @@ select.form-control { cursor: pointer; }
         <div class="tab">异常记录</div>
       </div>
       <div class="filter-bar">
-        <select class="form-control" style="width:180px"><option>全部课程</option><option>商务英语高级班</option><option>Python全栈开发</option><option>雅思冲刺班</option></select>
+        <select class="form-control" style="width:180px" id="attendanceCourseFilter"><option value="">全部课程</option></select>
         <input class="form-control" type="date" style="width:160px">
         <div style="flex:1"></div>
         <button class="btn btn-outline" onclick="exportAttendance()">📊 导出报表</button>
@@ -902,7 +902,7 @@ select.form-control { cursor: pointer; }
     <!-- ==================== 成绩管理 ==================== -->
     <div class="page" id="page-grades">
       <div class="filter-bar">
-        <select class="form-control" style="width:180px"><option>全部课程</option><option>商务英语高级班</option><option>Python全栈开发</option><option>雅思冲刺班</option></select>
+        <select class="form-control" style="width:180px" id="gradesCourseFilter"><option value="">全部课程</option></select>
         <select class="form-control" style="width:140px"><option>期中考试</option><option>期末考试</option><option>平时成绩</option></select>
         <div style="flex:1"></div>
         <button class="btn btn-outline" onclick="importGrades()">📥 导入成绩</button>
@@ -941,7 +941,7 @@ select.form-control { cursor: pointer; }
     <div class="page" id="page-classroom">
       <div class="filter-bar">
         <select class="form-control" style="width:140px"><option>全部楼层</option><option>A栋</option><option>B栋</option></select>
-        <select class="form-control" style="width:140px"><option>全部类型</option><option>普通教室</option><option>多媒体教室</option><option>计算机房</option><option>语音室</option></select>
+        <select class="form-control" style="width:140px" id="classroomTypeFilter"><option value="">全部类型</option></select>
         <div style="flex:1"></div>
         <button class="btn btn-outline batch-del-btn" id="batchDeleteClassroomBtn" style="display:none" onclick="batchDeleteClassrooms()">🗑️ 批量删除(<span id="classroomSelectedCount">0</span>)</button>
         <button class="btn btn-primary" onclick="showModal('addClassroomModal')">➕ 新增教室</button>
@@ -1402,7 +1402,7 @@ select.form-control { cursor: pointer; }
         </div>
         <div class="form-group">
           <label>教室</label>
-          <select class="form-control"><option>A301 多媒体教室</option><option>A302 语音室</option><option>B201 计算机房</option></select>
+          <select class="form-control" id="sessionClassroom"></select>
         </div>
       </div>
       <div class="form-row">
@@ -1417,7 +1417,7 @@ select.form-control { cursor: pointer; }
       </div>
       <div class="form-group">
         <label>授课老师</label>
-        <select class="form-control"><option>张明辉</option><option>李文静</option><option>王艺萌</option><option>赵国强</option></select>
+        <select class="form-control" id="sessionTeacher"></select>
       </div>
     </div>
     <div class="modal-footer">
@@ -2597,16 +2597,22 @@ function addSession() {
   const date = document.getElementById('sessionDate').value;
   const start = document.getElementById('sessionStart').value;
   const end = document.getElementById('sessionEnd').value;
+  const classroomSel = document.getElementById('sessionClassroom');
+  const teacherSel = document.getElementById('sessionTeacher');
+  const classroomName = classroomSel ? classroomSel.value : '';
+  const teacherName = teacherSel ? teacherSel.value : '';
   if (!date) { showToast('请选择上课日期', true); return; }
 
   // 教室冲突检查
-  var classroomName = 'A301';
-  var conflict = sessions.find(function(s) {
-    return s.date === date && s.classroom === classroomName && s.start < end && s.end > start;
-  });
-  if (conflict) {
-    showToast('教室冲突！' + classroomName + ' 在 ' + date + ' ' + conflict.start + '-' + conflict.end + ' 已被占用', true);
-    return;
+  if (classroomName) {
+    var roomName = classroomName.split(' ')[0];
+    var conflict = sessions.find(function(s) {
+      return s.date === date && s.classroom === roomName && s.start < end && s.end > start;
+    });
+    if (conflict) {
+      showToast('教室冲突！' + roomName + ' 在 ' + date + ' ' + conflict.start + '-' + conflict.end + ' 已被占用', true);
+      return;
+    }
   }
 
   const classInfo = classList.find(c => c.name === cls);
@@ -2617,8 +2623,8 @@ function addSession() {
     date, start, end,
     className: cls,
     course: classInfo ? classInfo.course : cls,
-    teacher: classInfo ? classInfo.teacher : '未指定',
-    classroom: 'A301',
+    teacher: teacherName || (classInfo ? classInfo.teacher : '未指定'),
+    classroom: classroomName ? classroomName.split(' ')[0] : '',
     status: 'pending',
     students: studentsInClass
   });
@@ -2841,6 +2847,7 @@ function renderCourses() {
     }).join("");
   }
   syncClassroomTypeOptions();
+  syncAllDropdowns();
   updateBatchButtons();
 }
 
@@ -3737,6 +3744,95 @@ function updateDonutChart() {
 }
 
 // ==================== 初始化 ====================
+
+// 统一同步所有下拉框（与各管理模块联动）
+function syncAllDropdowns() {
+  // 班级下拉框
+  var classSelectIds = ['sessionClass'];
+  classSelectIds.forEach(function(id) {
+    var sel = document.getElementById(id);
+    if (sel) {
+      var val = sel.value;
+      sel.innerHTML = classList.map(function(c) {
+        return '<option value="' + c.name + '">' + c.name + '</option>';
+      }).join('');
+      if (val && classList.some(function(c){ return c.name === val; })) sel.value = val;
+    }
+  });
+
+  // 教室下拉框
+  var classroomOpts = classrooms.map(function(c) {
+    return '<option value="' + c.name + ' ' + c.type + '">' + c.name + ' ' + c.type + '</option>';
+  });
+  var classroomSelectIds = ['sessionClassroom'];
+  classroomSelectIds.forEach(function(id) {
+    var sel = document.getElementById(id);
+    if (sel) {
+      var val = sel.value;
+      sel.innerHTML = classroomOpts.join('');
+      if (val) sel.value = val;
+    }
+  });
+
+  // 教师下拉框（排课弹窗）
+  var teacherOpts = teachers.map(function(t) {
+    return '<option value="' + t.name + '">' + t.name + '</option>';
+  });
+  var sessionTeacherSel = document.getElementById('sessionTeacher');
+  if (sessionTeacherSel) {
+    var val = sessionTeacherSel.value;
+    sessionTeacherSel.innerHTML = teacherOpts.join('');
+    if (val) sessionTeacherSel.value = val;
+  }
+
+  // 课程筛选下拉框
+  var courseFilterIds = ['studentCourseFilter', 'attendanceCourseFilter', 'gradesCourseFilter'];
+  courseFilterIds.forEach(function(id) {
+    var sel = document.getElementById(id);
+    if (sel) {
+      var val = sel.value;
+      sel.innerHTML = '<option value="">全部课程</option>' + courses.map(function(c) {
+        return '<option value="' + c.name + '">' + c.name + '</option>';
+      }).join('');
+      if (val) sel.value = val;
+    }
+  });
+
+  // 课程类型筛选下拉框
+  var courseTypes = [];
+  courses.forEach(function(c) { if (courseTypes.indexOf(c.type) === -1) courseTypes.push(c.type); });
+  var courseTypeFilterSel = document.getElementById('courseTypeFilter');
+  if (courseTypeFilterSel) {
+    var val = courseTypeFilterSel.value;
+    courseTypeFilterSel.innerHTML = '<option value="">全部类型</option>' + courseTypes.map(function(t) {
+      return '<option value="' + t + '">' + t + '</option>';
+    }).join('');
+    if (val) courseTypeFilterSel.value = val;
+  }
+
+  // 教室筛选下拉框
+  var scheduleClassroomFilterSel = document.getElementById('scheduleClassroomFilter');
+  if (scheduleClassroomFilterSel) {
+    var val = scheduleClassroomFilterSel.value;
+    scheduleClassroomFilterSel.innerHTML = '<option value="">全部教室</option>' + classrooms.map(function(c) {
+      return '<option value="' + c.name + ' ' + c.type + '">' + c.name + ' ' + c.type + '</option>';
+    }).join('');
+    if (val) scheduleClassroomFilterSel.value = val;
+  }
+
+  // 教室类型筛选下拉框
+  var defaultRoomTypes = ['普通教室', '多媒体教室', '计算机房', '语音室', '画室', '琴房'];
+  var allRoomTypes = defaultRoomTypes.concat(courseTypes.filter(function(t) { return defaultRoomTypes.indexOf(t) === -1; }));
+  var classroomTypeFilterSel = document.getElementById('classroomTypeFilter');
+  if (classroomTypeFilterSel) {
+    var val = classroomTypeFilterSel.value;
+    classroomTypeFilterSel.innerHTML = '<option value="">全部类型</option>' + allRoomTypes.map(function(t) {
+      return '<option value="' + t + '">' + t + '</option>';
+    }).join('');
+    if (val) classroomTypeFilterSel.value = val;
+  }
+}
+
 function init() {
   // 数据联动同步（确保所有关联数据一致）
   syncData();
@@ -3779,6 +3875,9 @@ function init() {
       debounceSearch(this.value);
     });
   }
+
+  // 同步所有下拉框
+  syncAllDropdowns();
 
   // 渲染所有页面
   renderStudents();
