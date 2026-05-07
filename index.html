@@ -1168,6 +1168,51 @@ select.form-control { cursor: pointer; }
   </div>
 </div>
 
+<!-- 编辑课程 Modal -->
+<div class="modal-overlay" id="editCourseModal">
+  <div class="modal" style="width:560px">
+    <div class="modal-header">
+      <h3>✏️ 编辑课程</h3>
+      <button class="modal-close" onclick="hideModal('editCourseModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editCourseIdx">
+      <div class="form-group">
+        <label>课程名称 *</label>
+        <input class="form-control" id="editCourseName" placeholder="请输入课程名称">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>课程类型 *</label>
+          <select class="form-control" id="editCourseType"><option>语言培训</option><option>职业技能</option><option>艺术特长</option><option>学科辅导</option></select>
+        </div>
+        <div class="form-group">
+          <label>授课教师</label>
+          <select class="form-control" id="editCourseTeacher"></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>课时数</label>
+          <input class="form-control" id="editCourseHours" type="number" placeholder="如: 48">
+        </div>
+        <div class="form-group">
+          <label>学费 (元)</label>
+          <input class="form-control" id="editCoursePrice" type="number" placeholder="如: 6800">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>教学进度 (%)</label>
+        <input class="form-control" id="editCourseProgress" type="number" min="0" max="100" placeholder="0-100">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="hideModal('editCourseModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveEditCourse()">保存修改</button>
+    </div>
+  </div>
+</div>
+
 <!-- 新增排课 Modal -->
 <div class="modal-overlay" id="addScheduleModal">
   <div class="modal" style="width:560px">
@@ -2432,6 +2477,7 @@ function renderCourses() {
         <div style="width:40px;height:40px;border-radius:10px;background:${c.color}20;color:${c.color};display:flex;align-items:center;justify-content:center;font-size:18px">📚</div>
         <div style="display:flex;align-items:center;gap:8px">
           <span class="status-tag ${c.progress > 60 ? 'active' : 'pending'}">${c.progress > 60 ? '开课中' : '进行中'}</span>
+          <button class="btn btn-outline btn-sm" style="padding:2px 8px;font-size:11px" onclick="event.stopPropagation(); editCourse(${i})">✏️ 编辑</button>
           <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger);padding:2px 8px;font-size:11px" onclick="event.stopPropagation(); deleteCourse(${i})">删除</button>
         </div>
       </div>
@@ -2469,6 +2515,61 @@ function addCourse() {
   document.getElementById('courseHours').value = '';
   document.getElementById('coursePrice').value = '';
   showToast(`课程「${name}」创建成功！`);
+}
+
+// 编辑课程
+function editCourse(idx) {
+  const c = courses[idx];
+  if (!c) return;
+  document.getElementById('editCourseIdx').value = idx;
+  document.getElementById('editCourseName').value = c.name;
+  document.getElementById('editCourseType').value = c.type;
+  document.getElementById('editCourseHours').value = c.hours || '';
+  document.getElementById('editCoursePrice').value = parseInt(String(c.price).replace(/[^0-9]/g, '')) || '';
+
+  // 填充教师下拉框（从教师表动态获取）
+  const teacherSelect = document.getElementById('editCourseTeacher');
+  teacherSelect.innerHTML = teachers.map(t =>
+    `<option value="${t.name}" ${t.name === c.teacher ? 'selected' : ''}>${t.name}</option>`
+  ).join('');
+
+  document.getElementById('editCourseProgress').value = c.progress || 0;
+  showModal('editCourseModal');
+}
+
+// 保存编辑课程
+function saveEditCourse() {
+  const idx = parseInt(document.getElementById('editCourseIdx').value);
+  const c = courses[idx];
+  if (!c) return;
+  const name = document.getElementById('editCourseName').value.trim();
+  if (!name) { showToast('请输入课程名称', true); return; }
+
+  const oldName = c.name;
+  const oldTeacher = c.teacher;
+  c.name = name;
+  c.type = document.getElementById('editCourseType').value;
+  c.teacher = document.getElementById('editCourseTeacher').value;
+  c.hours = parseInt(document.getElementById('editCourseHours').value) || c.hours;
+  c.price = '¥' + (parseInt(document.getElementById('editCoursePrice').value) || 0).toLocaleString();
+  c.progress = parseInt(document.getElementById('editCourseProgress').value) || 0;
+
+  // 联动更新：如果课程名改了，同步更新班级和学员的课程字段
+  if (oldName !== name) {
+    classList.forEach(function(cls) { if (cls.course === oldName) cls.course = name; });
+    students.forEach(function(s) { if (s.course === oldName) s.course = name; });
+    sessions.forEach(function(s) { if (s.course === oldName) s.course = name; });
+    gradesData.forEach(function(g) { if (g.course === oldName) g.course = name; });
+  }
+  // 联动更新：如果教师改了，同步更新班级的教师字段
+  if (oldTeacher !== c.teacher) {
+    classList.forEach(function(cls) { if (cls.course === name && cls.teacher === oldTeacher) cls.teacher = c.teacher; });
+  }
+
+  saveAll();
+  renderCourses(); renderClasses(); renderTeachers(); renderDashboard();
+  hideModal('editCourseModal');
+  showToast(`课程「${name}」已更新`);
 }
 
 // ==================== 班级管理 ====================
