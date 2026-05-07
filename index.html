@@ -811,7 +811,7 @@ select.form-control { cursor: pointer; }
       <div id="studentFeeStats" style="display:flex;gap:16px;margin-bottom:16px"></div>
       <div class="filter-bar">
         <select class="form-control" id="studentStatusFilter" style="width:140px" onchange="studentPage=1;renderStudents()"><option value="">全部状态</option><option value="active">在读</option><option value="pending">待确认</option><option value="completed">已毕业</option><option value="inactive">休学</option></select>
-        <select class="form-control" style="width:140px" id="studentCourseFilter"><option value="">全部课程</option></select>
+        <select class="form-control" style="width:140px" id="studentCourseFilter" onchange="filterStudents()"><option value="">全部课程</option></select>
         <select class="form-control" style="width:120px"><option>全部班级</option><option>2026春季</option><option>2025秋季</option></select>
         <div style="flex:1"></div>
         <button class="btn btn-outline" onclick="importStudents()">📥 导入</button>
@@ -955,33 +955,33 @@ select.form-control { cursor: pointer; }
         <div class="stat-card">
           <div class="stat-icon blue">📊</div>
           <div class="stat-info">
-            <h3>¥328.5万</h3>
+            <h3 id="reportRevenue">¥0</h3>
             <p>年度营收</p>
-            <div class="trend up">↑ 18.2%</div>
+            <div class="trend up" id="reportRevenueTrend">-</div>
           </div>
         </div>
         <div class="stat-card">
           <div class="stat-icon green">📈</div>
           <div class="stat-info">
-            <h3>2,450</h3>
+            <h3 id="reportStudents">0</h3>
             <p>年度招生</p>
-            <div class="trend up">↑ 23.5%</div>
+            <div class="trend up" id="reportStudentsTrend">-</div>
           </div>
         </div>
         <div class="stat-card">
           <div class="stat-icon amber">⭐</div>
           <div class="stat-info">
-            <h3>4.8</h3>
+            <h3 id="reportSatisfaction">0</h3>
             <p>教学满意度</p>
-            <div class="trend up">↑ 0.3</div>
+            <div class="trend up" id="reportSatisfactionTrend">-</div>
           </div>
         </div>
         <div class="stat-card">
           <div class="stat-icon red">🔄</div>
           <div class="stat-info">
-            <h3>89.2%</h3>
+            <h3 id="reportRetention">0%</h3>
             <p>续费率</p>
-            <div class="trend up">↑ 5.1%</div>
+            <div class="trend up" id="reportRetentionTrend">-</div>
           </div>
         </div>
       </div>
@@ -992,28 +992,7 @@ select.form-control { cursor: pointer; }
         </div>
         <div class="chart-card">
           <h3>🎯 各课程招生占比</h3>
-          <div style="padding:20px">
-            <div style="margin-bottom:16px">
-              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>商务英语</span><span>320人</span></div>
-              <div class="progress-bar"><div class="progress-fill blue" style="width:75%"></div></div>
-            </div>
-            <div style="margin-bottom:16px">
-              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>Python开发</span><span>280人</span></div>
-              <div class="progress-bar"><div class="progress-fill green" style="width:65%"></div></div>
-            </div>
-            <div style="margin-bottom:16px">
-              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>雅思托福</span><span>245人</span></div>
-              <div class="progress-bar"><div class="progress-fill amber" style="width:57%"></div></div>
-            </div>
-            <div style="margin-bottom:16px">
-              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>少儿美术</span><span>198人</span></div>
-              <div class="progress-bar"><div class="progress-fill blue" style="width:46%"></div></div>
-            </div>
-            <div>
-              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>钢琴音乐</span><span>156人</span></div>
-              <div class="progress-bar"><div class="progress-fill green" style="width:36%"></div></div>
-            </div>
-          </div>
+          <div style="padding:20px" id="reportCourseEnrollment"></div>
         </div>
       </div>
     </div>
@@ -1032,34 +1011,34 @@ select.form-control { cursor: pointer; }
           <div class="form-row">
             <div class="form-group">
               <label>机构名称</label>
-              <input class="form-control" value="智学通教育培训中心">
+              <input class="form-control" id="settingOrgName" value="智学通教育培训中心">
             </div>
             <div class="form-group">
               <label>联系电话</label>
-              <input class="form-control" value="400-888-9999">
+              <input class="form-control" id="settingPhone" value="400-888-9999">
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
               <label>负责人</label>
-              <input class="form-control" value="张校长">
+              <input class="form-control" id="settingDirector" value="张校长">
             </div>
             <div class="form-group">
               <label>邮箱</label>
-              <input class="form-control" value="admin@zhixuetong.com">
+              <input class="form-control" id="settingEmail" value="admin@zhixuetong.com">
             </div>
           </div>
           <div class="form-group">
             <label>机构地址</label>
-            <input class="form-control" value="北京市海淀区中关村大街1号智慧大厦3层">
+            <input class="form-control" id="settingAddress" value="北京市海淀区中关村大街1号智慧大厦3层">
           </div>
           <div class="form-group">
             <label>机构简介</label>
-            <textarea class="form-control" rows="3" style="resize:vertical">智学通教育培训中心成立于2018年，专注于语言培训、职业技能提升和艺术素质教育。</textarea>
+            <textarea class="form-control" id="settingDesc" rows="3" style="resize:vertical">智学通教育培训中心成立于2018年，专注于语言培训、职业技能提升和艺术素质教育。</textarea>
           </div>
           <div style="margin-top:20px">
-            <button class="btn btn-primary">保存修改</button>
-            <button class="btn btn-outline" style="margin-left:8px">重置</button>
+            <button class="btn btn-primary" onclick="saveSettings()">保存修改</button>
+            <button class="btn btn-outline" style="margin-left:8px" onclick="resetSettings()">重置</button>
           </div>
         </div>
       </div>
@@ -2848,6 +2827,7 @@ function renderCourses() {
   }
   syncClassroomTypeOptions();
   syncAllDropdowns();
+  renderReports();
   updateBatchButtons();
 }
 
@@ -3833,6 +3813,117 @@ function syncAllDropdowns() {
   }
 }
 
+
+// ==================== 报表统计 ====================
+function renderReports() {
+  // 年度营收
+  var totalRevenue = students.reduce(function(sum, s) { return sum + (s.fee || 0); }, 0);
+  var revenueStr = totalRevenue >= 10000 ? '¥' + (totalRevenue / 10000).toFixed(1) + '万' : '¥' + totalRevenue.toLocaleString();
+  document.getElementById('reportRevenue').textContent = revenueStr;
+
+  // 年度招生
+  document.getElementById('reportStudents').textContent = students.length + '人';
+
+  // 出勤率（从已完成课节统计）
+  var doneSessions = sessions.filter(function(s) { return s.status === 'done'; });
+  var totalAtt = 0, presentAtt = 0;
+  doneSessions.forEach(function(s) {
+    s.students.forEach(function(st) {
+      totalAtt++;
+      if (st.attendance === 'present' || st.attendance === 'late') presentAtt++;
+    });
+  });
+  var attendRate = totalAtt > 0 ? Math.round(presentAtt / totalAtt * 100) : 0;
+  document.getElementById('reportSatisfaction').textContent = (attendRate / 20).toFixed(1);
+  document.getElementById('reportSatisfactionTrend').textContent = '出勤率 ' + attendRate + '%';
+
+  // 续费率（基于缴费状态）
+  var paidCount = students.filter(function(s) { return s.payStatus === 'paid'; }).length;
+  var retentionRate = students.length > 0 ? Math.round(paidCount / students.length * 100) : 0;
+  document.getElementById('reportRetention').textContent = retentionRate + '%';
+
+  // 各课程招生占比
+  var courseStats = {};
+  courses.forEach(function(c) { courseStats[c.name] = { count: 0, color: c.color }; });
+  students.forEach(function(s) {
+    if (courseStats[s.course]) courseStats[s.course].count++;
+  });
+  var maxCount = Math.max.apply(null, Object.values(courseStats).map(function(v) { return v.count; }));
+  var colors = ['#3B82F6', '#10B981', '#F59E0B', '#EC4899', '#8B5CF6', '#EF4899', '#6366F1'];
+  var ci = 0;
+  var enrollHtml = '';
+  for (var name in courseStats) {
+    var stat = courseStats[name];
+    var pct = maxCount > 0 ? Math.round(stat.count / maxCount * 100) : 0;
+    var color = stat.color || colors[ci % colors.length];
+    enrollHtml += '<div style="margin-bottom:16px">' +
+      '<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>' + name + '</span><span>' + stat.count + '人</span></div>' +
+      '<div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%;background:' + color + '"></div></div></div>';
+    ci++;
+  }
+  var enrollEl = document.getElementById('reportCourseEnrollment');
+  if (enrollEl) enrollEl.innerHTML = enrollHtml || '<div style="color:var(--text-secondary);text-align:center;padding:20px">暂无数据</div>';
+}
+
+// ==================== 系统设置 ====================
+var defaultSettings = {
+  orgName: '智学通教育培训中心', phone: '400-888-9999',
+  director: '张校长', email: 'admin@zhixuetong.com',
+  address: '北京市海淀区中关村大街1号智慧大厦3层',
+  desc: '智学通教育培训中心成立于2018年，专注于语言培训、职业技能提升和艺术素质教育。'
+};
+
+function loadSettings() {
+  var s = LS.get('settings', defaultSettings);
+  var el;
+  el = document.getElementById('settingOrgName'); if (el) el.value = s.orgName;
+  el = document.getElementById('settingPhone'); if (el) el.value = s.phone;
+  el = document.getElementById('settingDirector'); if (el) el.value = s.director;
+  el = document.getElementById('settingEmail'); if (el) el.value = s.email;
+  el = document.getElementById('settingAddress'); if (el) el.value = s.address;
+  el = document.getElementById('settingDesc'); if (el) el.value = s.desc;
+}
+
+function saveSettings() {
+  var s = {
+    orgName: document.getElementById('settingOrgName').value.trim(),
+    phone: document.getElementById('settingPhone').value.trim(),
+    director: document.getElementById('settingDirector').value.trim(),
+    email: document.getElementById('settingEmail').value.trim(),
+    address: document.getElementById('settingAddress').value.trim(),
+    desc: document.getElementById('settingDesc').value.trim()
+  };
+  if (!s.orgName) { showToast('机构名称不能为空', true); return; }
+  LS.set('settings', s);
+  showToast('设置已保存');
+}
+
+function resetSettings() {
+  if (!confirm('确定要重置为默认设置吗？')) return;
+  LS.set('settings', defaultSettings);
+  loadSettings();
+  showToast('已重置为默认设置');
+}
+
+// ==================== 学员筛选 ====================
+function filterStudents() {
+  var courseFilter = document.getElementById('studentCourseFilter');
+  var keyword = document.getElementById('studentSearchInput');
+  var courseVal = courseFilter ? courseFilter.value : '';
+  var keyVal = keyword ? keyword.value.trim().toLowerCase() : '';
+  var rows = document.querySelectorAll('#studentTableBody tr');
+  rows.forEach(function(row) {
+    var cells = row.querySelectorAll('td');
+    if (cells.length < 6) return;
+    var course = cells[4].textContent;
+    var name = cells[1].textContent.toLowerCase();
+    var id = cells[2].textContent.toLowerCase();
+    var matchCourse = !courseVal || course === courseVal;
+    var matchKey = !keyVal || name.indexOf(keyVal) > -1 || id.indexOf(keyVal) > -1;
+    row.style.display = (matchCourse && matchKey) ? '' : 'none';
+  });
+}
+
 function init() {
   // 数据联动同步（确保所有关联数据一致）
   syncData();
@@ -3876,6 +3967,9 @@ function init() {
     });
   }
 
+  // 加载设置
+  loadSettings();
+
   // 同步所有下拉框
   syncAllDropdowns();
 
@@ -3889,6 +3983,7 @@ function init() {
   renderAttendance();
   renderSchedule();
   renderCharts();
+  renderReports();
   renderRollcallSessions();
   renderDashboard();
   updateDonutChart();
