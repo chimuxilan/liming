@@ -1229,12 +1229,16 @@ select.form-control { cursor: pointer; }
       <div class="form-row">
         <div class="form-group">
           <label>课时数</label>
-          <input class="form-control" id="courseHours" type="number" placeholder="如: 48">
+          <input class="form-control" id="courseHours" type="number" placeholder="如: 48" oninput="calcPerSessionPrice()">
         </div>
         <div class="form-group">
           <label>学费 (元)</label>
-          <input class="form-control" id="coursePrice" type="number" placeholder="如: 6800">
+          <input class="form-control" id="coursePrice" type="number" placeholder="如: 6800" oninput="calcPerSessionPrice()">
         </div>
+      </div>
+      <div class="form-group">
+        <label>课时单价 (元/课时) <span style="font-size:11px;color:var(--text-secondary)">— 根据学费÷课时自动计算，可手动修改</span></label>
+        <input class="form-control" id="coursePerSessionPrice" type="number" placeholder="自动计算" min="0">
       </div>
       <div class="form-group">
         <label>课程简介</label>
@@ -1274,12 +1278,16 @@ select.form-control { cursor: pointer; }
       <div class="form-row">
         <div class="form-group">
           <label>课时数</label>
-          <input class="form-control" id="editCourseHours" type="number" placeholder="如: 48">
+          <input class="form-control" id="editCourseHours" type="number" placeholder="如: 48" oninput="calcEditPerSessionPrice()">
         </div>
         <div class="form-group">
           <label>学费 (元)</label>
-          <input class="form-control" id="editCoursePrice" type="number" placeholder="如: 6800">
+          <input class="form-control" id="editCoursePrice" type="number" placeholder="如: 6800" oninput="calcEditPerSessionPrice()">
         </div>
+      </div>
+      <div class="form-group">
+        <label>课时单价 (元/课时) <span style="font-size:11px;color:var(--text-secondary)">— 根据学费÷课时自动计算，可手动修改</span></label>
+        <input class="form-control" id="editCoursePerSessionPrice" type="number" placeholder="自动计算" min="0">
       </div>
       <div class="form-group">
         <label>教学进度 (%)</label>
@@ -1928,11 +1936,11 @@ let sessions = LS.get('sessions', defaultSessions);
 
 // 课程数据
 const defaultCourses = [
-  { name:'商务英语高级班', type:'语言培训', teacher:'张明辉', students:32, price:'¥6,800', hours:48, progress:65, color:'#3B82F6' },
-  { name:'Python全栈开发', type:'职业技能', teacher:'李文静', students:28, price:'¥8,900', hours:64, progress:45, color:'#10B981' },
-  { name:'雅思冲刺班', type:'语言培训', teacher:'刘思远', students:25, price:'¥12,000', hours:80, progress:30, color:'#F59E0B' },
-  { name:'少儿美术启蒙', type:'艺术特长', teacher:'王艺萌', students:20, price:'¥4,200', hours:32, progress:80, color:'#EC4899' },
-  { name:'钢琴进阶课', type:'艺术特长', teacher:'周雅琴', students:15, price:'¥5,600', hours:24, progress:55, color:'#8B5CF6' },
+  { name:'商务英语高级班', type:'语言培训', teacher:'张明辉', students:32, price:'¥6,800', hours:48, perSessionPrice:142, progress:65, color:'#3B82F6' },
+  { name:'Python全栈开发', type:'职业技能', teacher:'李文静', students:28, price:'¥8,900', hours:64, perSessionPrice:139, progress:45, color:'#10B981' },
+  { name:'雅思冲刺班', type:'语言培训', teacher:'刘思远', students:25, price:'¥12,000', hours:80, perSessionPrice:150, progress:30, color:'#F59E0B' },
+  { name:'少儿美术启蒙', type:'艺术特长', teacher:'王艺萌', students:20, price:'¥4,200', hours:32, perSessionPrice:131, progress:80, color:'#EC4899' },
+  { name:'钢琴进阶课', type:'艺术特长', teacher:'周雅琴', students:15, price:'¥5,600', hours:24, perSessionPrice:233, progress:55, color:'#8B5CF6' },
 ];
 let courses = LS.get('courses', defaultCourses);
 
@@ -2212,10 +2220,9 @@ function viewFeeLog(studentId) {
   if (!student) return;
   const logs = student.feeLogs || [];
   const courseInfo = courses.find(c => c.name === student.course);
-  const totalHours = courseInfo ? courseInfo.hours : 48;
-  const priceStr = courseInfo ? courseInfo.price : '¥0';
-  const totalPrice = parseInt(priceStr.replace(/[^0-9]/g, '')) || 0;
-  const perSessionFee = totalHours > 0 ? Math.round(totalPrice / totalHours) : 0;
+  const totalHours = courseInfo ? courseInfo.hours : 0;
+  const perSessionFee = getPerSessionFee(student.course);
+  const totalPrice = parseInt(String(courseInfo ? courseInfo.price : '¥0').replace(/[^0-9]/g, '')) || 0;
   const attendedCount = logs.filter(l => l.amount < 0).length;
 
   let html = `
@@ -2488,10 +2495,9 @@ function renderRollcallStudents() {
     document.getElementById('rollcallStudentList').innerHTML = '<div style="text-align:center;padding:40px;color:var(--danger)">⚠️ 找不到课程「' + s.course + '」信息，请先在课程管理中创建该课程</div>';
     return;
   }
+  const perSessionFee = getPerSessionFee(s.course);
   const totalHours = courseInfo.hours || 0;
   const priceStr = courseInfo.price || '¥0';
-  const totalPrice = parseInt(priceStr.replace(/[^0-9]/g, '')) || 0;
-  const perSessionFee = totalHours > 0 ? Math.round(totalPrice / totalHours) : 0;
 
   if (perSessionFee <= 0) {
     document.getElementById('rollcallStudentList').innerHTML = '<div style="text-align:center;padding:40px;color:var(--warning)">⚠️ 课程「' + s.course + '」课时单价为0（学费:' + priceStr + '，课时:' + totalHours + '），请检查课程管理中的学费和课时数</div>';
@@ -2560,10 +2566,9 @@ function saveRollcall() {
     showToast('找不到课程「' + session.course + '」信息，无法计算扣费', true);
     return;
   }
+  const perSessionFee = getPerSessionFee(session.course);
   const totalHours = courseInfo.hours || 0;
   const priceStr = courseInfo.price || '¥0';
-  const totalPrice = parseInt(priceStr.replace(/[^0-9]/g, '')) || 0;
-  const perSessionFee = totalHours > 0 ? Math.round(totalPrice / totalHours) : 0;
 
   if (perSessionFee <= 0) {
     showToast('课程「' + session.course + '」的课时单价为0，请检查课程管理中的学费和课时数', true);
@@ -2929,18 +2934,12 @@ function renderStudents() {
   // 费用统计 - 基于剩余费用和课时单价
   const totalFee = students.reduce((s, st) => s + (st.fee || 0), 0);
   const paidFee = students.filter(st => {
-    const ci = courses.find(c => c.name === st.course);
-    const hours = ci ? ci.hours : 48;
-    const price = ci ? parseInt(String(ci.price).replace(/[^0-9]/g, '')) : 0;
-    const perSession = hours > 0 ? Math.round(price / hours) : 0;
+    const perSession = getPerSessionFee(st.course);
     return (st.fee || 0) >= perSession * 3;
   }).reduce((s, st) => s + (st.fee || 0), 0);
   const unpaidFee = students.filter(st => (st.fee || 0) <= 0).reduce((s, st) => s + (st.fee || 0), 0);
   const partialFee = students.filter(st => {
-    const ci = courses.find(c => c.name === st.course);
-    const hours = ci ? ci.hours : 48;
-    const price = ci ? parseInt(String(ci.price).replace(/[^0-9]/g, '')) : 0;
-    const perSession = hours > 0 ? Math.round(price / hours) : 0;
+    const perSession = getPerSessionFee(st.course);
     return (st.fee || 0) > 0 && (st.fee || 0) < perSession * 3;
   }).reduce((s, st) => s + (st.fee || 0), 0);
   document.getElementById('studentFeeStats').innerHTML = [
@@ -2964,10 +2963,10 @@ function renderStudents() {
   tbody.innerHTML = pageData.map(s => {
     // 计算该学员课程的课时单价
     const courseInfo = courses.find(c => c.name === s.course);
-    const totalHours = courseInfo ? courseInfo.hours : 48;
+    const totalHours = courseInfo ? courseInfo.hours : 0;
     const priceStr = courseInfo ? courseInfo.price : '¥0';
     const totalPrice = parseInt(priceStr.replace(/[^0-9]/g, '')) || 0;
-    const perSessionFee = totalHours > 0 ? Math.round(totalPrice / totalHours) : 0;
+    const perSessionFee = getPerSessionFee(s.course);
     const remainingFee = s.fee || 0;
     const feeStatus = remainingFee <= 0 ? 'danger' : remainingFee < perSessionFee * 3 ? 'warning' : 'success';
     const feeStatusText = remainingFee <= 0 ? '余额不足' : remainingFee < perSessionFee * 3 ? '余额偏低' : '正常';
@@ -3071,6 +3070,10 @@ function renderCourses() {
       <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary);margin-bottom:8px">
         <span>👥 ${c.students}人</span><span>⏱ ${c.hours}课时</span><span>${c.price}</span>
       </div>
+      <div style="background:var(--bg);border-radius:8px;padding:8px 12px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:12px;color:var(--text-secondary)">课时单价</span>
+        <span style="font-size:16px;font-weight:700;color:var(--warning)">¥${c.perSessionPrice || 0}<span style="font-size:11px;font-weight:400;color:var(--text-secondary)">/课时</span></span>
+      </div>
       <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>教学进度</span><span>${c.progress}%</span></div>
       <div class="progress-bar"><div class="progress-fill blue" style="width:${c.progress}%"></div></div>
     </div>
@@ -3094,22 +3097,67 @@ function deleteCourse(idx) {
   showToast(`已删除课程「${c.name}」`);
 }
 
+// 获取课程课时单价（优先使用课程管理中设置的 perSessionPrice）
+function getPerSessionFee(courseName) {
+  var course = courses.find(function(c) { return c.name === courseName; });
+  if (!course) return 0;
+  if (course.perSessionPrice > 0) return course.perSessionPrice;
+  // 兜底：从学费÷课时计算
+  var hours = course.hours || 0;
+  var price = parseInt(String(course.price).replace(/[^0-9]/g, '')) || 0;
+  return hours > 0 ? Math.round(price / hours) : 0;
+}
+
+// 自动计算课时单价（新增课程弹窗）
+function calcPerSessionPrice() {
+  var hours = parseInt(document.getElementById('courseHours').value) || 0;
+  var price = parseInt(document.getElementById('coursePrice').value) || 0;
+  var perSessionEl = document.getElementById('coursePerSessionPrice');
+  if (hours > 0 && price > 0) {
+    perSessionEl.value = Math.round(price / hours);
+    perSessionEl.placeholder = '自动计算: ' + Math.round(price / hours);
+  } else {
+    perSessionEl.value = '';
+    perSessionEl.placeholder = '自动计算';
+  }
+}
+
+// 自动计算课时单价（编辑课程弹窗）
+function calcEditPerSessionPrice() {
+  var hours = parseInt(document.getElementById('editCourseHours').value) || 0;
+  var price = parseInt(document.getElementById('editCoursePrice').value) || 0;
+  var perSessionEl = document.getElementById('editCoursePerSessionPrice');
+  if (hours > 0 && price > 0) {
+    perSessionEl.value = Math.round(price / hours);
+    perSessionEl.placeholder = '自动计算: ' + Math.round(price / hours);
+  } else {
+    perSessionEl.value = '';
+    perSessionEl.placeholder = '自动计算';
+  }
+}
+
 function addCourse() {
   const name = document.getElementById('courseName').value.trim();
   if (!name) { showToast('请输入课程名称', true); return; }
   const colors = ['#3B82F6','#10B981','#F59E0B','#EC4899','#8B5CF6','#EF4444','#6366F1','#0EA5E9'];
+  const hours = parseInt(document.getElementById('courseHours').value) || 0;
+  const priceVal = parseInt(document.getElementById('coursePrice').value) || 0;
+  const perSessionInput = parseInt(document.getElementById('coursePerSessionPrice').value);
+  const perSessionPrice = perSessionInput > 0 ? perSessionInput : (hours > 0 ? Math.round(priceVal / hours) : 0);
+
   courses.push({
     name, type: document.getElementById('courseType').value,
     teacher: document.getElementById('courseTeacher').value,
-    students: 0, price: '¥' + (parseInt(document.getElementById('coursePrice').value) || 0).toLocaleString(),
-    hours: parseInt(document.getElementById('courseHours').value) || 0,
+    students: 0, price: '¥' + priceVal.toLocaleString(),
+    hours, perSessionPrice,
     progress: 0, color: colors[Math.floor(Math.random() * colors.length)]
   });
   saveAll(); renderCourses(); renderClasses(); renderDashboard(); hideModal('addCourseModal');
   document.getElementById('courseName').value = '';
   document.getElementById('courseHours').value = '';
   document.getElementById('coursePrice').value = '';
-  showToast(`课程「${name}」创建成功！`);
+  document.getElementById('coursePerSessionPrice').value = '';
+  showToast(`课程「${name}」创建成功！课时单价 ¥${perSessionPrice}`);
 }
 
 // 编辑课程
@@ -3121,6 +3169,7 @@ function editCourse(idx) {
   document.getElementById('editCourseType').value = c.type;
   document.getElementById('editCourseHours').value = c.hours || '';
   document.getElementById('editCoursePrice').value = parseInt(String(c.price).replace(/[^0-9]/g, '')) || '';
+  document.getElementById('editCoursePerSessionPrice').value = c.perSessionPrice || '';
 
   // 填充教师下拉框（从教师表动态获取）
   const teacherSelect = document.getElementById('editCourseTeacher');
@@ -3147,6 +3196,8 @@ function saveEditCourse() {
   c.teacher = document.getElementById('editCourseTeacher').value;
   c.hours = parseInt(document.getElementById('editCourseHours').value) || c.hours;
   c.price = '¥' + (parseInt(document.getElementById('editCoursePrice').value) || 0).toLocaleString();
+  var editPerSession = parseInt(document.getElementById('editCoursePerSessionPrice').value);
+  c.perSessionPrice = editPerSession > 0 ? editPerSession : (c.hours > 0 ? Math.round(parseInt(String(c.price).replace(/[^0-9]/g, '')) / c.hours) : c.perSessionPrice || 0);
   c.progress = parseInt(document.getElementById('editCourseProgress').value) || 0;
 
   // 联动更新：如果课程名改了，同步更新班级和学员的课程字段
@@ -4417,10 +4468,9 @@ function viewStudentDetail(id) {
 
   // 课时单价信息
   var courseInfo = courses.find(function(c) { return c.name === s.course; });
-  var totalHours = courseInfo ? courseInfo.hours : 48;
-  var priceStr = courseInfo ? courseInfo.price : '¥0';
-  var totalPrice = parseInt(priceStr.replace(/[^0-9]/g, '')) || 0;
-  var perSessionFee = totalHours > 0 ? Math.round(totalPrice / totalHours) : 0;
+  var totalHours = courseInfo ? courseInfo.hours : 0;
+  var perSessionFee = getPerSessionFee(s.course);
+  var totalPrice = parseInt(String(courseInfo ? courseInfo.price : '¥0').replace(/[^0-9]/g, '')) || 0;
   var attendedCount = (s.feeLogs || []).filter(function(l) { return l.amount < 0; }).length;
   var canAttend = Math.floor((s.fee || 0) / perSessionFee);
 
