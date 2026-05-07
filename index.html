@@ -795,6 +795,7 @@ select.form-control { cursor: pointer; }
 
     <!-- ==================== 学员管理 ==================== -->
     <div class="page" id="page-students">
+      <div id="studentFeeStats" style="display:flex;gap:16px;margin-bottom:16px"></div>
       <div class="filter-bar">
         <select class="form-control" style="width:140px"><option>全部状态</option><option>在读</option><option>休学</option><option>毕业</option></select>
         <select class="form-control" style="width:140px"><option>全部课程</option><option>商务英语</option><option>Python开发</option><option>雅思冲刺</option></select>
@@ -807,7 +808,7 @@ select.form-control { cursor: pointer; }
       </div>
       <div class="table-card">
         <table>
-          <thead><tr><th style="width:40px"><input type="checkbox" onchange="toggleAllCheckboxes(this,'student')"></th><th>学员</th><th>学号</th><th>联系电话</th><th>报名课程</th><th>班级</th><th>状态</th><th>操作</th></tr></thead>
+          <thead><tr><th style="width:40px"><input type="checkbox" onchange="toggleAllCheckboxes(this,'student')"></th><th>学员</th><th>学号</th><th>联系电话</th><th>报名课程</th><th>班级</th><th>报名费用</th><th>状态</th><th>操作</th></tr></thead>
           <tbody id="studentTableBody"></tbody>
         </table>
         <div class="pagination">
@@ -1099,6 +1100,16 @@ select.form-control { cursor: pointer; }
         <div class="form-group">
           <label>班级</label>
           <select class="form-control" id="stuClass"><option>2026春季</option><option>2025秋季</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>报名费用 (元) *</label>
+          <input class="form-control" id="stuFee" type="number" placeholder="请输入报名费用" min="0">
+        </div>
+        <div class="form-group">
+          <label>缴费状态</label>
+          <select class="form-control" id="stuPayStatus"><option value="paid">已缴费</option><option value="unpaid">未缴费</option><option value="partial">部分缴费</option></select>
         </div>
       </div>
       <div class="form-group">
@@ -1408,18 +1419,18 @@ const LS = {
 
 // 学员数据
 const defaultStudents = [
-  { name:'李明华', id:'S20260001', phone:'138****1234', course:'商务英语高级班', cls:'商务英语高级1班', status:'active', color:'#6366F1' },
-  { name:'王思雨', id:'S20260002', phone:'139****5678', course:'Python全栈开发', cls:'Python全栈开发1班', status:'pending', color:'#EC4899' },
-  { name:'张天一', id:'S20260003', phone:'136****9012', course:'少儿美术启蒙', cls:'少儿美术启蒙1班', status:'active', color:'#F59E0B' },
-  { name:'陈晓峰', id:'S20260004', phone:'137****3456', course:'雅思冲刺班', cls:'雅思冲刺1班', status:'completed', color:'#10B981' },
-  { name:'刘雨萱', id:'S20260005', phone:'135****7890', course:'钢琴进阶课', cls:'钢琴进阶1班', status:'active', color:'#8B5CF6' },
-  { name:'赵雅琪', id:'S20260006', phone:'133****2345', course:'商务英语高级班', cls:'商务英语高级1班', status:'active', color:'#F43F5E' },
-  { name:'孙浩然', id:'S20260007', phone:'131****6789', course:'Python全栈开发', cls:'Python全栈开发1班', status:'active', color:'#0EA5E9' },
-  { name:'周美琳', id:'S20260008', phone:'132****0123', course:'雅思冲刺班', cls:'雅思冲刺1班', status:'inactive', color:'#A855F7' },
-  { name:'吴佳怡', id:'S20260009', phone:'134****4567', course:'商务英语高级班', cls:'商务英语高级1班', status:'active', color:'#F97316' },
-  { name:'郑浩宇', id:'S20260010', phone:'130****8901', course:'Python全栈开发', cls:'Python全栈开发1班', status:'active', color:'#14B8A6' },
-  { name:'黄诗涵', id:'S20260011', phone:'129****2345', course:'少儿美术启蒙', cls:'少儿美术启蒙1班', status:'active', color:'#E11D48' },
-  { name:'马子轩', id:'S20260012', phone:'128****6789', course:'商务英语高级班', cls:'商务英语高级1班', status:'active', color:'#7C3AED' },
+  { name:'李明华', id:'S20260001', phone:'138****1234', course:'商务英语高级班', cls:'商务英语高级1班', status:'active', color:'#6366F1', fee:6800, payStatus:'paid' },
+  { name:'王思雨', id:'S20260002', phone:'139****5678', course:'Python全栈开发', cls:'Python全栈开发1班', status:'pending', color:'#EC4899', fee:8900, payStatus:'paid' },
+  { name:'张天一', id:'S20260003', phone:'136****9012', course:'少儿美术启蒙', cls:'少儿美术启蒙1班', status:'active', color:'#F59E0B', fee:4200, payStatus:'paid' },
+  { name:'陈晓峰', id:'S20260004', phone:'137****3456', course:'雅思冲刺班', cls:'雅思冲刺1班', status:'completed', color:'#10B981', fee:12000, payStatus:'paid' },
+  { name:'刘雨萱', id:'S20260005', phone:'135****7890', course:'钢琴进阶课', cls:'钢琴进阶1班', status:'active', color:'#8B5CF6', fee:5600, payStatus:'partial' },
+  { name:'赵雅琪', id:'S20260006', phone:'133****2345', course:'商务英语高级班', cls:'商务英语高级1班', status:'active', color:'#F43F5E', fee:6800, payStatus:'paid' },
+  { name:'孙浩然', id:'S20260007', phone:'131****6789', course:'Python全栈开发', cls:'Python全栈开发1班', status:'active', color:'#0EA5E9', fee:8500, payStatus:'unpaid' },
+  { name:'周美琳', id:'S20260008', phone:'132****0123', course:'雅思冲刺班', cls:'雅思冲刺1班', status:'inactive', color:'#A855F7', fee:11000, payStatus:'partial' },
+  { name:'吴佳怡', id:'S20260009', phone:'134****4567', course:'商务英语高级班', cls:'商务英语高级1班', status:'active', color:'#F97316', fee:6500, payStatus:'paid' },
+  { name:'郑浩宇', id:'S20260010', phone:'130****8901', course:'Python全栈开发', cls:'Python全栈开发1班', status:'active', color:'#14B8A6', fee:8900, payStatus:'paid' },
+  { name:'黄诗涵', id:'S20260011', phone:'129****2345', course:'少儿美术启蒙', cls:'少儿美术启蒙1班', status:'active', color:'#E11D48', fee:4000, payStatus:'unpaid' },
+  { name:'马子轩', id:'S20260012', phone:'128****6789', course:'商务英语高级班', cls:'商务英语高级1班', status:'active', color:'#7C3AED', fee:6800, payStatus:'paid' },
 ];
 let students = LS.get('students', defaultStudents);
 
@@ -2034,12 +2045,31 @@ function renderDashboard() {
 const statusMap = { active:'在读', pending:'待确认', completed:'已毕业', inactive:'休学' };
 
 function renderStudents() {
+  // 费用统计
+  const totalFee = students.reduce((s, st) => s + (st.fee || 0), 0);
+  const paidFee = students.filter(st => st.payStatus === 'paid').reduce((s, st) => s + (st.fee || 0), 0);
+  const unpaidFee = students.filter(st => st.payStatus === 'unpaid').reduce((s, st) => s + (st.fee || 0), 0);
+  const partialFee = students.filter(st => st.payStatus === 'partial').reduce((s, st) => s + (st.fee || 0), 0);
+  document.getElementById('studentFeeStats').innerHTML = [
+    { label:'总报名费', value:'¥'+totalFee.toLocaleString(), color:'var(--primary)', bg:'var(--primary)10', icon:'💰' },
+    { label:'已缴费', value:'¥'+paidFee.toLocaleString(), color:'var(--success)', bg:'var(--success)10', icon:'✅' },
+    { label:'未缴费', value:'¥'+unpaidFee.toLocaleString(), color:'var(--danger)', bg:'var(--danger)10', icon:'⚠️' },
+    { label:'部分缴费', value:'¥'+partialFee.toLocaleString(), color:'var(--warning)', bg:'var(--warning)10', icon:'⏳' },
+  ].map(st => `<div style="flex:1;background:${st.bg};border:1px solid ${st.color}20;border-radius:12px;padding:16px;display:flex;align-items:center;gap:12px">
+    <div style="font-size:24px">${st.icon}</div>
+    <div><div style="font-size:12px;color:var(--text-secondary)">${st.label}</div><div style="font-size:20px;font-weight:700;color:${st.color}">${st.value}</div></div>
+  </div>`).join('');
+
   const tbody = document.getElementById('studentTableBody');
   tbody.innerHTML = students.map(s => `
     <tr>
       <td><input type="checkbox" data-type="student" data-id="${s.id}" onchange="updateBatchButtons()"></td>
       <td><div class="avatar-cell"><div class="avatar-sm" style="background:${s.color}">${s.name[0]}</div>${s.name}</div></td>
       <td>${s.id}</td><td>${s.phone}</td><td>${s.course}</td><td>${s.cls}</td>
+      <td>
+        <div style="font-weight:600;color:var(--primary)">¥${(s.fee||0).toLocaleString()}</div>
+        <span class="status-tag ${s.payStatus === 'paid' ? 'active' : s.payStatus === 'partial' ? 'pending' : 'inactive'}" style="font-size:10px;margin-top:2px">${s.payStatus === 'paid' ? '已缴费' : s.payStatus === 'partial' ? '部分缴费' : '未缴费'}</span>
+      </td>
       <td><span class="status-tag ${s.status}">${statusMap[s.status]}</span></td>
       <td><button class="btn btn-outline btn-sm">编辑</button> <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger)" onclick="deleteStudent('${s.id}')">删除</button></td>
     </tr>
@@ -2070,16 +2100,22 @@ function addStudent() {
   const cls = document.getElementById('stuClass').value;
   const classInfo = classList.find(c => c.course === course);
 
+  const fee = parseInt(document.getElementById('stuFee').value) || 0;
+  const payStatus = document.getElementById('stuPayStatus').value;
+  if (!fee) { showToast('请输入报名费用', true); return; }
+
   students.push({
     name, id: newId,
     phone: phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2'),
     course, cls: classInfo ? classInfo.name : cls,
     status: 'active',
-    color: colors[Math.floor(Math.random() * colors.length)]
+    color: colors[Math.floor(Math.random() * colors.length)],
+    fee, payStatus
   });
   saveAll(); renderStudents(); hideModal('addStudentModal');
-  ['stuName','stuPhone','stuIdCard','stuNote'].forEach(id => document.getElementById(id).value = '');
+  ['stuName','stuPhone','stuIdCard','stuNote','stuFee'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('stuCourse').selectedIndex = 0;
+  document.getElementById('stuPayStatus').selectedIndex = 0;
   showToast(`学员「${name}」添加成功！`);
 }
 
