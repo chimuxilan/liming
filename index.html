@@ -1407,6 +1407,20 @@ select.form-control { cursor: pointer; }
   </div>
 </div>
 
+<!-- 费用明细弹窗 -->
+<div class="modal-overlay" id="feeLogModal">
+  <div class="modal" style="width:680px">
+    <div class="modal-header">
+      <h3>💰 费用明细</h3>
+      <button class="modal-close" onclick="hideModal('feeLogModal')">✕</button>
+    </div>
+    <div class="modal-body" id="feeLogBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="hideModal('feeLogModal')">关闭</button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast Container -->
 <div class="toast-container" id="toastContainer"></div>
 
@@ -1672,6 +1686,63 @@ function batchDeleteClassrooms() {
   showToast('已批量删除 ' + idxs.length + ' 间教室');
 }
 
+// ==================== 费用明细查看 ====================
+function viewFeeLog(studentId) {
+  const student = students.find(s => s.id === studentId);
+  if (!student) return;
+  const logs = student.feeLogs || [];
+  const courseInfo = courses.find(c => c.name === student.course);
+  const totalHours = courseInfo ? courseInfo.hours : 48;
+  const priceStr = courseInfo ? courseInfo.price : '¥0';
+  const totalPrice = parseInt(priceStr.replace(/[^0-9]/g, '')) || 0;
+  const perSessionFee = totalHours > 0 ? Math.round(totalPrice / totalHours) : 0;
+  const attendedCount = logs.filter(l => l.amount < 0).length;
+
+  let html = `
+    <div style="display:flex;gap:16px;margin-bottom:20px;flex-wrap:wrap">
+      <div style="flex:1;min-width:140px;background:var(--primary)10;border-radius:12px;padding:16px;text-align:center">
+        <div style="font-size:12px;color:var(--text-secondary)">报名费用</div>
+        <div style="font-size:22px;font-weight:700;color:var(--primary)">¥${totalPrice.toLocaleString()}</div>
+      </div>
+      <div style="flex:1;min-width:140px;background:var(--success)10;border-radius:12px;padding:16px;text-align:center">
+        <div style="font-size:12px;color:var(--text-secondary)">剩余费用</div>
+        <div style="font-size:22px;font-weight:700;color:var(--success)">¥${(student.fee||0).toLocaleString()}</div>
+      </div>
+      <div style="flex:1;min-width:140px;background:var(--warning)10;border-radius:12px;padding:16px;text-align:center">
+        <div style="font-size:12px;color:var(--text-secondary)">课时单价</div>
+        <div style="font-size:22px;font-weight:700;color:var(--warning)">¥${perSessionFee}</div>
+      </div>
+      <div style="flex:1;min-width:140px;background:var(--danger)10;border-radius:12px;padding:16px;text-align:center">
+        <div style="font-size:12px;color:var(--text-secondary)">已上课时</div>
+        <div style="font-size:22px;font-weight:700;color:var(--danger)">${attendedCount}/${totalHours}</div>
+      </div>
+    </div>
+    <div style="margin-bottom:12px;font-weight:600;font-size:14px">扣费记录</div>
+  `;
+
+  if (logs.length === 0) {
+    html += '<div style="text-align:center;padding:32px;color:var(--text-secondary)">暂无扣费记录</div>';
+  } else {
+    html += `<table style="width:100%;font-size:13px">
+      <thead><tr style="text-align:left;border-bottom:2px solid var(--border)">
+        <th style="padding:8px">日期</th><th>课节</th><th>类型</th><th>扣费金额</th><th>剩余余额</th>
+      </tr></thead>
+      <tbody>${logs.slice().reverse().map(l => `
+        <tr style="border-bottom:1px solid var(--border)">
+          <td style="padding:8px">${l.date}</td>
+          <td>${l.session}</td>
+          <td><span class="status-tag ${l.type.includes('不足') ? 'inactive' : 'active'}">${l.type}</span></td>
+          <td style="color:var(--danger);font-weight:600">¥${Math.abs(l.amount).toLocaleString()}</td>
+          <td>¥${l.balance.toLocaleString()}</td>
+        </tr>
+      `).join('')}</tbody>
+    </table>`;
+  }
+
+  document.getElementById('feeLogBody').innerHTML = html;
+  showModal('feeLogModal');
+}
+
 // ==================== 导航 ====================
 const pageTitles = {
   dashboard:'首页', students:'学员列表', courses:'课程管理', classManage:'班级列表',
@@ -1860,17 +1931,30 @@ function renderRollcallStudents() {
     <div class="rollcall-stat-item leave"><div class="num">${leave}</div><div class="label">请假</div></div>
   `;
 
+  // 计算课时单价
+  const courseInfo = courses.find(c => c.name === s.course);
+  const totalHours = courseInfo ? courseInfo.hours : 48;
+  const priceStr = courseInfo ? courseInfo.price : '¥0';
+  const totalPrice = parseInt(priceStr.replace(/[^0-9]/g, '')) || 0;
+  const perSessionFee = totalHours > 0 ? Math.round(totalPrice / totalHours) : 0;
+
   // 学生列表
   const list = document.getElementById('rollcallStudentList');
   list.innerHTML = s.students.map((st, i) => {
     const student = students.find(x => x.id === st.id);
     const color = student ? student.color : '#6366F1';
+    const fee = student ? (student.fee || 0) : 0;
+    const feeEnough = fee >= perSessionFee;
     return `<div class="rollcall-student-row">
       <div class="student-name">
         <div class="avatar-sm" style="background:${color}">${st.name[0]}</div>
         <div>
           <div style="font-weight:600">${st.name}</div>
           <div style="font-size:12px;color:var(--text-secondary)">${st.id}</div>
+          <div style="font-size:11px;margin-top:2px">
+            <span style="color:${feeEnough ? 'var(--success)' : 'var(--danger)'};font-weight:600">余额 ¥${fee.toLocaleString()}</span>
+            <span style="color:var(--text-secondary);margin-left:6px">扣 ¥${perSessionFee}/节</span>
+          </div>
         </div>
       </div>
       <div class="rollcall-status-btns">
@@ -1899,11 +1983,71 @@ function saveRollcall() {
   currentRollcallSession.students.forEach(s => {
     if (!s.attendance) s.attendance = 'absent';
   });
+
+  // ========== 点名自动扣费 ==========
+  const session = currentRollcallSession;
+  const courseInfo = courses.find(c => c.name === session.course);
+  const totalHours = courseInfo ? courseInfo.hours : 48;
+  const priceStr = courseInfo ? courseInfo.price : '¥0';
+  const totalPrice = parseInt(priceStr.replace(/[^0-9]/g, '')) || 0;
+  const perSessionFee = totalHours > 0 ? Math.round(totalPrice / totalHours) : 0;
+
+  let deductedCount = 0;
+  let deductedTotal = 0;
+  let insufficientStudents = [];
+
+  session.students.forEach(st => {
+    if (st.attendance === 'present' || st.attendance === 'late') {
+      const student = students.find(x => x.id === st.id);
+      if (!student) return;
+      if (!student.fee) student.fee = 0;
+
+      if (student.fee >= perSessionFee) {
+        student.fee -= perSessionFee;
+        deductedCount++;
+        deductedTotal += perSessionFee;
+        // 记录扣费日志
+        if (!student.feeLogs) student.feeLogs = [];
+        student.feeLogs.push({
+          date: session.date,
+          session: session.className,
+          amount: -perSessionFee,
+          balance: student.fee,
+          type: st.attendance === 'late' ? '迟到扣费' : '出勤扣费'
+        });
+      } else if (student.fee > 0) {
+        // 余额不足，扣除剩余
+        const deducted = student.fee;
+        student.fee = 0;
+        deductedCount++;
+        deductedTotal += deducted;
+        insufficientStudents.push(`${student.name}(剩余¥${deducted})`);
+        if (!student.feeLogs) student.feeLogs = [];
+        student.feeLogs.push({
+          date: session.date,
+          session: session.className,
+          amount: -deducted,
+          balance: 0,
+          type: '余额不足扣费'
+        });
+      } else {
+        insufficientStudents.push(student.name);
+      }
+    }
+  });
+
   currentRollcallSession.status = 'done';
   saveAll();
   hideModal('rollcallDetailModal');
   renderRollcallSessions();
-  showToast('点名已保存！');
+
+  // 显示扣费结果
+  let msg = `点名已保存！本次扣费 ${deductedCount} 人，共 ¥${deductedTotal.toLocaleString()}`;
+  if (perSessionFee > 0) msg += ` (课时单价 ¥${perSessionFee})`;
+  if (insufficientStudents.length > 0) {
+    msg += `\n⚠️ 余额不足：${insufficientStudents.join('、')}`;
+  }
+  showToast(msg);
 }
 
 // 删除课节
@@ -1953,12 +2097,21 @@ function viewRollcallDetail(sessionId) {
       ${session.students.map(st => {
         const student = students.find(x => x.id === st.id);
         const color = student ? student.color : '#6366F1';
+        const feeLog = student && student.feeLogs ? student.feeLogs.find(l => l.date === session.date && l.session === session.className) : null;
+        const deductAmt = feeLog ? Math.abs(feeLog.amount) : 0;
         return `<div class="rollcall-student-row">
           <div class="student-name">
             <div class="avatar-sm" style="background:${color}">${st.name[0]}</div>
-            <div><div style="font-weight:600">${st.name}</div><div style="font-size:12px;color:var(--text-secondary)">${st.id}</div></div>
+            <div>
+              <div style="font-weight:600">${st.name}</div>
+              <div style="font-size:12px;color:var(--text-secondary)">${st.id}</div>
+              ${deductAmt > 0 ? `<div style="font-size:11px;color:var(--danger);margin-top:2px">扣费 ¥${deductAmt} → 余额 ¥${(student.fee||0).toLocaleString()}</div>` : ''}
+            </div>
           </div>
-          <span class="status-tag" style="background:${statusColorMap[st.attendance]}20;color:${statusColorMap[st.attendance]}">${statusMap[st.attendance] || '未标记'}</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            ${deductAmt > 0 ? `<span style="font-size:12px;color:var(--danger);font-weight:600">-¥${deductAmt}</span>` : ''}
+            <span class="status-tag" style="background:${statusColorMap[st.attendance]}20;color:${statusColorMap[st.attendance]}">${statusMap[st.attendance] || '未标记'}</span>
+          </div>
         </div>`;
       }).join('')}
     </div>
@@ -2071,7 +2224,7 @@ function renderStudents() {
         <span class="status-tag ${s.payStatus === 'paid' ? 'active' : s.payStatus === 'partial' ? 'pending' : 'inactive'}" style="font-size:10px;margin-top:2px">${s.payStatus === 'paid' ? '已缴费' : s.payStatus === 'partial' ? '部分缴费' : '未缴费'}</span>
       </td>
       <td><span class="status-tag ${s.status}">${statusMap[s.status]}</span></td>
-      <td><button class="btn btn-outline btn-sm">编辑</button> <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger)" onclick="deleteStudent('${s.id}')">删除</button></td>
+      <td><button class="btn btn-outline btn-sm">编辑</button> <button class="btn btn-outline btn-sm" style="color:var(--warning);border-color:var(--warning)" onclick="viewFeeLog('${s.id}')">💰 明细</button> <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger)" onclick="deleteStudent('${s.id}')">删除</button></td>
     </tr>
   `).join('');
   document.getElementById('studentPagInfo').textContent = `显示 1-${students.length} 共 ${students.length} 条`;
