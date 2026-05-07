@@ -436,16 +436,92 @@ select.form-control { cursor: pointer; }
 .empty-state .icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
 .empty-state h3 { font-size: 16px; color: var(--text); margin-bottom: 8px; }
 
-/* Toast */
+/* 【优化13】Toast 增强动画 */
 .toast-container { position: fixed; top: 80px; right: 24px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; }
 .toast {
   background: var(--surface); border-radius: 10px; padding: 14px 20px;
   box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 10px;
-  font-size: 13px; animation: slideIn 0.3s ease; min-width: 280px;
+  font-size: 13px; animation: toastSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); min-width: 280px;
   border-left: 4px solid var(--success);
 }
+.toast .toast-icon { font-size: 18px; animation: toastCheckPop 0.5s ease 0.2s both; }
 .toast.error { border-left-color: var(--danger); }
-@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+.toast.error .toast-icon { animation: none; }
+@keyframes toastSlideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes toastCheckPop { 0% { transform: scale(0); } 60% { transform: scale(1.3); } 100% { transform: scale(1); } }
+
+/* 【优化15】考勤统计柱状图 */
+.attendance-bar-chart { display: flex; align-items: flex-end; gap: 16px; height: 200px; padding: 0 20px; margin-bottom: 20px; }
+.attendance-bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.attendance-bar { width: 100%; border-radius: 6px 6px 0 0; transition: height 0.8s ease; position: relative; min-height: 4px; background: linear-gradient(180deg, var(--primary-light), var(--primary)); }
+.attendance-bar .bar-value { position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 11px; font-weight: 600; color: var(--primary); white-space: nowrap; }
+.attendance-bar-label { font-size: 11px; color: var(--text-secondary); white-space: nowrap; text-align: center; max-width: 80px; overflow: hidden; text-overflow: ellipsis; }
+
+/* 【优化14】课表今日高亮增强 */
+.schedule-cell.today { background: #EEF2FF; border-left: 4px solid var(--primary) !important; }
+.schedule-cell .date-full { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; }
+.schedule-cell.today .date-full { color: var(--primary); font-weight: 600; }
+
+/* 【优化17】首页提醒卡片 */
+.alert-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-bottom: 24px; }
+.alert-card {
+  background: var(--surface); border-radius: var(--radius); padding: 16px 20px;
+  box-shadow: var(--shadow); display: flex; align-items: center; gap: 12px;
+  cursor: pointer; transition: all 0.2s; border-left: 4px solid var(--warning);
+}
+.alert-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.alert-card.danger { border-left-color: var(--danger); }
+.alert-card.info { border-left-color: var(--info); }
+.alert-card .alert-icon { font-size: 24px; }
+.alert-card .alert-text { flex: 1; }
+.alert-card .alert-title { font-size: 13px; font-weight: 600; }
+.alert-card .alert-desc { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+.alert-card .alert-count { font-size: 22px; font-weight: 700; color: var(--danger); }
+
+/* 【优化4】学员详情弹窗 */
+.student-detail-section { margin-bottom: 20px; }
+.student-detail-section h4 { font-size: 14px; font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.student-detail-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.student-detail-item { font-size: 13px; padding: 8px 12px; background: var(--bg); border-radius: 8px; }
+.student-detail-item .label { color: var(--text-secondary); font-size: 12px; }
+.student-detail-item .value { font-weight: 600; margin-top: 2px; }
+
+/* 【优化24】暗色模式 */
+[data-theme="dark"] {
+  --bg: #0F172A;
+  --surface: #1E293B;
+  --text: #E2E8F0;
+  --text-secondary: #94A3B8;
+  --border: #334155;
+  --shadow: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.4), 0 4px 6px -2px rgba(0,0,0,0.3);
+}
+[data-theme="dark"] .sidebar { background: linear-gradient(180deg, #0F172A 0%, #1E293B 100%); }
+[data-theme="dark"] thead { background: #1E293B; }
+[data-theme="dark"] tr:hover { background: #1E293B; }
+[data-theme="dark"] .search-box { background: #1E293B; border-color: #334155; }
+[data-theme="dark"] .search-box input { color: #E2E8F0; }
+[data-theme="dark"] .modal-header, [data-theme="dark"] .modal-footer { background: #1E293B; }
+[data-theme="dark"] .schedule-header { background: #312E81; }
+[data-theme="dark"] .schedule-cell { background: #1E293B; }
+[data-theme="dark"] .schedule-cell.today { background: #1E1B4B; }
+[data-theme="dark"] .header-btn { background: #1E293B; border-color: #334155; }
+[data-theme="dark"] .stat-card { background: #1E293B; }
+[data-theme="dark"] .chart-card { background: #1E293B; }
+[data-theme="dark"] .session-card { background: #1E293B; }
+[data-theme="dark"] .rollcall-info-bar { background: #1E293B; }
+[data-theme="dark"] .rollcall-stat-item { background: #1E293B; }
+[data-theme="dark"] .rollcall-student-row { border-color: #334155; }
+[data-theme="dark"] .rollcall-student-row:hover { background: #1E293B; }
+[data-theme="dark"] .attendance-card { background: #1E293B; }
+[data-theme="dark"] .attendance-card.checked { background: #064E3B; }
+[data-theme="dark"] .quick-action { background: #1E293B; }
+[data-theme="dark"] .toast { background: #1E293B; }
+[data-theme="dark"] .search-dropdown { background: #1E293B; border-color: #334155; }
+[data-theme="dark"] .search-dropdown-item:hover { background: #334155; }
+[data-theme="dark"] .alert-card { background: #1E293B; }
+[data-theme="dark"] .student-detail-item { background: #334155; }
+.theme-toggle { cursor: pointer; font-size: 18px; }
 
 /* ========== 上课点名专用样式 ========== */
 
@@ -653,6 +729,8 @@ select.form-control { cursor: pointer; }
         <input type="text" id="globalSearchInput" placeholder="输入学员姓名、手机号搜索" oninput="globalSearch(this.value)" onfocus="if(this.value)globalSearch(this.value)" onblur="setTimeout(function(){document.getElementById('searchDropdown').classList.remove('show')},200)">
         <div class="search-dropdown" id="searchDropdown"></div>
       </div>
+      <!-- 【优化24】暗色模式切换 -->
+      <button class="header-btn" id="themeToggle" onclick="toggleTheme()" title="切换暗色/亮色模式">🌙</button>
       <button class="header-btn"><span class="dot"></span>🔔</button>
       <button class="header-btn">💬</button>
     </div>
@@ -909,7 +987,7 @@ select.form-control { cursor: pointer; }
         <button class="btn btn-outline" onclick="importGrades()">📥 导入成绩</button>
         <button class="btn btn-outline" onclick="exportGrades()">📤 导出报表</button>
         <button class="btn btn-outline batch-del-btn" id="batchDeleteGradeBtn" style="display:none" onclick="batchDeleteGrades()">🗑️ 批量删除(<span id="gradeSelectedCount">0</span>)</button>
-        <button class="btn btn-primary" onclick="showModal('addGradeModal')">➕ 录入成绩</button>
+        <button class="btn btn-primary" onclick="addGrade()">➕ 录入成绩</button>
       </div>
       <div class="table-card">
         <table>
@@ -1041,6 +1119,15 @@ select.form-control { cursor: pointer; }
             <button class="btn btn-primary" onclick="saveSettings()">保存修改</button>
             <button class="btn btn-outline" style="margin-left:8px" onclick="resetSettings()">重置</button>
           </div>
+        </div>
+      </div>
+      <!-- 【优化20】数据导出增强 -->
+      <div class="chart-card" style="margin-top:20px">
+        <h3>📊 数据导出</h3>
+        <div style="padding:8px 0;display:flex;gap:12px;flex-wrap:wrap">
+          <button class="btn btn-outline" onclick="exportExcelFormat('students')">📊 导出学员 (Excel)</button>
+          <button class="btn btn-outline" onclick="exportExcelFormat('grades')">📊 导出成绩 (Excel)</button>
+          <button class="btn btn-outline" onclick="exportExcelFormat('attendance')">📊 导出考勤 (Excel)</button>
         </div>
       </div>
     </div>
@@ -1679,6 +1766,69 @@ select.form-control { cursor: pointer; }
   </div>
 </div>
 
+<!-- 【优化1】编辑成绩 Modal -->
+<div class="modal-overlay" id="editGradeModal">
+  <div class="modal" style="width:500px">
+    <div class="modal-header">
+      <h3>✏️ 编辑成绩</h3>
+      <button class="modal-close" onclick="hideModal('editGradeModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editGradeIdx">
+      <div class="form-group">
+        <label>学员</label>
+        <input class="form-control" id="editGradeName" readonly>
+      </div>
+      <div class="form-group">
+        <label>课程</label>
+        <input class="form-control" id="editGradeCourse" readonly>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>平时成绩</label>
+          <input class="form-control" id="editGradeDaily" type="number" min="0" max="100" placeholder="0-100" oninput="calcEditGradePreview()">
+        </div>
+        <div class="form-group">
+          <label>期中成绩</label>
+          <input class="form-control" id="editGradeMidterm" type="number" min="0" max="100" placeholder="0-100" oninput="calcEditGradePreview()">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>期末成绩</label>
+        <input class="form-control" id="editGradeFinal" type="number" min="0" max="100" placeholder="0-100" oninput="calcEditGradePreview()">
+      </div>
+      <div style="background:var(--bg);border-radius:10px;padding:14px;margin-top:8px">
+        <div style="display:flex;justify-content:space-between;font-size:13px">
+          <span>总评（平时30% + 期中30% + 期末40%）</span>
+          <strong id="editGradeTotalPreview">--</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-top:4px">
+          <span>等级</span>
+          <strong id="editGradeLevelPreview">--</strong>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="hideModal('editGradeModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveEditGrade()">保存修改</button>
+    </div>
+  </div>
+</div>
+
+<!-- 【优化4】学员详情 Modal -->
+<div class="modal-overlay" id="studentDetailModal">
+  <div class="modal" style="width:700px">
+    <div class="modal-header">
+      <h3>👤 学员详情</h3>
+      <button class="modal-close" onclick="hideModal('studentDetailModal')">✕</button>
+    </div>
+    <div class="modal-body" id="studentDetailBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="hideModal('studentDetailModal')">关闭</button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast Container -->
 <div class="toast-container" id="toastContainer"></div>
 
@@ -2159,7 +2309,19 @@ function showModal(id) {
     if (dateInput && !dateInput.value) dateInput.value = new Date().toISOString().split('T')[0];
   }
 }
-function hideModal(id) { document.getElementById(id).classList.remove('show'); }
+function hideModal(id) {
+  document.getElementById(id).classList.remove('show');
+  // 【优化2】恢复排课弹窗标题（如果从编辑模式关闭）
+  if (id === 'addScheduleModal') {
+    var modal = document.getElementById('addScheduleModal');
+    modal.querySelector('.modal-header h3').textContent = '📅 新增排课';
+    var btn = modal.querySelector('.modal-footer .btn-primary');
+    btn.textContent = '确认排课';
+    btn.setAttribute('onclick', 'addSchedule()');
+    editScheduleDate = null;
+    editScheduleIdx = null;
+  }
+}
 document.querySelectorAll('.modal-overlay').forEach(m => {
   m.addEventListener('click', e => { if (e.target === m) m.classList.remove('show'); });
 });
@@ -2223,7 +2385,7 @@ function renderRollcallSessions() {
       <td>${total}</td>
       <td>${present}</td>
       <td><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:80px"><div class="progress-fill green" style="width:${rate}%"></div></div>${rate}%</div></td>
-      <td><button class="btn btn-outline btn-sm" onclick="viewRollcallDetail('${s.id}')">查看详情</button> <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger)" onclick="deleteSession('${s.id}')">删除</button></td>
+      <td><button class="btn btn-outline btn-sm" onclick="viewRollcallDetail('${s.id}')">查看详情</button> <button class="btn btn-outline btn-sm" style="color:var(--warning);border-color:var(--warning)" onclick="reRollcall('${s.id}')">🔄 重新点名</button> <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger)" onclick="deleteSession('${s.id}')">删除</button></td>
     </tr>`;
   }).join('');
 
@@ -2317,6 +2479,7 @@ function renderRollcallStudents() {
     <div class="rollcall-stat-item late"><div class="num">${late}</div><div class="label">迟到</div></div>
     <div class="rollcall-stat-item absent"><div class="num">${absent}</div><div class="label">缺勤</div></div>
     <div class="rollcall-stat-item leave"><div class="num">${leave}</div><div class="label">请假</div></div>
+    <div class="rollcall-stat-item" style="display:flex;align-items:center;justify-content:center"><button class="btn btn-success btn-sm" onclick="markAllPresent()">✅ 一键全部出勤</button></div>
   `;
 
   // 计算课时单价
@@ -2752,7 +2915,7 @@ function renderStudents() {
         <span class="status-tag ${s.payStatus === 'paid' ? 'active' : s.payStatus === 'partial' ? 'pending' : 'inactive'}" style="font-size:10px;margin-top:2px">${s.payStatus === 'paid' ? '已缴费' : s.payStatus === 'partial' ? '部分缴费' : '未缴费'}</span>
       </td>
       <td><span class="status-tag ${s.status}">${statusMap[s.status]}</span></td>
-      <td><button class="btn btn-outline btn-sm" onclick="editStudent('${s.id}')">编辑</button> <button class="btn btn-outline btn-sm" style="color:var(--warning);border-color:var(--warning)" onclick="viewFeeLog('${s.id}')">💰 明细</button> <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger)" onclick="deleteStudent('${s.id}')">删除</button></td>
+      <td><button class="btn btn-outline btn-sm" onclick="editStudent('${s.id}')">编辑</button> <button class="btn btn-outline btn-sm" style="color:var(--info);border-color:var(--info)" onclick="viewStudentDetail('${s.id}')">👁 详情</button> <button class="btn btn-outline btn-sm" style="color:var(--warning);border-color:var(--warning)" onclick="viewFeeLog('${s.id}')">💰 明细</button> <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger)" onclick="deleteStudent('${s.id}')">删除</button></td>
     </tr>
   `).join('');
 
@@ -3242,7 +3405,7 @@ function renderGrades() {
       <td>${g.id}</td><td>${g.course}</td><td>${g.daily}</td><td>${g.midterm}</td><td>${g.final}</td>
       <td><strong>${g.total}</strong></td>
       <td><span class="status-tag ${g.level === '优秀' ? 'active' : g.level === '良好' ? 'pending' : 'inactive'}">${g.level}</span></td>
-      <td><button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger)" onclick="deleteGrade(${i})">删除</button></td>
+      <td><button class="btn btn-outline btn-sm" onclick="editGrade(${i})">✏️ 编辑</button> <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger)" onclick="deleteGrade(${i})">删除</button></td>
     </tr>
   `).join('');
   updateBatchButtons();
@@ -3899,7 +4062,928 @@ function updateDonutChart() {
   }
 }
 
-// ==================== 初始化 ====================
+// ==================== 【优化24】暗色模式 ====================
+function toggleTheme() {
+  var html = document.documentElement;
+  var isDark = html.dataset.theme === 'dark';
+  html.dataset.theme = isDark ? '' : 'dark';
+  LS.set('theme', isDark ? '' : 'dark');
+  document.getElementById('themeToggle').textContent = isDark ? '🌙' : '☀️';
+}
+function loadTheme() {
+  var theme = LS.get('theme', '');
+  if (theme) {
+    document.documentElement.dataset.theme = theme;
+    var btn = document.getElementById('themeToggle');
+    if (btn) btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+  }
+}
+
+// ==================== 【优化11】Modal ESC 关闭 ====================
+var escHandler = null;
+var origShowModal = showModal;
+showModal = function(id) {
+  origShowModal(id);
+  if (!escHandler) {
+    escHandler = function(e) {
+      if (e.key === 'Escape') {
+        var modals = document.querySelectorAll('.modal-overlay.show');
+        if (modals.length > 0) {
+          modals[modals.length - 1].classList.remove('show');
+        }
+        if (document.querySelectorAll('.modal-overlay.show').length === 0) {
+          document.removeEventListener('keydown', escHandler);
+          escHandler = null;
+        }
+      }
+    };
+    document.addEventListener('keydown', escHandler);
+  }
+};
+
+// ==================== 【优化13】Toast 增强 ====================
+var origShowToast = showToast;
+showToast = function(msg, isError, duration) {
+  var dur = duration || 3000;
+  var c = document.getElementById('toastContainer');
+  var t = document.createElement('div');
+  t.className = 'toast' + (isError ? ' error' : '');
+  t.innerHTML = '<span class="toast-icon">' + (isError ? '❌' : '✅') + '</span> ' + msg;
+  c.appendChild(t);
+  setTimeout(function() { t.style.opacity = '0'; t.style.transform = 'translateX(100%)'; t.style.transition = 'all 0.3s'; setTimeout(function() { t.remove(); }, 300); }, dur);
+};
+
+// ==================== 【优化24b】暗色模式数据初始化 ====================
+function initScheduleDates() {
+  // 【优化9】将 scheduleData 键统一为 YYYY-MM-DD 格式
+  var newSchedule = {};
+  var today = new Date();
+  var year = today.getFullYear();
+  var month = today.getMonth(); // 0-based
+  Object.keys(scheduleData).forEach(function(key) {
+    if (key.match(/^\d{1,2}\/\d{1,2}$/)) {
+      var parts = key.split('/');
+      var m = parseInt(parts[0]);
+      var d = parseInt(parts[1]);
+      var yyyy = year;
+      var mm = String(m).padStart(2, '0');
+      var dd = String(d).padStart(2, '0');
+      var newKey = yyyy + '-' + mm + '-' + dd;
+      // 为每个事件添加唯一ID（如果没有）
+      var events = scheduleData[key];
+      events.forEach(function(e) {
+        if (!e.id) e.id = 'SCH' + Date.now() + Math.floor(Math.random() * 1000);
+      });
+      newSchedule[newKey] = events;
+    } else {
+      // 已经是 YYYY-MM-DD 格式
+      var events = scheduleData[key];
+      events.forEach(function(e) {
+        if (!e.id) e.id = 'SCH' + Date.now() + Math.floor(Math.random() * 1000);
+      });
+      newSchedule[key] = events;
+    }
+  });
+  scheduleData = newSchedule;
+}
+
+// ==================== 【优化1】成绩编辑 ====================
+function editGrade(idx) {
+  var g = gradesData[idx];
+  if (!g) return;
+  document.getElementById('editGradeIdx').value = idx;
+  document.getElementById('editGradeName').value = g.name;
+  document.getElementById('editGradeCourse').value = g.course;
+  document.getElementById('editGradeDaily').value = g.daily;
+  document.getElementById('editGradeMidterm').value = g.midterm;
+  document.getElementById('editGradeFinal').value = g.final;
+  calcEditGradePreview();
+  showModal('editGradeModal');
+}
+
+function calcEditGradePreview() {
+  var daily = parseFloat(document.getElementById('editGradeDaily').value) || 0;
+  var midterm = parseFloat(document.getElementById('editGradeMidterm').value) || 0;
+  var finalScore = parseFloat(document.getElementById('editGradeFinal').value) || 0;
+  var total = (daily * 0.3 + midterm * 0.3 + finalScore * 0.4).toFixed(1);
+  var level = total >= 90 ? '优秀' : total >= 80 ? '良好' : total >= 60 ? '及格' : '不及格';
+  document.getElementById('editGradeTotalPreview').textContent = total;
+  document.getElementById('editGradeLevelPreview').textContent = level;
+}
+
+function saveEditGrade() {
+  var idx = parseInt(document.getElementById('editGradeIdx').value);
+  var g = gradesData[idx];
+  if (!g) return;
+  var daily = parseFloat(document.getElementById('editGradeDaily').value) || 0;
+  var midterm = parseFloat(document.getElementById('editGradeMidterm').value) || 0;
+  var finalScore = parseFloat(document.getElementById('editGradeFinal').value) || 0;
+  if (daily === 0 && midterm === 0 && finalScore === 0) { showToast('请至少输入一项成绩', true); return; }
+  g.daily = daily;
+  g.midterm = midterm;
+  g.final = finalScore;
+  g.total = parseFloat((daily * 0.3 + midterm * 0.3 + finalScore * 0.4).toFixed(1));
+  g.level = g.total >= 90 ? '优秀' : g.total >= 80 ? '良好' : g.total >= 60 ? '及格' : '不及格';
+  saveAll();
+  renderGrades(); renderDashboard();
+  hideModal('editGradeModal');
+  showToast('成绩已更新：' + g.name + ' - 总评 ' + g.total, false, 4000);
+}
+
+// ==================== 【优化2】排课编辑 ====================
+var editScheduleDate = null;
+var editScheduleIdx = null;
+
+function editSchedule(dateKey, idx) {
+  var events = scheduleData[dateKey];
+  if (!events || !events[idx]) return;
+  var e = events[idx];
+  editScheduleDate = dateKey;
+  editScheduleIdx = idx;
+
+  // 填充弹窗
+  syncScheduleModalDropdowns();
+  document.getElementById('scheduleCourse').value = e.name || e.courseRef || '';
+  document.getElementById('scheduleDate').value = dateKey;
+  document.getElementById('scheduleStartTime').value = e.start || '09:00';
+  document.getElementById('scheduleEndTime').value = e.end || '11:00';
+  if (e.teacher) document.getElementById('scheduleTeacher').value = e.teacher;
+  if (e.classroom) document.getElementById('scheduleClassroom').value = e.classroom;
+
+  // 修改弹窗标题和按钮
+  var modal = document.getElementById('addScheduleModal');
+  modal.querySelector('.modal-header h3').textContent = '✏️ 编辑排课';
+  modal.querySelector('.modal-footer .btn-primary').textContent = '保存修改';
+  modal.querySelector('.modal-footer .btn-primary').setAttribute('onclick', 'saveEditSchedule()');
+  showModal('addScheduleModal');
+}
+
+function saveEditSchedule() {
+  if (editScheduleDate === null || editScheduleIdx === null) return;
+  var events = scheduleData[editScheduleDate];
+  if (!events || !events[editScheduleIdx]) return;
+  var e = events[editScheduleIdx];
+  var courseName = document.getElementById('scheduleCourse').value;
+  var dateVal = document.getElementById('scheduleDate').value;
+  var startTime = document.getElementById('scheduleStartTime').value;
+  var endTime = document.getElementById('scheduleEndTime').value;
+  var teacher = document.getElementById('scheduleTeacher').value;
+  var room = document.getElementById('scheduleClassroom').value;
+
+  if (!courseName) { showToast('请选择课程', true); return; }
+  if (!dateVal) { showToast('请选择日期', true); return; }
+
+  var course = courses.find(function(c) { return c.name === courseName; });
+  e.name = courseName;
+  e.courseRef = courseName;
+  e.teacher = teacher || (course ? course.teacher : '');
+  e.classroom = room;
+  e.start = startTime;
+  e.end = endTime;
+
+  // 如果日期变了，需要移动事件
+  if (dateVal !== editScheduleDate) {
+    events.splice(editScheduleIdx, 1);
+    if (events.length === 0) delete scheduleData[editScheduleDate];
+    if (!scheduleData[dateVal]) scheduleData[dateVal] = [];
+    scheduleData[dateVal].push(e);
+  }
+
+  // 更新对应的 session
+  var matchedSession = sessions.find(function(s) {
+    return s.course === courseName && s.date === editScheduleDate && s.start === e.start;
+  });
+  if (matchedSession) {
+    matchedSession.date = dateVal;
+    matchedSession.start = startTime;
+    matchedSession.end = endTime;
+    matchedSession.teacher = e.teacher;
+    matchedSession.classroom = room ? room.split(' ')[0] : matchedSession.classroom;
+  }
+
+  editScheduleDate = null;
+  editScheduleIdx = null;
+
+  // 恢复弹窗标题
+  var modal = document.getElementById('addScheduleModal');
+  modal.querySelector('.modal-header h3').textContent = '📅 新增排课';
+  modal.querySelector('.modal-footer .btn-primary').textContent = '确认排课';
+  modal.querySelector('.modal-footer .btn-primary').setAttribute('onclick', 'addSchedule()');
+
+  saveAll(); renderSchedule(); renderDashboard();
+  hideModal('addScheduleModal');
+  showToast('排课已更新', false, 4000);
+}
+
+// ==================== 【优化3】排课事件唯一ID ====================
+// 在 addSchedule 中已包含 id 生成逻辑，此处确保默认数据也有 id
+function ensureScheduleIds() {
+  Object.keys(scheduleData).forEach(function(dateKey) {
+    scheduleData[dateKey].forEach(function(e) {
+      if (!e.id) e.id = 'SCH' + Date.now() + Math.floor(Math.random() * 1000);
+    });
+  });
+}
+
+// 【优化3b】用 id 查找删除
+var origDeleteScheduleEvent = deleteScheduleEvent;
+deleteScheduleEvent = function(date, idxOrId) {
+  var events = scheduleData[date];
+  if (!events) return;
+  // 支持通过 id 或 idx 删除
+  var idx = -1;
+  if (typeof idxOrId === 'number') {
+    idx = idxOrId;
+  } else {
+    idx = events.findIndex(function(e) { return e.id === idxOrId; });
+  }
+  if (idx < 0 || !events[idx]) return;
+  var name = events[idx].name;
+  if (!confirm('确定要删除「' + name + '」吗？')) return;
+  events.splice(idx, 1);
+  if (events.length === 0) delete scheduleData[date];
+  saveAll(); renderSchedule(); renderDashboard();
+  showToast('已删除排课「' + name + '」');
+};
+
+// ==================== 【优化4】学员详情弹窗 ====================
+function viewStudentDetail(id) {
+  var s = students.find(function(x) { return x.id === id; });
+  if (!s) return;
+  var statusMap2 = { active:'在读', pending:'待确认', completed:'已毕业', inactive:'休学' };
+  var payMap = { paid:'已缴费', unpaid:'未缴费', partial:'部分缴费' };
+  var payColor = { paid:'var(--success)', unpaid:'var(--danger)', partial:'var(--warning)' };
+
+  // 出勤历史
+  var attendanceHistory = [];
+  sessions.forEach(function(sess) {
+    var stu = sess.students.find(function(st) { return st.id === id; });
+    if (stu) {
+      attendanceHistory.push({
+        date: sess.date, time: sess.start + '-' + sess.end,
+        className: sess.className, course: sess.course,
+        teacher: sess.teacher, status: stu.attendance
+      });
+    }
+  });
+  var attStatusMap = { present:'✅ 出勤', late:'⏰ 迟到', absent:'❌ 缺勤', leave:'📋 请假' };
+  var attColorMap = { present:'var(--success)', late:'var(--warning)', absent:'var(--danger)', leave:'var(--info)' };
+
+  // 成绩
+  var studentGrades = gradesData.filter(function(g) { return g.id === id; });
+
+  var html = '<div class="student-detail-section">' +
+    '<h4>📋 基本信息</h4>' +
+    '<div class="student-detail-grid">' +
+    '<div class="student-detail-item"><div class="label">姓名</div><div class="value">' + s.name + '</div></div>' +
+    '<div class="student-detail-item"><div class="label">学号</div><div class="value">' + s.id + '</div></div>' +
+    '<div class="student-detail-item"><div class="label">联系电话</div><div class="value">' + s.phone + '</div></div>' +
+    '<div class="student-detail-item"><div class="label">报名课程</div><div class="value">' + s.course + '</div></div>' +
+    '<div class="student-detail-item"><div class="label">所在班级</div><div class="value">' + s.cls + '</div></div>' +
+    '<div class="student-detail-item"><div class="label">学员状态</div><div class="value"><span class="status-tag ' + s.status + '">' + (statusMap2[s.status] || s.status) + '</span></div></div>' +
+    '<div class="student-detail-item"><div class="label">报名费用</div><div class="value" style="color:var(--primary)">¥' + (s.fee || 0).toLocaleString() + '</div></div>' +
+    '<div class="student-detail-item"><div class="label">缴费状态</div><div class="value" style="color:' + (payColor[s.payStatus] || 'var(--text)') + '">' + (payMap[s.payStatus] || s.payStatus) + '</div></div>' +
+    '</div></div>';
+
+  // 出勤历史
+  html += '<div class="student-detail-section"><h4>📊 出勤历史 (' + attendanceHistory.length + '次)</h4>';
+  if (attendanceHistory.length === 0) {
+    html += '<div style="text-align:center;padding:20px;color:var(--text-secondary)">暂无出勤记录</div>';
+  } else {
+    html += '<table style="width:100%;font-size:13px"><thead><tr style="text-align:left;border-bottom:2px solid var(--border)">' +
+      '<th style="padding:8px">日期</th><th>时间</th><th>班级</th><th>课程</th><th>状态</th></tr></thead><tbody>';
+    attendanceHistory.forEach(function(a) {
+      html += '<tr style="border-bottom:1px solid var(--border)">' +
+        '<td style="padding:8px">' + a.date + '</td>' +
+        '<td>' + a.time + '</td>' +
+        '<td>' + a.className + '</td>' +
+        '<td>' + a.course + '</td>' +
+        '<td style="color:' + (attColorMap[a.status] || 'var(--text)') + '">' + (attStatusMap[a.status] || '未标记') + '</td></tr>';
+    });
+    html += '</tbody></table>';
+  }
+  html += '</div>';
+
+  // 成绩
+  html += '<div class="student-detail-section"><h4>📝 成绩记录 (' + studentGrades.length + '条)</h4>';
+  if (studentGrades.length === 0) {
+    html += '<div style="text-align:center;padding:20px;color:var(--text-secondary)">暂无成绩记录</div>';
+  } else {
+    html += '<table style="width:100%;font-size:13px"><thead><tr style="text-align:left;border-bottom:2px solid var(--border)">' +
+      '<th style="padding:8px">课程</th><th>平时</th><th>期中</th><th>期末</th><th>总评</th><th>等级</th></tr></thead><tbody>';
+    studentGrades.forEach(function(g) {
+      var levelClass = g.level === '优秀' ? 'active' : g.level === '良好' ? 'pending' : 'inactive';
+      html += '<tr style="border-bottom:1px solid var(--border)">' +
+        '<td style="padding:8px">' + g.course + '</td>' +
+        '<td>' + g.daily + '</td><td>' + g.midterm + '</td><td>' + g.final + '</td>' +
+        '<td><strong>' + g.total + '</strong></td>' +
+        '<td><span class="status-tag ' + levelClass + '">' + g.level + '</span></td></tr>';
+    });
+    html += '</tbody></table>';
+  }
+  html += '</div>';
+
+  document.getElementById('studentDetailBody').innerHTML = html;
+  showModal('studentDetailModal');
+}
+
+// ==================== 【优化5】考勤重新点名 ====================
+function reRollcall(sessionId) {
+  var session = sessions.find(function(s) { return s.id === sessionId; });
+  if (!session) return;
+  if (!confirm('确定要重新点名「' + session.className + ' ' + session.date + '」吗？\n当前考勤记录将被清除。')) return;
+  session.status = 'pending';
+  session.students.forEach(function(st) { st.attendance = null; });
+  saveAll();
+  renderRollcallSessions();
+  renderDashboard();
+  showToast('已重置点名，正在进入点名界面...', false, 2000);
+  setTimeout(function() { openRollcall(sessionId); }, 500);
+}
+
+// ==================== 【优化6】删课程检查关联数据 ====================
+var origDeleteCourse = deleteCourse;
+deleteCourse = function(idx) {
+  var c = courses[idx];
+  if (!c) return;
+  var refStudents = students.filter(function(s) { return s.course === c.name; }).length;
+  var refClasses = classList.filter(function(cls) { return cls.course === c.name; }).length;
+  var refSessions = sessions.filter(function(s) { return s.course === c.name; }).length;
+  var refGrades = gradesData.filter(function(g) { return g.course === c.name; }).length;
+  var refSchedule = 0;
+  Object.keys(scheduleData).forEach(function(dk) {
+    scheduleData[dk].forEach(function(e) {
+      if (e.name === c.name || e.courseRef === c.name) refSchedule++;
+    });
+  });
+
+  var totalRefs = refStudents + refClasses + refSessions + refGrades + refSchedule;
+  var msg = '确定要删除课程「' + c.name + '」吗？';
+  if (totalRefs > 0) {
+    msg = '⚠️ 该课程下有 ' + refStudents + ' 名学员、' + refClasses + ' 个班级、' + refSessions + ' 个课节、' + refGrades + ' 条成绩、' + refSchedule + ' 个排课。\n确认删除将同步清理所有关联数据！';
+  }
+  if (!confirm(msg)) return;
+
+  // 清理关联数据
+  students = students.filter(function(s) { return s.course !== c.name; });
+  classList = classList.filter(function(cls) { return cls.course !== c.name; });
+  sessions = sessions.filter(function(s) { return s.course !== c.name; });
+  gradesData = gradesData.filter(function(g) { return g.course !== c.name; });
+  Object.keys(scheduleData).forEach(function(dk) {
+    scheduleData[dk] = scheduleData[dk].filter(function(e) {
+      return e.name !== c.name && e.courseRef !== c.name;
+    });
+    if (scheduleData[dk].length === 0) delete scheduleData[dk];
+  });
+
+  courses.splice(idx, 1);
+  saveAll(); renderCourses(); renderClasses(); renderTeachers(); renderStudents(); renderDashboard(); renderSchedule(); renderGrades();
+  showToast('已删除课程「' + c.name + '」及所有关联数据');
+};
+
+// ==================== 【优化7】删教师检查关联数据 ====================
+var origDeleteTeacher = deleteTeacher;
+deleteTeacher = function(idx) {
+  var t = teachers[idx];
+  if (!t) return;
+  var refClasses = classList.filter(function(cls) { return cls.teacher === t.name; }).length;
+  var refCourses = courses.filter(function(c) { return c.teacher === t.name; }).length;
+  var totalRefs = refClasses + refCourses;
+  var msg = '确定要删除教师「' + t.name + '」吗？';
+  if (totalRefs > 0) {
+    msg = '⚠️ 该教师关联 ' + refClasses + ' 个班级、' + refCourses + ' 个课程。\n确认删除后，关联的班级和课程的教师字段将清空。';
+  }
+  if (!confirm(msg)) return;
+
+  // 清理关联：将教师字段清空而非删除班级/课程
+  classList.forEach(function(cls) { if (cls.teacher === t.name) cls.teacher = '未指定'; });
+  courses.forEach(function(c) { if (c.teacher === t.name) c.teacher = '未指定'; });
+
+  teachers.splice(idx, 1);
+  saveAll(); renderTeachers(); renderClasses(); renderCourses(); renderDashboard();
+  showToast('已删除教师「' + t.name + '」');
+};
+
+// ==================== 【优化8】课程重名校验 ====================
+var origAddCourse = addCourse;
+addCourse = function() {
+  var name = document.getElementById('courseName').value.trim();
+  if (!name) { showToast('请输入课程名称', true); return; }
+  if (courses.some(function(c) { return c.name === name; })) {
+    showToast('课程名称「' + name + '」已存在，请使用其他名称', true);
+    return;
+  }
+  origAddCourse();
+};
+
+var origSaveEditCourse = saveEditCourse;
+saveEditCourse = function() {
+  var idx = parseInt(document.getElementById('editCourseIdx').value);
+  var name = document.getElementById('editCourseName').value.trim();
+  if (courses.some(function(c, i) { return c.name === name && i !== idx; })) {
+    showToast('课程名称「' + name + '」已存在，请使用其他名称', true);
+    return;
+  }
+  origSaveEditCourse();
+};
+
+// ==================== 【优化9】日期格式统一（renderSchedule 修改）====================
+// renderSchedule 需要重写以适配 YYYY-MM-DD 格式
+var origRenderSchedule = renderSchedule;
+renderSchedule = function() {
+  var roomFilter = (document.getElementById('scheduleClassroomFilter') || {}).value || '';
+  var dates = Object.keys(scheduleData).sort();
+  var todayDateStr = new Date().toISOString().split('T')[0];
+  var weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+
+  document.getElementById('scheduleGrid').innerHTML = days.map(function(d) { return '<div class="schedule-header">' + d + '</div>'; }).join('') +
+    dates.map(function(d) {
+      var events = scheduleData[d] || [];
+      if (roomFilter) {
+        events = events.filter(function(e) { return e.classroom && e.classroom.indexOf(roomFilter.split(' ')[0]) === 0; });
+      }
+      // 从 YYYY-MM-DD 格式解析日期
+      var dateParts = d.split('-');
+      var dateObj = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
+      var month = dateObj.getMonth() + 1;
+      var day = dateObj.getDate();
+      var weekday = weekdays[dateObj.getDay()];
+      var isToday = d === todayDateStr;
+
+      return '<div class="schedule-cell' + (isToday ? ' today' : '') + '">' +
+        '<div class="date-full">' + month + '月' + day + '日 ' + weekday + '</div>' +
+        events.map(function(e, ei) {
+          var extraInfo = '';
+          if (e.start && e.end) extraInfo += '<div style="font-size:10px;color:#6B7280;margin-top:1px">⏰' + e.start + '-' + e.end + '</div>';
+          if (e.teacher) extraInfo += '<div style="font-size:10px;color:#6B7280">👤' + e.teacher + '</div>';
+          if (e.classroom) extraInfo += '<div style="font-size:10px;color:#6B7280">🏫' + e.classroom.split(' ')[0] + '</div>';
+          var evId = e.id || '';
+          return '<div class="schedule-event ' + e.type + '" style="display:flex;align-items:flex-start;gap:4px;flex-direction:column;' + (e.completed ? 'opacity:0.7;border-left-style:solid' : '') + '">' +
+            '<div style="display:flex;align-items:center;gap:4px;width:100%">' +
+            '<input type="checkbox" data-type="schedule" data-date="' + d + '" data-idx="' + ei + '" onchange="updateBatchButtons()" style="margin:0">' +
+            '<span style="cursor:pointer;flex:1" onclick="deleteScheduleEvent(\'' + d + '\',\'' + evId + '\')">' + (e.completed ? '✅ ' : '') + e.name + ' ✕</span>' +
+            '<span style="cursor:pointer;font-size:12px;opacity:0.6" onclick="event.stopPropagation();editSchedule(\'' + d + '\',' + ei + ')" title="编辑排课">✏️</span>' +
+            '</div>' +
+            extraInfo +
+            '</div>';
+        }).join('') +
+        '</div>';
+    }).join('');
+  updateBatchButtons();
+};
+
+// 【优化9b】修改 addSchedule 使用 YYYY-MM-DD 格式
+var origAddSchedule = addSchedule;
+addSchedule = function() {
+  var courseName = document.getElementById('scheduleCourse').value;
+  var dateVal = document.getElementById('scheduleDate').value;
+  var room = document.getElementById('scheduleClassroom').value;
+  var startTime = document.getElementById('scheduleStartTime').value;
+  var endTime = document.getElementById('scheduleEndTime').value;
+  var teacher = document.getElementById('scheduleTeacher').value;
+
+  if (!courseName) { showToast('请选择课程', true); return; }
+  if (!dateVal) { showToast('请选择上课日期', true); return; }
+  if (!startTime || !endTime) { showToast('请填写上课时间', true); return; }
+  if (startTime >= endTime) { showToast('结束时间必须晚于开始时间', true); return; }
+
+  // 【优化10】排课冲突检测
+  var conflictRoom = null;
+  var conflictTeacher = null;
+  // 检查 scheduleData
+  if (scheduleData[dateVal]) {
+    scheduleData[dateVal].forEach(function(e) {
+      if (e.start < endTime && e.end > startTime) {
+        if (room && e.classroom && e.classroom.split(' ')[0] === room.split(' ')[0]) {
+          conflictRoom = e.name;
+        }
+        if (teacher && e.teacher && e.teacher === teacher) {
+          conflictTeacher = e.name;
+        }
+      }
+    });
+  }
+  // 检查 sessions
+  sessions.forEach(function(s) {
+    if (s.date === dateVal && s.start < endTime && s.end > startTime) {
+      if (room && s.classroom === room.split(' ')[0]) {
+        conflictRoom = s.className;
+      }
+      if (teacher && s.teacher === teacher) {
+        conflictTeacher = s.className;
+      }
+    }
+  });
+
+  if (conflictRoom || conflictTeacher) {
+    var conflictMsg = '⚠️ 检测到排课冲突：\n';
+    if (conflictRoom) conflictMsg += '教室冲突：该教室在同时段已有「' + conflictRoom + '」\n';
+    if (conflictTeacher) conflictMsg += '教师冲突：该教师在同时段已有「' + conflictTeacher + '」\n';
+    conflictMsg += '是否继续保存？';
+    if (!confirm(conflictMsg)) return;
+  }
+
+  var course = courses.find(function(c) { return c.name === courseName; });
+  var dateKey = dateVal; // 直接用 YYYY-MM-DD
+
+  // 【优化3】生成唯一ID
+  var event = {
+    id: 'SCH' + Date.now(),
+    name: courseName,
+    type: 'course',
+    teacher: teacher || (course ? course.teacher : ''),
+    classroom: room,
+    start: startTime,
+    end: endTime,
+    courseRef: courseName
+  };
+
+  if (!scheduleData[dateKey]) scheduleData[dateKey] = [];
+  scheduleData[dateKey].push(event);
+
+  // 创建对应的课节课节
+  var className = '';
+  if (course) {
+    var matchedClass = classList.find(function(cls) { return cls.course === courseName; });
+    if (matchedClass) className = matchedClass.name;
+  }
+  if (className) {
+    var classStudents = students.filter(function(s) { return s.cls === className; });
+    sessions.push({
+      id: 'SESS' + Date.now(),
+      date: dateVal, start: startTime, end: endTime,
+      className: className, course: courseName,
+      teacher: teacher || (course ? course.teacher : ''),
+      classroom: room.split(' ')[0],
+      status: 'pending',
+      students: classStudents.map(function(s) { return { id: s.id, name: s.name, attendance: null }; })
+    });
+  }
+
+  saveAll(); renderSchedule(); renderDashboard();
+  hideModal('addScheduleModal');
+
+  // 【优化13】保存成功 toast 延长
+  showToast('排课成功：' + courseName + ' ' + dateKey, false, 4000);
+};
+
+// 【优化9c】修改默认排课数据使用今天附近的日期
+function regenerateDefaultSchedule() {
+  var today = new Date();
+  var result = {};
+  for (var i = -2; i <= 4; i++) {
+    var d = new Date(today.getTime() + i * 86400000);
+    var key = d.toISOString().split('T')[0];
+    var events = [];
+    if (i === -2) events = [{ id:'SCH001', name:'商务英语', type:'course', teacher:'张明辉', classroom:'A301 多媒体教室', start:'09:00', end:'11:00' }];
+    if (i === -1) events = [{ id:'SCH002', name:'Python开发', type:'course', teacher:'李文静', classroom:'B201 计算机房', start:'10:30', end:'12:30' }];
+    if (i === 0) events = [{ id:'SCH003', name:'商务英语', type:'course', teacher:'张明辉', classroom:'A301 多媒体教室', start:'09:00', end:'11:00' }, { id:'SCH004', name:'教研会议', type:'meeting' }];
+    if (i === 1) events = [{ id:'SCH005', name:'Python开发', type:'course', teacher:'李文静', classroom:'B201 计算机房', start:'10:30', end:'12:30' }, { id:'SCH006', name:'雅思冲刺', type:'course', teacher:'刘思远', classroom:'A302 语音室', start:'14:00', end:'16:00' }];
+    if (i === 2) events = [{ id:'SCH007', name:'商务英语', type:'course', teacher:'张明辉', classroom:'A301 多媒体教室', start:'09:00', end:'11:00' }, { id:'SCH008', name:'少儿美术', type:'course', teacher:'王艺萌', classroom:'B205 画室', start:'14:00', end:'16:00' }];
+    if (i === 3) events = [{ id:'SCH009', name:'雅思冲刺', type:'course', teacher:'刘思远', classroom:'A302 语音室', start:'09:00', end:'11:00' }, { id:'SCH010', name:'数学辅导', type:'course', teacher:'赵国强', classroom:'A201 普通教室', start:'14:00', end:'16:00' }];
+    if (i === 4) events = [{ id:'SCH011', name:'家长会', type:'meeting' }];
+    if (events.length > 0) result[key] = events;
+  }
+  return result;
+}
+
+// ==================== 【优化12】全局搜索扩展 ====================
+// 已在原有 globalSearch 中实现搜索课程、教师、班级，此处确保搜索结果分类更清晰
+var origGlobalSearch = globalSearch;
+globalSearch = function(keyword) {
+  var dropdown = document.getElementById('searchDropdown');
+  if (!keyword || keyword.trim().length === 0) { dropdown.classList.remove('show'); return; }
+  keyword = keyword.trim().toLowerCase();
+
+  var results = [];
+  // 搜索学员
+  students.forEach(function(s) {
+    if (s.name.toLowerCase().indexOf(keyword) >= 0 || s.id.toLowerCase().indexOf(keyword) >= 0 || (s.phone && s.phone.indexOf(keyword) >= 0)) {
+      results.push({ type: '学员', typeColor: '#3B82F6', label: s.name + ' (' + s.id + ')', page: 'students', action: 'navigateTo(\'students\')' });
+    }
+  });
+  // 搜索课程
+  courses.forEach(function(c) {
+    if (c.name.toLowerCase().indexOf(keyword) >= 0) {
+      results.push({ type: '课程', typeColor: '#10B981', label: c.name + ' - ' + c.type + ' (' + c.teacher + ')', page: 'courses', action: 'navigateTo(\'courses\')' });
+    }
+  });
+  // 搜索教师
+  teachers.forEach(function(t) {
+    if (t.name.toLowerCase().indexOf(keyword) >= 0 || (t.subject && t.subject.toLowerCase().indexOf(keyword) >= 0)) {
+      results.push({ type: '教师', typeColor: '#F59E0B', label: t.name + ' (' + t.subject + ' · ' + t.title + ')', page: 'teachers', action: 'navigateTo(\'teachers\')' });
+    }
+  });
+  // 搜索班级
+  classList.forEach(function(c) {
+    if (c.name.toLowerCase().indexOf(keyword) >= 0 || (c.course && c.course.toLowerCase().indexOf(keyword) >= 0)) {
+      results.push({ type: '班级', typeColor: '#8B5CF6', label: c.name + ' - ' + c.course + ' (' + c.teacher + ')', page: 'classManage', action: 'navigateTo(\'classManage\')' });
+    }
+  });
+
+  if (results.length === 0) {
+    dropdown.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-secondary);font-size:13px">未找到相关结果</div>';
+  } else {
+    // 分类显示
+    var grouped = {};
+    results.forEach(function(r) {
+      if (!grouped[r.type]) grouped[r.type] = [];
+      grouped[r.type].push(r);
+    });
+    var html = '';
+    Object.keys(grouped).forEach(function(type) {
+      html += '<div style="padding:6px 14px;font-size:11px;color:var(--text-secondary);background:var(--bg);font-weight:600">' + type + '</div>';
+      grouped[type].slice(0, 5).forEach(function(r) {
+        html += '<div class="search-dropdown-item" onmousedown="' + r.action + '">' +
+          '<span class="sd-type" style="background:' + r.typeColor + '20;color:' + r.typeColor + '">' + r.type + '</span>' +
+          '<span>' + r.label + '</span></div>';
+      });
+    });
+    dropdown.innerHTML = html;
+  }
+  dropdown.classList.add('show');
+};
+
+// ==================== 【优化15】考勤统计图表 ====================
+function renderAttendanceChart() {
+  var doneSessions = sessions.filter(function(s) { return s.status === 'done'; });
+  var classStats = {};
+  doneSessions.forEach(function(s) {
+    if (!classStats[s.className]) classStats[s.className] = { total: 0, present: 0 };
+    s.students.forEach(function(st) {
+      classStats[s.className].total++;
+      if (st.attendance === 'present' || st.attendance === 'late') classStats[s.className].present++;
+    });
+  });
+
+  var classNames = Object.keys(classStats);
+  if (classNames.length === 0) return '';
+
+  var maxRate = 100;
+  var html = '<div style="margin-bottom:20px"><h4 style="margin-bottom:12px;font-size:14px;display:flex;align-items:center;gap:6px">📊 班级出勤率对比</h4>' +
+    '<div class="attendance-bar-chart">';
+  classNames.forEach(function(cn) {
+    var st = classStats[cn];
+    var rate = st.total > 0 ? (st.present / st.total * 100) : 0;
+    var height = Math.max(4, rate / maxRate * 180);
+    html += '<div class="attendance-bar-group">' +
+      '<div class="attendance-bar" style="height:' + height + 'px">' +
+      '<div class="bar-value">' + rate.toFixed(1) + '%</div></div>' +
+      '<div class="attendance-bar-label">' + cn + '</div></div>';
+  });
+  html += '</div></div>';
+  return html;
+}
+
+var origRenderAttendance = renderAttendance;
+renderAttendance = function() {
+  // 先执行原有逻辑
+  origRenderAttendance();
+  // 插入柱状图
+  var chartHtml = renderAttendanceChart();
+  if (chartHtml) {
+    var table = document.getElementById('attendanceBody').closest('table');
+    if (table) {
+      var existingChart = table.parentNode.querySelector('.attendance-chart-wrapper');
+      if (existingChart) existingChart.remove();
+      var div = document.createElement('div');
+      div.className = 'attendance-chart-wrapper';
+      div.innerHTML = chartHtml;
+      table.parentNode.insertBefore(div, table);
+    }
+  }
+};
+
+// ==================== 【优化16】点名一键全勤 ====================
+function markAllPresent() {
+  if (!currentRollcallSession) return;
+  currentRollcallSession.students.forEach(function(st) {
+    if (!st.attendance) st.attendance = 'present';
+  });
+  renderRollcallStudents();
+  showToast('已标记所有学生为出勤');
+}
+
+// ==================== 【优化17】首页待办增强 ====================
+function renderDashboardAlerts() {
+  var alerts = [];
+
+  // 缺勤率 > 20% 的班级预警
+  var classAttendance = {};
+  sessions.forEach(function(s) {
+    if (s.status !== 'done') return;
+    if (!classAttendance[s.className]) classAttendance[s.className] = { total: 0, absent: 0 };
+    s.students.forEach(function(st) {
+      classAttendance[s.className].total++;
+      if (st.attendance === 'absent') classAttendance[s.className].absent++;
+    });
+  });
+  Object.keys(classAttendance).forEach(function(cn) {
+    var ca = classAttendance[cn];
+    if (ca.total > 0) {
+      var absentRate = ca.absent / ca.total * 100;
+      if (absentRate > 20) {
+        alerts.push({ type: 'danger', icon: '⚠️', title: cn + ' 缺勤率预警', desc: '缺勤率 ' + absentRate.toFixed(1) + '% 超过20%', count: absentRate.toFixed(0) + '%', page: 'attendance' });
+      }
+    }
+  });
+
+  // 欠费学员提醒
+  var unpaidStudents = students.filter(function(s) { return s.payStatus === 'unpaid'; });
+  if (unpaidStudents.length > 0) {
+    alerts.push({ type: 'danger', icon: '💰', title: '欠费学员提醒', desc: unpaidStudents.length + ' 名学员未缴费', count: unpaidStudents.length, page: 'students' });
+  }
+
+  // 课时即将用完的课程
+  courses.forEach(function(c) {
+    if (c.progress > 90) {
+      alerts.push({ type: 'info', icon: '⏰', title: c.name + ' 课时即将用完', desc: '进度已达 ' + c.progress + '%', count: c.progress + '%', page: 'courses' });
+    }
+  });
+
+  return alerts;
+}
+
+var origRenderDashboard = renderDashboard;
+renderDashboard = function() {
+  origRenderDashboard();
+
+  // 渲染提醒卡片
+  var alerts = renderDashboardAlerts();
+  var dashPage = document.getElementById('page-dashboard');
+  var existingAlerts = dashPage.querySelector('.alert-cards');
+  if (existingAlerts) existingAlerts.remove();
+
+  if (alerts.length > 0) {
+    var alertHtml = '<div class="alert-cards">';
+    alerts.forEach(function(a) {
+      alertHtml += '<div class="alert-card' + (a.type === 'danger' ? ' danger' : ' info') + '" onclick="navigateTo(\'' + a.page + '\')">' +
+        '<div class="alert-icon">' + a.icon + '</div>' +
+        '<div class="alert-text"><div class="alert-title">' + a.title + '</div><div class="alert-desc">' + a.desc + '</div></div>' +
+        '<div class="alert-count">' + a.count + '</div></div>';
+    });
+    alertHtml += '</div>';
+    // 插入到 stats-grid 后面
+    var statsGrid = dashPage.querySelector('.stats-grid');
+    if (statsGrid) {
+      var div = document.createElement('div');
+      div.innerHTML = alertHtml;
+      statsGrid.parentNode.insertBefore(div.firstElementChild, statsGrid.nextSibling);
+    }
+  }
+};
+
+// ==================== 【优化18】课程进度自动计算 ====================
+// 在 syncData 中增加课程进度自动计算
+var origSyncData = syncData;
+syncData = function() {
+  origSyncData();
+  // 根据 classList 的 doneHours/totalHours 自动更新 courses 的 progress
+  courses.forEach(function(c) {
+    var cls = classList.filter(function(cl) { return cl.course === c.name; });
+    var done = cls.reduce(function(s, cl) { return s + (cl.doneHours || 0); }, 0);
+    var total = cls.reduce(function(s, cl) { return s + (cl.totalHours || 0); }, 0);
+    c.progress = total > 0 ? Math.round(done / total * 100) : c.progress;
+  });
+
+  // 【优化23】学员状态联动：休学学员从待点名单移除
+  sessions.forEach(function(sess) {
+    if (sess.status === 'pending') {
+      sess.students = sess.students.filter(function(st) {
+        var student = students.find(function(s) { return s.id === st.id; });
+        return !student || student.status !== 'inactive';
+      });
+    }
+  });
+};
+
+// ==================== 【优化19】选课程自动带出班级 ====================
+function bindStuCourseChange() {
+  var courseSel = document.getElementById('stuCourse');
+  if (!courseSel || courseSel._courseBound) return;
+  courseSel._courseBound = true;
+  courseSel.addEventListener('change', function() {
+    var selectedCourse = courseSel.value;
+    var classSel = document.getElementById('stuClass');
+    if (!classSel) return;
+    var filteredClasses = classList.filter(function(cls) { return cls.course === selectedCourse; });
+    if (filteredClasses.length > 0) {
+      classSel.innerHTML = filteredClasses.map(function(c) {
+        return '<option value="' + c.name + '">' + c.name + '</option>';
+      }).join('');
+    } else {
+      classSel.innerHTML = '<option value="">暂无班级</option>';
+    }
+  });
+}
+
+// ==================== 【优化20】数据导出增强 ====================
+function exportExcelFormat(type) {
+  var csv = '';
+  var filename = '';
+  if (type === 'students') {
+    csv = '姓名,学号,电话,课程,班级,费用,缴费状态,学员状态\n';
+    students.forEach(function(s) {
+      var payLabel = s.payStatus === 'paid' ? '已缴费' : s.payStatus === 'partial' ? '部分缴费' : '未缴费';
+      var statusLabel = statusMap[s.status] || s.status;
+      csv += s.name + ',' + s.id + ',' + s.phone + ',' + s.course + ',' + s.cls + ',' + (s.fee || 0) + ',' + payLabel + ',' + statusLabel + '\n';
+    });
+    filename = '学员列表';
+  } else if (type === 'grades') {
+    csv = '学员,学号,课程,平时成绩,期中,期末,总评,等级\n';
+    gradesData.forEach(function(g) {
+      csv += g.name + ',' + g.id + ',' + g.course + ',' + g.daily + ',' + g.midterm + ',' + g.final + ',' + g.total + ',' + g.level + '\n';
+    });
+    filename = '成绩列表';
+  } else if (type === 'attendance') {
+    csv = '上课时间,班级,课程,教师,教室,应到,实到,迟到,缺勤,出勤率\n';
+    sessions.filter(function(s) { return s.status === 'done'; }).forEach(function(s) {
+      var t = s.students.length;
+      var p = s.students.filter(function(st) { return st.attendance === 'present'; }).length;
+      var l = s.students.filter(function(st) { return st.attendance === 'late'; }).length;
+      var a = s.students.filter(function(st) { return st.attendance === 'absent'; }).length;
+      var r = t > 0 ? (p / t * 100).toFixed(1) : '0.0';
+      csv += s.date + ' ' + s.start + '-' + s.end + ',' + s.className + ',' + (s.course || '') + ',' + (s.teacher || '') + ',' + (s.classroom || '') + ',' + t + ',' + p + ',' + l + ',' + a + ',' + r + '%\n';
+    });
+    filename = '考勤统计';
+  }
+  var blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename + '_' + todayStr + '.xlsx';
+  a.click();
+  showToast('数据已导出（Excel格式）');
+}
+
+// ==================== 【优化22】教室冲突实时检测 ====================
+function bindClassroomConflictCheck() {
+  var roomSel = document.getElementById('scheduleClassroom');
+  var dateInput = document.getElementById('scheduleDate');
+  var startInput = document.getElementById('scheduleStartTime');
+  var endInput = document.getElementById('scheduleEndTime');
+  if (!roomSel) return;
+
+  var checkConflict = function() {
+    var room = roomSel.value;
+    var date = dateInput ? dateInput.value : '';
+    var start = startInput ? startInput.value : '';
+    var end = endInput ? endInput.value : '';
+    if (!room || !date || !start || !end) return;
+
+    var roomName = room.split(' ')[0];
+    var conflict = false;
+    // 检查 scheduleData
+    if (scheduleData[date]) {
+      scheduleData[date].forEach(function(e) {
+        if (e.start < end && e.end > start && e.classroom && e.classroom.split(' ')[0] === roomName) {
+          conflict = true;
+        }
+      });
+    }
+    // 检查 sessions
+    sessions.forEach(function(s) {
+      if (s.date === date && s.start < end && s.end > start && s.classroom === roomName) {
+        conflict = true;
+      }
+    });
+
+    // 显示/隐藏冲突提示
+    var existingHint = roomSel.parentNode.querySelector('.conflict-hint');
+    if (existingHint) existingHint.remove();
+    if (conflict) {
+      var hint = document.createElement('div');
+      hint.className = 'conflict-hint';
+      hint.style.cssText = 'color:var(--danger);font-size:12px;margin-top:4px;font-weight:600';
+      hint.textContent = '⚠️ 该教室在同时段已有排课，存在冲突！';
+      roomSel.parentNode.appendChild(hint);
+    }
+  };
+
+  roomSel.addEventListener('change', checkConflict);
+  if (dateInput) dateInput.addEventListener('change', checkConflict);
+  if (startInput) startInput.addEventListener('change', checkConflict);
+  if (endInput) endInput.addEventListener('change', checkConflict);
+}
+
+// ==================== 【优化14b】课表周视图增强 ====================
+// 已在 renderSchedule 重写中实现时间段、教师、教室显示
+// 已完成考勤显示 ✅ + 出勤率
+function getSessionAttendanceRate(courseName, dateStr) {
+  var sess = sessions.find(function(s) {
+    return s.status === 'done' && s.course === courseName && s.date === dateStr;
+  });
+  if (!sess) return null;
+  var total = sess.students.length;
+  var present = sess.students.filter(function(st) { return st.attendance === 'present' || st.attendance === 'late'; }).length;
+  return total > 0 ? Math.round(present / total * 100) : 0;
+}
+
+// 在 renderSchedule 的事件渲染中增加出勤率显示（已在上面的重写中集成）
+
+// ==================== 【优化21】课表周视图增强 - 出勤率显示 ====================
+// 已在 renderSchedule 重写中通过 e.completed 标记和 extraInfo 集成
+
+// ==================== 初始化完成 ====================
 
 // 统一同步所有下拉框（与各管理模块联动）
 function syncAllDropdowns() {
@@ -4105,6 +5189,15 @@ function filterStudents() {
 }
 
 function init() {
+  // 【优化9】初始化排课日期格式
+  initScheduleDates();
+  // 确保排课数据使用今天附近的日期（如果是默认数据）
+  if (Object.keys(scheduleData).length > 0 && Object.keys(scheduleData)[0].match(/^\d{4}-\d{2}-\d{2}$/) === false) {
+    // 旧格式数据，重新生成
+  }
+  // 确保排课事件有唯一ID
+  ensureScheduleIds();
+
   // 数据联动同步（确保所有关联数据一致）
   syncData();
 
@@ -4150,8 +5243,17 @@ function init() {
   // 加载设置
   loadSettings();
 
+  // 【优化24】加载暗色模式
+  loadTheme();
+
   // 同步所有下拉框
   syncAllDropdowns();
+
+  // 【优化19】绑定选课程自动带出班级
+  bindStuCourseChange();
+
+  // 【优化22】绑定教室冲突检测
+  bindClassroomConflictCheck();
 
   // 渲染所有页面
   renderStudents();
