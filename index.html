@@ -546,6 +546,24 @@ select.form-control { cursor: pointer; }
 .rollcall-quick-card .rc-name { font-weight: 600; font-size: 14px; margin-top: 6px; }
 .rollcall-quick-card .rc-status { font-size: 11px; margin-top: 4px; }
 .rollcall-quick-card.done .rc-status { color: var(--success); }
+
+/* Search Dropdown */
+.search-dropdown {
+  position: absolute; top: 100%; left: 0; right: 0; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow-lg);
+  max-height: 320px; overflow-y: auto; z-index: 200; display: none; margin-top: 4px;
+}
+.search-dropdown.show { display: block; }
+.search-dropdown-item {
+  display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+  cursor: pointer; transition: background 0.15s; font-size: 13px; border-bottom: 1px solid var(--border);
+}
+.search-dropdown-item:last-child { border-bottom: none; }
+.search-dropdown-item:hover { background: var(--bg); }
+.search-dropdown-item .sd-type {
+  font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600; flex-shrink: 0;
+}
+.search-box { position: relative; }
 </style>
 </head>
 <body>
@@ -632,7 +650,8 @@ select.form-control { cursor: pointer; }
     <div class="header-right">
       <div class="search-box">
         <span class="icon">🔍</span>
-        <input type="text" placeholder="输入学员姓名、手机号搜索">
+        <input type="text" id="globalSearchInput" placeholder="输入学员姓名、手机号搜索" oninput="globalSearch(this.value)" onfocus="if(this.value)globalSearch(this.value)" onblur="setTimeout(function(){document.getElementById('searchDropdown').classList.remove('show')},200)">
+        <div class="search-dropdown" id="searchDropdown"></div>
       </div>
       <button class="header-btn"><span class="dot"></span>🔔</button>
       <button class="header-btn">💬</button>
@@ -728,19 +747,13 @@ select.form-control { cursor: pointer; }
           <h3>🎯 课程类型分布</h3>
           <div class="donut-chart">
             <div style="position:relative">
-              <div class="donut-ring"></div>
+              <div class="donut-ring" id="courseDonutRing"></div>
               <div class="donut-center">
-                <strong>48</strong>
+                <strong id="courseDonutTotal">0</strong>
                 <span>总课程</span>
               </div>
             </div>
-            <div class="donut-legend">
-              <div class="legend-item"><div class="legend-dot" style="background:var(--primary)"></div>语言培训 35%</div>
-              <div class="legend-item"><div class="legend-dot" style="background:var(--success)"></div>职业技能 20%</div>
-              <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div>艺术特长 20%</div>
-              <div class="legend-item"><div class="legend-dot" style="background:var(--info)"></div>学科辅导 13%</div>
-              <div class="legend-item"><div class="legend-dot" style="background:#CBD5E1"></div>其他 12%</div>
-            </div>
+            <div class="donut-legend" id="courseDonutLegend"></div>
           </div>
         </div>
       </div>
@@ -797,12 +810,12 @@ select.form-control { cursor: pointer; }
     <div class="page" id="page-students">
       <div id="studentFeeStats" style="display:flex;gap:16px;margin-bottom:16px"></div>
       <div class="filter-bar">
-        <select class="form-control" style="width:140px"><option>全部状态</option><option>在读</option><option>休学</option><option>毕业</option></select>
+        <select class="form-control" id="studentStatusFilter" style="width:140px" onchange="studentPage=1;renderStudents()"><option value="">全部状态</option><option value="active">在读</option><option value="pending">待确认</option><option value="completed">已毕业</option><option value="inactive">休学</option></select>
         <select class="form-control" style="width:140px"><option>全部课程</option><option>商务英语</option><option>Python开发</option><option>雅思冲刺</option></select>
         <select class="form-control" style="width:120px"><option>全部班级</option><option>2026春季</option><option>2025秋季</option></select>
         <div style="flex:1"></div>
-        <button class="btn btn-outline">📥 导入</button>
-        <button class="btn btn-outline">📤 导出</button>
+        <button class="btn btn-outline" onclick="importStudents()">📥 导入</button>
+        <button class="btn btn-outline" onclick="exportStudents()">📤 导出</button>
         <button class="btn btn-outline batch-del-btn" id="batchDeleteStudentBtn" style="display:none" onclick="batchDeleteStudents()">🗑️ 批量删除(<span id="studentSelectedCount">0</span>)</button>
         <button class="btn btn-primary" onclick="showModal('addStudentModal')">➕ 新增学员</button>
       </div>
@@ -876,7 +889,7 @@ select.form-control { cursor: pointer; }
         <select class="form-control" style="width:180px"><option>全部课程</option><option>商务英语高级班</option><option>Python全栈开发</option><option>雅思冲刺班</option></select>
         <input class="form-control" type="date" style="width:160px">
         <div style="flex:1"></div>
-        <button class="btn btn-outline">📊 导出报表</button>
+        <button class="btn btn-outline" onclick="exportAttendance()">📊 导出报表</button>
       </div>
       <div class="table-card">
         <table>
@@ -892,10 +905,10 @@ select.form-control { cursor: pointer; }
         <select class="form-control" style="width:180px"><option>全部课程</option><option>商务英语高级班</option><option>Python全栈开发</option><option>雅思冲刺班</option></select>
         <select class="form-control" style="width:140px"><option>期中考试</option><option>期末考试</option><option>平时成绩</option></select>
         <div style="flex:1"></div>
-        <button class="btn btn-outline">📥 导入成绩</button>
-        <button class="btn btn-outline">📤 导出报表</button>
+        <button class="btn btn-outline" onclick="importGrades()">📥 导入成绩</button>
+        <button class="btn btn-outline" onclick="exportGrades()">📤 导出报表</button>
         <button class="btn btn-outline batch-del-btn" id="batchDeleteGradeBtn" style="display:none" onclick="batchDeleteGrades()">🗑️ 批量删除(<span id="gradeSelectedCount">0</span>)</button>
-        <button class="btn btn-primary">➕ 录入成绩</button>
+        <button class="btn btn-primary" onclick="showModal('addGradeModal')">➕ 录入成绩</button>
       </div>
       <div class="table-card">
         <table>
@@ -1466,6 +1479,226 @@ select.form-control { cursor: pointer; }
   </div>
 </div>
 
+<!-- 编辑学员 Modal -->
+<div class="modal-overlay" id="editStudentModal">
+  <div class="modal" style="width:560px">
+    <div class="modal-header">
+      <h3>✏️ 编辑学员</h3>
+      <button class="modal-close" onclick="hideModal('editStudentModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editStuId">
+      <div class="form-row">
+        <div class="form-group">
+          <label>姓名 *</label>
+          <input class="form-control" id="editStuName" placeholder="请输入学员姓名">
+        </div>
+        <div class="form-group">
+          <label>联系电话 *</label>
+          <input class="form-control" id="editStuPhone" placeholder="请输入手机号">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>报名课程 *</label>
+          <select class="form-control" id="editStuCourse"></select>
+        </div>
+        <div class="form-group">
+          <label>班级</label>
+          <select class="form-control" id="editStuClass"></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>报名费用 (元)</label>
+          <input class="form-control" id="editStuFee" type="number" min="0">
+        </div>
+        <div class="form-group">
+          <label>缴费状态</label>
+          <select class="form-control" id="editStuPayStatus"><option value="paid">已缴费</option><option value="unpaid">未缴费</option><option value="partial">部分缴费</option></select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>学员状态</label>
+        <select class="form-control" id="editStuStatus"><option value="active">在读</option><option value="pending">待确认</option><option value="completed">已毕业</option><option value="inactive">休学</option></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="hideModal('editStudentModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveEditStudent()">保存修改</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑教师 Modal -->
+<div class="modal-overlay" id="editTeacherModal">
+  <div class="modal" style="width:560px">
+    <div class="modal-header">
+      <h3>✏️ 编辑教师</h3>
+      <button class="modal-close" onclick="hideModal('editTeacherModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editTeacherIdx">
+      <div class="form-row">
+        <div class="form-group">
+          <label>姓名 *</label>
+          <input class="form-control" id="editTeacherName" placeholder="请输入教师姓名">
+        </div>
+        <div class="form-group">
+          <label>学科</label>
+          <select class="form-control" id="editTeacherSubject"><option>英语</option><option>计算机</option><option>美术</option><option>音乐</option><option>数学</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>职称</label>
+          <select class="form-control" id="editTeacherTitle"><option>讲师</option><option>高级讲师</option><option>副教授</option><option>特聘教师</option><option>外教</option></select>
+        </div>
+        <div class="form-group">
+          <label>状态</label>
+          <select class="form-control" id="editTeacherStatus"><option value="active">在职</option><option value="pending">休假</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="hideModal('editTeacherModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveEditTeacher()">保存修改</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑教室 Modal -->
+<div class="modal-overlay" id="editClassroomModal">
+  <div class="modal" style="width:560px">
+    <div class="modal-header">
+      <h3>✏️ 编辑教室</h3>
+      <button class="modal-close" onclick="hideModal('editClassroomModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editRoomIdx">
+      <div class="form-row">
+        <div class="form-group">
+          <label>教室编号 *</label>
+          <input class="form-control" id="editRoomName" placeholder="如: C101">
+        </div>
+        <div class="form-group">
+          <label>教室类型</label>
+          <select class="form-control" id="editRoomType"><option>普通教室</option><option>多媒体教室</option><option>计算机房</option><option>语音室</option><option>画室</option><option>琴房</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>容纳人数</label>
+          <input class="form-control" id="editRoomCapacity" type="number" placeholder="如: 50">
+        </div>
+        <div class="form-group">
+          <label>楼层</label>
+          <select class="form-control" id="editRoomFloor"><option>A栋</option><option>B栋</option><option>C栋</option></select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>状态</label>
+        <select class="form-control" id="editRoomStatus"><option value="active">空闲</option><option value="inactive">使用中</option><option value="maintenance">维护中</option></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="hideModal('editClassroomModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveEditClassroom()">保存修改</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑班级 Modal -->
+<div class="modal-overlay" id="editClassModal">
+  <div class="modal" style="width:560px">
+    <div class="modal-header">
+      <h3>✏️ 编辑班级</h3>
+      <button class="modal-close" onclick="hideModal('editClassModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editClassIdx">
+      <div class="form-row">
+        <div class="form-group">
+          <label>班级名称 *</label>
+          <input class="form-control" id="editClassName" placeholder="如: 商务英语高级1班">
+        </div>
+        <div class="form-group">
+          <label>所属课程 *</label>
+          <select class="form-control" id="editClassCourse"></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>授课老师 *</label>
+          <select class="form-control" id="editClassTeacher"></select>
+        </div>
+        <div class="form-group">
+          <label>总课时</label>
+          <input class="form-control" id="editClassHours" type="number" placeholder="如: 48">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>状态</label>
+        <select class="form-control" id="editClassStatus"><option value="active">开课中</option><option value="completed">已结课</option></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="hideModal('editClassModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveEditClass()">保存修改</button>
+    </div>
+  </div>
+</div>
+
+<!-- 录入成绩 Modal -->
+<div class="modal-overlay" id="addGradeModal">
+  <div class="modal" style="width:560px">
+    <div class="modal-header">
+      <h3>➕ 录入成绩</h3>
+      <button class="modal-close" onclick="hideModal('addGradeModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>选择学员 *</label>
+        <select class="form-control" id="gradeStudent" onchange="onGradeStudentChange()">
+          <option value="">请选择学员</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>课程</label>
+        <input class="form-control" id="gradeCourse" readonly placeholder="选择学员后自动填充">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>平时成绩</label>
+          <input class="form-control" id="gradeDaily" type="number" min="0" max="100" placeholder="0-100">
+        </div>
+        <div class="form-group">
+          <label>期中成绩</label>
+          <input class="form-control" id="gradeMidterm" type="number" min="0" max="100" placeholder="0-100">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>期末成绩</label>
+        <input class="form-control" id="gradeFinal" type="number" min="0" max="100" placeholder="0-100">
+      </div>
+      <div style="background:var(--bg);border-radius:10px;padding:14px;margin-top:8px">
+        <div style="display:flex;justify-content:space-between;font-size:13px">
+          <span>总评（平时30% + 期中30% + 期末40%）</span>
+          <strong id="gradeTotalPreview">--</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-top:4px">
+          <span>等级</span>
+          <strong id="gradeLevelPreview">--</strong>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="hideModal('addGradeModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveAddGrade()">确认录入</button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast Container -->
 <div class="toast-container" id="toastContainer"></div>
 
@@ -1907,6 +2140,14 @@ function navigateTo(page) {
   // 触发页面渲染
   if (page === 'rollcall') renderRollcallSessions();
   if (page === 'dashboard') renderDashboard();
+  if (page === 'students') renderStudents();
+  if (page === 'courses') renderCourses();
+  if (page === 'classManage') renderClasses();
+  if (page === 'classroom') renderClassrooms();
+  if (page === 'grades') renderGrades();
+  if (page === 'attendance') renderAttendance();
+  if (page === 'teachers') renderTeachers();
+  if (page === 'reports') renderCharts();
 }
 
 document.querySelectorAll('.nav-item').forEach(item => {
@@ -2288,6 +2529,51 @@ function exportRollcallData() {
   showToast('考勤数据已导出');
 }
 
+// 导出考勤统计报表
+function exportAttendance() {
+  const done = sessions.filter(s => s.status === 'done');
+  if (done.length === 0) { showToast('暂无考勤数据可导出', true); return; }
+
+  // 按班级汇总
+  var classStats = {};
+  done.forEach(function(s) {
+    if (!classStats[s.className]) classStats[s.className] = { total:0, present:0, late:0, absent:0, leave:0 };
+    var st = classStats[s.className];
+    s.students.forEach(function(x) {
+      st.total++;
+      if (x.attendance === 'present') st.present++;
+      else if (x.attendance === 'late') st.late++;
+      else if (x.attendance === 'absent') st.absent++;
+      else if (x.attendance === 'leave') st.leave++;
+    });
+  });
+
+  var csv = '\ufeff班级,总人次,出勤,迟到,缺勤,请假,出勤率\n';
+  Object.keys(classStats).forEach(function(cn) {
+    var s = classStats[cn];
+    var rate = s.total > 0 ? (s.present / s.total * 100).toFixed(1) : '0.0';
+    csv += cn + ',' + s.total + ',' + s.present + ',' + s.late + ',' + s.absent + ',' + s.leave + ',' + rate + '%\n';
+  });
+
+  // 课节明细
+  csv += '\n课节明细\n上课时间,班级,老师,应到,实到,迟到,缺勤,出勤率\n';
+  done.forEach(function(s) {
+    var t = s.students.length;
+    var p = s.students.filter(function(st){ return st.attendance==='present'; }).length;
+    var l = s.students.filter(function(st){ return st.attendance==='late'; }).length;
+    var a = s.students.filter(function(st){ return st.attendance==='absent'; }).length;
+    var r = t > 0 ? (p/t*100).toFixed(1) : '0.0';
+    csv += s.date+' '+s.start+'-'+s.end+','+s.className+','+s.teacher+','+t+','+p+','+l+','+a+','+r+'%\n';
+  });
+
+  var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '考勤统计报表_' + todayStr + '.csv';
+  a.click();
+  showToast('考勤统计报表已导出');
+}
+
 // 切换点名 Tab
 function switchRollcallTab(el, panelId) {
   el.parentElement.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -2387,6 +2673,37 @@ function renderDashboard() {
   } else {
     dashList.innerHTML = pendingSessions.map(s => renderSessionCard(s)).join('');
   }
+
+  // 动态环形图：课程类型分布
+  var typeColors = { '语言培训':'var(--primary)', '职业技能':'var(--success)', '艺术特长':'var(--accent)', '学科辅导':'var(--info)' };
+  var typeCounts = {};
+  courses.forEach(function(c) {
+    typeCounts[c.type] = (typeCounts[c.type] || 0) + 1;
+  });
+  var total = courses.length || 1;
+  var donutRing = document.getElementById('courseDonutRing');
+  var donutLegend = document.getElementById('courseDonutLegend');
+  var donutTotal = document.getElementById('courseDonutTotal');
+  if (donutRing && donutLegend) {
+    var pct = 0;
+    var gradientParts = [];
+    var legendHtml = '';
+    var typeKeys = Object.keys(typeCounts);
+    var fallbackColors = ['#CBD5E1','#94A3B8','#64748B','#475569'];
+    typeKeys.forEach(function(type, i) {
+      var ratio = typeCounts[type] / total * 100;
+      var color = typeColors[type] || fallbackColors[i % fallbackColors.length];
+      gradientParts.push(color + ' ' + pct + '% ' + (pct + ratio) + '%');
+      legendHtml += '<div class="legend-item"><div class="legend-dot" style="background:' + color + '"></div>' + type + ' ' + ratio.toFixed(0) + '%</div>';
+      pct += ratio;
+    });
+    if (pct < 100) {
+      gradientParts.push('#CBD5E1 ' + pct + '% 100%');
+    }
+    donutRing.style.background = 'conic-gradient(' + gradientParts.join(', ') + ')';
+    donutLegend.innerHTML = legendHtml;
+    if (donutTotal) donutTotal.textContent = total;
+  }
 }
 
 // ==================== 学员管理 ====================
@@ -2408,8 +2725,15 @@ function renderStudents() {
     <div><div style="font-size:12px;color:var(--text-secondary)">${st.label}</div><div style="font-size:20px;font-weight:700;color:${st.color}">${st.value}</div></div>
   </div>`).join('');
 
+  // 筛选
+  var filtered = getFilteredStudents();
+  var totalPages = Math.max(1, Math.ceil(filtered.length / studentPageSize));
+  if (studentPage > totalPages) studentPage = totalPages;
+  var startIdx = (studentPage - 1) * studentPageSize;
+  var pageData = filtered.slice(startIdx, startIdx + studentPageSize);
+
   const tbody = document.getElementById('studentTableBody');
-  tbody.innerHTML = students.map(s => `
+  tbody.innerHTML = pageData.map(s => `
     <tr>
       <td><input type="checkbox" data-type="student" data-id="${s.id}" onchange="updateBatchButtons()"></td>
       <td><div class="avatar-cell"><div class="avatar-sm" style="background:${s.color}">${s.name[0]}</div>${s.name}</div></td>
@@ -2419,10 +2743,29 @@ function renderStudents() {
         <span class="status-tag ${s.payStatus === 'paid' ? 'active' : s.payStatus === 'partial' ? 'pending' : 'inactive'}" style="font-size:10px;margin-top:2px">${s.payStatus === 'paid' ? '已缴费' : s.payStatus === 'partial' ? '部分缴费' : '未缴费'}</span>
       </td>
       <td><span class="status-tag ${s.status}">${statusMap[s.status]}</span></td>
-      <td><button class="btn btn-outline btn-sm">编辑</button> <button class="btn btn-outline btn-sm" style="color:var(--warning);border-color:var(--warning)" onclick="viewFeeLog('${s.id}')">💰 明细</button> <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger)" onclick="deleteStudent('${s.id}')">删除</button></td>
+      <td><button class="btn btn-outline btn-sm" onclick="editStudent('${s.id}')">编辑</button> <button class="btn btn-outline btn-sm" style="color:var(--warning);border-color:var(--warning)" onclick="viewFeeLog('${s.id}')">💰 明细</button> <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger)" onclick="deleteStudent('${s.id}')">删除</button></td>
     </tr>
   `).join('');
-  document.getElementById('studentPagInfo').textContent = `显示 1-${students.length} 共 ${students.length} 条`;
+
+  // 分页信息和按钮
+  var endIdx = Math.min(startIdx + studentPageSize, filtered.length);
+  document.getElementById('studentPagInfo').textContent = filtered.length > 0 ? '显示 ' + (startIdx + 1) + '-' + endIdx + ' 共 ' + filtered.length + ' 条' : '共 0 条';
+
+  var pagDiv = document.querySelector('#page-students .pagination .pages');
+  if (pagDiv) {
+    var btns = '';
+    btns += '<button class="page-btn' + (studentPage <= 1 ? '" disabled' : '" onclick="studentPage--;renderStudents()"') + '>‹</button>';
+    for (var p = 1; p <= totalPages; p++) {
+      if (totalPages > 7 && p > 3 && p < totalPages - 2 && Math.abs(p - studentPage) > 1) {
+        if (p === 4) btns += '<button class="page-btn" disabled>...</button>';
+        continue;
+      }
+      btns += '<button class="page-btn' + (p === studentPage ? ' active' : '') + '" onclick="studentPage=' + p + ';renderStudents()">' + p + '</button>';
+    }
+    btns += '<button class="page-btn' + (studentPage >= totalPages ? '" disabled' : '" onclick="studentPage++;renderStudents()"') + '>›</button>';
+    pagDiv.innerHTML = btns;
+  }
+
   updateBatchButtons();
 }
 
@@ -2586,6 +2929,7 @@ function renderClasses() {
       <td><span class="status-tag ${c.status}">${c.status === 'active' ? '开课中' : '已结课'}</span></td>
       <td>
         <button class="btn btn-outline btn-sm" onclick="navigateTo('rollcall')">点名</button>
+        <button class="btn btn-outline btn-sm" onclick="editClass(${i})">✏️ 编辑</button>
         <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger)" onclick="deleteClass(${i})">删除</button>
       </td>
     </tr>
@@ -2654,6 +2998,7 @@ function renderTeachers() {
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
         <span class="status-tag ${t.status === 'active' ? 'active' : 'pending'}">${t.status === 'active' ? '在职' : '休假'}</span>
+        <button class="btn btn-outline btn-sm" style="padding:2px 8px;font-size:11px" onclick="editTeacher(${i})">✏️ 编辑</button>
         <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger);padding:2px 8px;font-size:11px" onclick="deleteTeacher(${i})">删除</button>
       </div>
     </div>
@@ -2690,6 +3035,7 @@ function renderClassrooms() {
     <div class="chart-card" style="text-align:center;position:relative">
       <div class="batch-checkbox-wrap"><input type="checkbox" data-type="classroom" data-idx="${i}" onchange="updateBatchButtons()"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span></span>
+        <button class="btn btn-outline btn-sm" style="padding:2px 8px;font-size:11px" onclick="editClassroom(${i})">✏️ 编辑</button>
         <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger);padding:2px 8px;font-size:11px" onclick="deleteClassroom(${i})">删除</button>
       </div>
       <div style="font-size:32px;margin-bottom:8px">${c.icon}</div>
@@ -2852,6 +3198,523 @@ function renderCharts() {
   `).join('');
 }
 
+// ==================== 分页状态 ====================
+var studentPage = 1;
+var studentPageSize = 10;
+
+// ==================== 全局搜索 ====================
+var searchTimer = null;
+function globalSearch(keyword) {
+  var dropdown = document.getElementById('searchDropdown');
+  if (!keyword || keyword.trim().length === 0) { dropdown.classList.remove('show'); return; }
+  keyword = keyword.trim().toLowerCase();
+
+  var results = [];
+  // 搜索学员
+  students.forEach(function(s) {
+    if (s.name.toLowerCase().indexOf(keyword) >= 0 || s.id.toLowerCase().indexOf(keyword) >= 0 || (s.phone && s.phone.indexOf(keyword) >= 0)) {
+      results.push({ type: '学员', typeColor: '#3B82F6', label: s.name + ' (' + s.id + ')', page: 'students' });
+    }
+  });
+  // 搜索课程
+  courses.forEach(function(c) {
+    if (c.name.toLowerCase().indexOf(keyword) >= 0) {
+      results.push({ type: '课程', typeColor: '#10B981', label: c.name, page: 'courses' });
+    }
+  });
+  // 搜索教师
+  teachers.forEach(function(t) {
+    if (t.name.toLowerCase().indexOf(keyword) >= 0) {
+      results.push({ type: '教师', typeColor: '#F59E0B', label: t.name + ' (' + t.subject + ')', page: 'teachers' });
+    }
+  });
+  // 搜索班级
+  classList.forEach(function(c) {
+    if (c.name.toLowerCase().indexOf(keyword) >= 0) {
+      results.push({ type: '班级', typeColor: '#8B5CF6', label: c.name, page: 'classManage' });
+    }
+  });
+
+  if (results.length === 0) {
+    dropdown.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-secondary);font-size:13px">未找到相关结果</div>';
+  } else {
+    dropdown.innerHTML = results.slice(0, 10).map(function(r) {
+      return '<div class="search-dropdown-item" onmousedown="navigateTo(\'' + r.page + '\')">' +
+        '<span class="sd-type" style="background:' + r.typeColor + '20;color:' + r.typeColor + '">' + r.type + '</span>' +
+        '<span>' + r.label + '</span></div>';
+    }).join('');
+  }
+  dropdown.classList.add('show');
+}
+
+function debounceSearch(val) {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(function() { globalSearch(val); }, 300);
+}
+
+// ==================== 学员编辑 ====================
+function editStudent(id) {
+  var s = students.find(function(x) { return x.id === id; });
+  if (!s) return;
+  document.getElementById('editStuId').value = s.id;
+  document.getElementById('editStuName').value = s.name;
+  document.getElementById('editStuPhone').value = s.phone;
+  document.getElementById('editStuFee').value = s.fee || 0;
+  document.getElementById('editStuPayStatus').value = s.payStatus || 'paid';
+  document.getElementById('editStuStatus').value = s.status || 'active';
+
+  // 动态填充课程下拉框
+  var courseSelect = document.getElementById('editStuCourse');
+  courseSelect.innerHTML = '<option value="">请选择课程</option>' + courses.map(function(c) {
+    return '<option value="' + c.name + '"' + (c.name === s.course ? ' selected' : '') + '>' + c.name + '</option>';
+  }).join('');
+
+  // 动态填充班级下拉框
+  var classSelect = document.getElementById('editStuClass');
+  classSelect.innerHTML = classList.map(function(c) {
+    return '<option value="' + c.name + '"' + (c.name === s.cls ? ' selected' : '') + '>' + c.name + '</option>';
+  }).join('');
+
+  showModal('editStudentModal');
+}
+
+function saveEditStudent() {
+  var id = document.getElementById('editStuId').value;
+  var s = students.find(function(x) { return x.id === id; });
+  if (!s) return;
+  var name = document.getElementById('editStuName').value.trim();
+  var phone = document.getElementById('editStuPhone').value.trim();
+  if (!name) { showToast('请输入学员姓名', true); return; }
+  if (!phone) { showToast('请输入联系电话', true); return; }
+
+  s.name = name;
+  s.phone = phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
+  s.course = document.getElementById('editStuCourse').value;
+  s.cls = document.getElementById('editStuClass').value;
+  s.fee = parseInt(document.getElementById('editStuFee').value) || 0;
+  s.payStatus = document.getElementById('editStuPayStatus').value;
+  s.status = document.getElementById('editStuStatus').value;
+
+  saveAll();
+  renderStudents(); renderClasses(); renderCourses(); renderTeachers(); renderDashboard();
+  hideModal('editStudentModal');
+  showToast('学员「' + name + '」已更新');
+}
+
+// ==================== 教师编辑 ====================
+function editTeacher(idx) {
+  var t = teachers[idx];
+  if (!t) return;
+  document.getElementById('editTeacherIdx').value = idx;
+  document.getElementById('editTeacherName').value = t.name;
+  document.getElementById('editTeacherSubject').value = t.subject;
+  document.getElementById('editTeacherTitle').value = t.title;
+  document.getElementById('editTeacherStatus').value = t.status;
+  showModal('editTeacherModal');
+}
+
+function saveEditTeacher() {
+  var idx = parseInt(document.getElementById('editTeacherIdx').value);
+  var t = teachers[idx];
+  if (!t) return;
+  var name = document.getElementById('editTeacherName').value.trim();
+  if (!name) { showToast('请输入教师姓名', true); return; }
+
+  var oldName = t.name;
+  t.name = name;
+  t.subject = document.getElementById('editTeacherSubject').value;
+  t.title = document.getElementById('editTeacherTitle').value;
+  t.dept = t.subject + '教研组';
+  t.status = document.getElementById('editTeacherStatus').value;
+
+  // 联动更新班级和课程中的教师名称
+  if (oldName !== name) {
+    classList.forEach(function(cls) { if (cls.teacher === oldName) cls.teacher = name; });
+    courses.forEach(function(c) { if (c.teacher === oldName) c.teacher = name; });
+  }
+
+  saveAll();
+  renderTeachers(); renderClasses(); renderCourses(); renderDashboard();
+  hideModal('editTeacherModal');
+  showToast('教师「' + name + '」已更新');
+}
+
+// ==================== 教室编辑 ====================
+function editClassroom(idx) {
+  var c = classrooms[idx];
+  if (!c) return;
+  document.getElementById('editRoomIdx').value = idx;
+  document.getElementById('editRoomName').value = c.name;
+  document.getElementById('editRoomType').value = c.type;
+  document.getElementById('editRoomCapacity').value = c.capacity;
+  document.getElementById('editRoomFloor').value = c.floor;
+  document.getElementById('editRoomStatus').value = c.status;
+  showModal('editClassroomModal');
+}
+
+function saveEditClassroom() {
+  var idx = parseInt(document.getElementById('editRoomIdx').value);
+  var c = classrooms[idx];
+  if (!c) return;
+  var name = document.getElementById('editRoomName').value.trim();
+  if (!name) { showToast('请输入教室编号', true); return; }
+
+  var oldName = c.name;
+  c.name = name;
+  c.type = document.getElementById('editRoomType').value;
+  c.capacity = parseInt(document.getElementById('editRoomCapacity').value) || 30;
+  c.floor = document.getElementById('editRoomFloor').value;
+  c.status = document.getElementById('editRoomStatus').value;
+
+  // 联动更新课节中的教室名称
+  if (oldName !== name) {
+    sessions.forEach(function(s) { if (s.classroom === oldName) s.classroom = name; });
+  }
+
+  saveAll();
+  renderClassrooms(); renderSchedule();
+  hideModal('editClassroomModal');
+  showToast('教室「' + name + '」已更新');
+}
+
+// ==================== 班级编辑 ====================
+function editClass(idx) {
+  var c = classList[idx];
+  if (!c) return;
+  document.getElementById('editClassIdx').value = idx;
+  document.getElementById('editClassName').value = c.name;
+  document.getElementById('editClassHours').value = c.totalHours;
+  document.getElementById('editClassStatus').value = c.status;
+
+  // 动态填充课程下拉框
+  var courseSelect = document.getElementById('editClassCourse');
+  courseSelect.innerHTML = courses.map(function(co) {
+    return '<option value="' + co.name + '"' + (co.name === c.course ? ' selected' : '') + '>' + co.name + '</option>';
+  }).join('');
+
+  // 动态填充教师下拉框
+  var teacherSelect = document.getElementById('editClassTeacher');
+  teacherSelect.innerHTML = teachers.map(function(t) {
+    return '<option value="' + t.name + '"' + (t.name === c.teacher ? ' selected' : '') + '>' + t.name + '</option>';
+  }).join('');
+
+  showModal('editClassModal');
+}
+
+function saveEditClass() {
+  var idx = parseInt(document.getElementById('editClassIdx').value);
+  var c = classList[idx];
+  if (!c) return;
+  var name = document.getElementById('editClassName').value.trim();
+  if (!name) { showToast('请输入班级名称', true); return; }
+
+  var oldName = c.name;
+  c.name = name;
+  c.course = document.getElementById('editClassCourse').value;
+  c.teacher = document.getElementById('editClassTeacher').value;
+  c.totalHours = parseInt(document.getElementById('editClassHours').value) || 48;
+  c.status = document.getElementById('editClassStatus').value;
+
+  // 联动更新学员和课节中的班级名称
+  if (oldName !== name) {
+    students.forEach(function(s) { if (s.cls === oldName) s.cls = name; });
+    sessions.forEach(function(s) { if (s.className === oldName) s.className = name; });
+  }
+
+  saveAll();
+  renderClasses(); renderCourses(); renderTeachers(); renderStudents(); renderDashboard();
+  hideModal('editClassModal');
+  showToast('班级「' + name + '」已更新');
+}
+
+// ==================== 成绩录入 ====================
+function addGrade() {
+  // 填充学员下拉框
+  var sel = document.getElementById('gradeStudent');
+  sel.innerHTML = '<option value="">请选择学员</option>' + students.map(function(s) {
+    return '<option value="' + s.id + '">' + s.name + ' (' + s.id + ')</option>';
+  }).join('');
+  document.getElementById('gradeCourse').value = '';
+  document.getElementById('gradeDaily').value = '';
+  document.getElementById('gradeMidterm').value = '';
+  document.getElementById('gradeFinal').value = '';
+  document.getElementById('gradeTotalPreview').textContent = '--';
+  document.getElementById('gradeLevelPreview').textContent = '--';
+  showModal('addGradeModal');
+}
+
+function onGradeStudentChange() {
+  var sid = document.getElementById('gradeStudent').value;
+  var s = students.find(function(x) { return x.id === sid; });
+  document.getElementById('gradeCourse').value = s ? s.course : '';
+  calcGradePreview();
+}
+
+function calcGradePreview() {
+  var daily = parseFloat(document.getElementById('gradeDaily').value) || 0;
+  var midterm = parseFloat(document.getElementById('gradeMidterm').value) || 0;
+  var finalScore = parseFloat(document.getElementById('gradeFinal').value) || 0;
+  var total = (daily * 0.3 + midterm * 0.3 + finalScore * 0.4).toFixed(1);
+  var level = total >= 90 ? '优秀' : total >= 80 ? '良好' : total >= 60 ? '及格' : '不及格';
+  document.getElementById('gradeTotalPreview').textContent = total;
+  document.getElementById('gradeLevelPreview').textContent = level;
+}
+
+// 实时计算预览
+document.addEventListener('input', function(e) {
+  if (e.target.id === 'gradeDaily' || e.target.id === 'gradeMidterm' || e.target.id === 'gradeFinal') {
+    calcGradePreview();
+  }
+});
+
+function saveAddGrade() {
+  var sid = document.getElementById('gradeStudent').value;
+  if (!sid) { showToast('请选择学员', true); return; }
+  var s = students.find(function(x) { return x.id === sid; });
+  if (!s) return;
+
+  var daily = parseFloat(document.getElementById('gradeDaily').value) || 0;
+  var midterm = parseFloat(document.getElementById('gradeMidterm').value) || 0;
+  var finalScore = parseFloat(document.getElementById('gradeFinal').value) || 0;
+  if (daily === 0 && midterm === 0 && finalScore === 0) { showToast('请至少输入一项成绩', true); return; }
+
+  var total = parseFloat((daily * 0.3 + midterm * 0.3 + finalScore * 0.4).toFixed(1));
+  var level = total >= 90 ? '优秀' : total >= 80 ? '良好' : total >= 60 ? '及格' : '不及格';
+
+  gradesData.push({
+    name: s.name, id: s.id, course: s.course,
+    daily: daily, midterm: midterm, final: finalScore,
+    total: total, level: level, color: s.color
+  });
+
+  saveAll();
+  renderGrades(); renderDashboard();
+  hideModal('addGradeModal');
+  showToast('成绩录入成功：' + s.name + ' - 总评 ' + total);
+}
+
+// ==================== 导入/导出功能 ====================
+function downloadCSV(csv, filename) {
+  var blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename + '_' + new Date().toISOString().split('T')[0] + '.csv';
+  a.click();
+}
+
+function exportStudents() {
+  var csv = '姓名,学号,电话,课程,班级,费用,缴费状态,学员状态\n';
+  students.forEach(function(s) {
+    var payLabel = s.payStatus === 'paid' ? '已缴费' : s.payStatus === 'partial' ? '部分缴费' : '未缴费';
+    var statusLabel = statusMap[s.status] || s.status;
+    csv += s.name + ',' + s.id + ',' + s.phone + ',' + s.course + ',' + s.cls + ',' + (s.fee || 0) + ',' + payLabel + ',' + statusLabel + '\n';
+  });
+  downloadCSV(csv, '学员列表');
+  showToast('学员数据已导出');
+}
+
+function importStudents() {
+  var input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.csv';
+  input.onchange = function(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      var text = ev.target.result;
+      var lines = text.split('\n').filter(function(l) { return l.trim(); });
+      if (lines.length < 2) { showToast('CSV文件为空', true); return; }
+      var imported = 0;
+      for (var i = 1; i < lines.length; i++) {
+        var cols = lines[i].split(',');
+        if (cols.length < 5) continue;
+        var colors = ['#6366F1','#EC4899','#F59E0B','#10B981','#8B5CF6','#F43F5E','#0EA5E9','#A855F7','#EF4444','#3B82F6'];
+        var maxNum = students.reduce(function(m, s) { var n = parseInt(s.id.replace('S','')); return n > m ? n : m; }, 0);
+        var newId = 'S' + String(maxNum + 1 + imported).padStart(8, '0');
+        students.push({
+          name: cols[0].trim(), id: newId, phone: cols[2].trim(),
+          course: cols[3].trim(), cls: cols[4].trim(),
+          fee: parseInt(cols[5]) || 0,
+          payStatus: cols[6] && cols[6].trim() === '已缴费' ? 'paid' : cols[6] && cols[6].trim() === '部分缴费' ? 'partial' : 'unpaid',
+          status: 'active',
+          color: colors[Math.floor(Math.random() * colors.length)]
+        });
+        imported++;
+      }
+      saveAll(); renderStudents(); renderClasses(); renderCourses(); renderTeachers(); renderDashboard();
+      showToast('成功导入 ' + imported + ' 名学员');
+    };
+    reader.readAsText(file, 'UTF-8');
+  };
+  input.click();
+}
+
+function exportGrades() {
+  var csv = '学员,学号,课程,平时成绩,期中,期末,总评,等级\n';
+  gradesData.forEach(function(g) {
+    csv += g.name + ',' + g.id + ',' + g.course + ',' + g.daily + ',' + g.midterm + ',' + g.final + ',' + g.total + ',' + g.level + '\n';
+  });
+  downloadCSV(csv, '成绩列表');
+  showToast('成绩数据已导出');
+}
+
+function importGrades() {
+  var input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.csv';
+  input.onchange = function(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      var text = ev.target.result;
+      var lines = text.split('\n').filter(function(l) { return l.trim(); });
+      if (lines.length < 2) { showToast('CSV文件为空', true); return; }
+      var imported = 0;
+      for (var i = 1; i < lines.length; i++) {
+        var cols = lines[i].split(',');
+        if (cols.length < 6) continue;
+        var student = students.find(function(s) { return s.id === cols[1].trim(); });
+        var daily = parseFloat(cols[3]) || 0;
+        var midterm = parseFloat(cols[4]) || 0;
+        var finalScore = parseFloat(cols[5]) || 0;
+        var total = parseFloat((daily * 0.3 + midterm * 0.3 + finalScore * 0.4).toFixed(1));
+        var level = total >= 90 ? '优秀' : total >= 80 ? '良好' : total >= 60 ? '及格' : '不及格';
+        gradesData.push({
+          name: cols[0].trim(), id: cols[1].trim(), course: cols[2].trim(),
+          daily: daily, midterm: midterm, final: finalScore,
+          total: total, level: level, color: student ? student.color : '#6366F1'
+        });
+        imported++;
+      }
+      saveAll(); renderGrades(); renderDashboard();
+      showToast('成功导入 ' + imported + ' 条成绩');
+    };
+    reader.readAsText(file, 'UTF-8');
+  };
+  input.click();
+}
+
+function exportAllData() {
+  var data = {
+    students: students, classes: classList, sessions: sessions,
+    courses: courses, teachers: teachers, classrooms: classrooms,
+    grades: gradesData, schedule: scheduleData
+  };
+  var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '智学通数据备份_' + new Date().toISOString().split('T')[0] + '.json';
+  a.click();
+  showToast('数据备份已导出');
+}
+
+function importAllData() {
+  var input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = function(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    if (!confirm('导入数据将覆盖当前所有数据，确定继续吗？')) return;
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      try {
+        var data = JSON.parse(ev.target.result);
+        if (data.students) students = data.students;
+        if (data.classes) classList = data.classes;
+        if (data.sessions) sessions = data.sessions;
+        if (data.courses) courses = data.courses;
+        if (data.teachers) teachers = data.teachers;
+        if (data.classrooms) classrooms = data.classrooms;
+        if (data.grades) gradesData = data.grades;
+        if (data.schedule) scheduleData = data.schedule;
+        saveAll();
+        renderStudents(); renderCourses(); renderClasses(); renderTeachers();
+        renderClassrooms(); renderGrades(); renderAttendance(); renderSchedule();
+        renderCharts(); renderRollcallSessions(); renderDashboard();
+        showToast('数据恢复成功！');
+      } catch (err) {
+        showToast('数据格式错误，导入失败', true);
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+function resetAllData() {
+  if (!confirm('确定要重置所有数据吗？\n这将清除所有自定义数据并恢复默认状态，此操作不可恢复！')) return;
+  if (!confirm('再次确认：数据重置后无法恢复，是否继续？')) return;
+  localStorage.removeItem('liming_students');
+  localStorage.removeItem('liming_classes');
+  localStorage.removeItem('liming_sessions');
+  localStorage.removeItem('liming_courses');
+  localStorage.removeItem('liming_teachers');
+  localStorage.removeItem('liming_classrooms');
+  localStorage.removeItem('liming_grades');
+  localStorage.removeItem('liming_schedule');
+  location.reload();
+}
+
+// ==================== 教师下拉框动态化 ====================
+function populateTeacherSelect(selectId, selectedName) {
+  var sel = document.getElementById(selectId);
+  if (!sel) return;
+  sel.innerHTML = teachers.map(function(t) {
+    return '<option value="' + t.name + '"' + (t.name === selectedName ? ' selected' : '') + '>' + t.name + '</option>';
+  }).join('');
+}
+
+// ==================== 学员列表真实分页 ====================
+function getFilteredStudents() {
+  var statusFilter = document.getElementById('studentStatusFilter') ? document.getElementById('studentStatusFilter').value : '';
+  if (!statusFilter) return students;
+  return students.filter(function(s) { return s.status === statusFilter; });
+}
+
+// ==================== 考勤环形图动态化 ====================
+function updateDonutChart() {
+  var doneSessions = sessions.filter(function(s) { return s.status === 'done'; });
+  var totalPresent = 0, totalLate = 0, totalAbsent = 0, totalLeave = 0;
+  doneSessions.forEach(function(s) {
+    s.students.forEach(function(st) {
+      if (st.attendance === 'present') totalPresent++;
+      else if (st.attendance === 'late') totalLate++;
+      else if (st.attendance === 'absent') totalAbsent++;
+      else if (st.attendance === 'leave') totalLeave++;
+    });
+  });
+  var total = totalPresent + totalLate + totalAbsent + totalLeave;
+  if (total === 0) return;
+
+  var pPresent = (totalPresent / total * 100).toFixed(0);
+  var pLate = (totalLate / total * 100).toFixed(0);
+  var pAbsent = (totalAbsent / total * 100).toFixed(0);
+  var pLeave = (totalLeave / total * 100).toFixed(0);
+  var pOther = 100 - parseInt(pPresent) - parseInt(pLate) - parseInt(pAbsent) - parseInt(pLeave);
+
+  var c1 = parseInt(pPresent);
+  var c2 = c1 + parseInt(pLate);
+  var c3 = c2 + parseInt(pAbsent);
+  var c4 = c3 + parseInt(pLeave);
+
+  var donutRing = document.querySelector('.donut-ring');
+  if (donutRing) {
+    donutRing.style.background = 'conic-gradient(var(--success) 0% ' + c1 + '%, var(--warning) ' + c1 + '% ' + c2 + '%, var(--danger) ' + c2 + '% ' + c3 + '%, var(--info) ' + c3 + '% ' + c4 + '%, #CBD5E1 ' + c4 + '% 100%)';
+  }
+
+  var legendItems = document.querySelectorAll('.donut-legend .legend-item');
+  if (legendItems.length >= 5) {
+    legendItems[0].innerHTML = '<div class="legend-dot" style="background:var(--success)"></div>出勤 ' + pPresent + '%';
+    legendItems[1].innerHTML = '<div class="legend-dot" style="background:var(--warning)"></div>迟到 ' + pLate + '%';
+    legendItems[2].innerHTML = '<div class="legend-dot" style="background:var(--danger)"></div>缺勤 ' + pAbsent + '%';
+    legendItems[3].innerHTML = '<div class="legend-dot" style="background:var(--info)"></div>请假 ' + pLeave + '%';
+    legendItems[4].innerHTML = '<div class="legend-dot" style="background:#CBD5E1"></div>其他 ' + pOther + '%';
+  }
+}
+
 // ==================== 初始化 ====================
 function init() {
   // 数据联动同步（确保所有关联数据一致）
@@ -2860,6 +3723,41 @@ function init() {
   // 设置日期筛选器默认值
   document.getElementById('rollcallDateFilter').value = todayStr;
   document.getElementById('sessionDate').value = todayStr;
+
+  // 动态填充教师下拉框
+  var teacherSelectIds = ['courseTeacher', 'classTeacher'];
+  teacherSelectIds.forEach(function(id) {
+    var sel = document.getElementById(id);
+    if (sel) {
+      sel.innerHTML = teachers.map(function(t) {
+        return '<option value="' + t.name + '">' + t.name + '</option>';
+      }).join('');
+    }
+  });
+
+  // 动态填充课程下拉框（新增学员弹窗）
+  var stuCourseSel = document.getElementById('stuCourse');
+  if (stuCourseSel) {
+    stuCourseSel.innerHTML = '<option value="">请选择课程</option>' + courses.map(function(c) {
+      return '<option value="' + c.name + '">' + c.name + '</option>';
+    }).join('');
+  }
+
+  // 动态填充班级下拉框（新增学员弹窗）
+  var stuClassSel = document.getElementById('stuClass');
+  if (stuClassSel) {
+    stuClassSel.innerHTML = classList.map(function(c) {
+      return '<option value="' + c.name + '">' + c.name + '</option>';
+    }).join('');
+  }
+
+  // 搜索框防抖
+  var searchInput = document.getElementById('globalSearchInput');
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      debounceSearch(this.value);
+    });
+  }
 
   // 渲染所有页面
   renderStudents();
@@ -2873,6 +3771,7 @@ function init() {
   renderCharts();
   renderRollcallSessions();
   renderDashboard();
+  updateDonutChart();
 
   // Tab 切换
   document.querySelectorAll('.tabs').forEach(tabGroup => {
