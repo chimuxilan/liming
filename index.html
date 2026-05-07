@@ -960,21 +960,40 @@ select.form-control { cursor: pointer; }
     <!-- ==================== 考勤统计 ==================== -->
     <div class="page" id="page-attendance">
       <div class="tabs">
-        <div class="tab active">考勤统计</div>
-        <div class="tab">异常记录</div>
+        <div class="tab active" onclick="switchAttendanceTab(this,'attOverview')">综合分析</div>
+        <div class="tab" onclick="switchAttendanceTab(this,'attStudent')">学员考勤</div>
+        <div class="tab" onclick="switchAttendanceTab(this,'attCourse')">课程分析</div>
+        <div class="tab" onclick="switchAttendanceTab(this,'attTeacher')">教师分析</div>
+        <div class="tab" onclick="switchAttendanceTab(this,'attFee')">费用联动</div>
+        <div class="tab" onclick="switchAttendanceTab(this,'attDetail')">课节明细</div>
       </div>
       <div class="filter-bar">
         <select class="form-control" style="width:180px" id="attendanceCourseFilter" onchange="renderAttendance()"><option value="">全部课程</option></select>
         <input class="form-control" type="date" style="width:160px" id="attendanceDateFilter" onchange="renderAttendance()">
         <select class="form-control" style="width:160px" id="attendanceTeacherFilter" onchange="renderAttendance()"><option value="">全部教师</option></select>
+        <select class="form-control" style="width:160px" id="attendanceClassFilter" onchange="renderAttendance()"><option value="">全部班级</option></select>
         <div style="flex:1"></div>
         <button class="btn btn-outline" onclick="exportAttendance()">📊 导出报表</button>
       </div>
-      <div class="table-card">
-        <table>
-          <thead><tr><th>课程</th><th>班级</th><th>教师</th><th>教室</th><th>时间</th><th>应到</th><th>实到</th><th>迟到</th><th>缺勤</th><th>出勤率</th></tr></thead>
-          <tbody id="attendanceBody"></tbody>
-        </table>
+
+      <!-- 综合分析 -->
+      <div id="attOverview"></div>
+      <!-- 学员考勤 -->
+      <div id="attStudent" style="display:none"></div>
+      <!-- 课程分析 -->
+      <div id="attCourse" style="display:none"></div>
+      <!-- 教师分析 -->
+      <div id="attTeacher" style="display:none"></div>
+      <!-- 费用联动 -->
+      <div id="attFee" style="display:none"></div>
+      <!-- 课节明细 -->
+      <div id="attDetail" style="display:none">
+        <div class="table-card">
+          <table>
+            <thead><tr><th>课程</th><th>班级</th><th>教师</th><th>教室</th><th>时间</th><th>应到</th><th>实到</th><th>迟到</th><th>缺勤</th><th>出勤率</th></tr></thead>
+            <tbody id="attendanceBody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -3537,9 +3556,17 @@ function deleteGrade(idx) {
   gradesData.splice(idx, 1); saveAll(); renderGrades(); renderDashboard(); showToast('已删除成绩记录');
 }
 
-// ==================== 考勤统计 ====================
+// ==================== 考勤统计（综合分析） ====================
+function switchAttendanceTab(el, panelId) {
+  el.parentElement.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+  el.classList.add('active');
+  ['attOverview','attStudent','attCourse','attTeacher','attFee','attDetail'].forEach(function(id) {
+    document.getElementById(id).style.display = id === panelId ? 'block' : 'none';
+  });
+}
+
 function renderAttendance() {
-  // 同步教师筛选下拉框（与教师管理联动）
+  // 同步筛选下拉框
   var teacherFilterSel = document.getElementById('attendanceTeacherFilter');
   if (teacherFilterSel) {
     var val = teacherFilterSel.value;
@@ -3548,86 +3575,299 @@ function renderAttendance() {
     }).join('');
     if (val) teacherFilterSel.value = val;
   }
+  var classFilterSel = document.getElementById('attendanceClassFilter');
+  if (classFilterSel) {
+    var val2 = classFilterSel.value;
+    classFilterSel.innerHTML = '<option value="">全部班级</option>' + classList.map(function(c) {
+      return '<option value="' + c.name + '">' + c.name + '</option>';
+    }).join('');
+    if (val2) classFilterSel.value = val2;
+  }
 
   // 获取筛选条件
   var courseFilter = (document.getElementById('attendanceCourseFilter') || {}).value || '';
   var dateFilter = (document.getElementById('attendanceDateFilter') || {}).value || '';
   var teacherFilter = (document.getElementById('attendanceTeacherFilter') || {}).value || '';
+  var classFilter = (document.getElementById('attendanceClassFilter') || {}).value || '';
 
   var doneSessions = sessions.filter(function(s) {
     if (s.status !== 'done') return false;
     if (courseFilter && s.course !== courseFilter) return false;
     if (dateFilter && s.date !== dateFilter) return false;
     if (teacherFilter && s.teacher !== teacherFilter) return false;
+    if (classFilter && s.className !== classFilter) return false;
     return true;
   });
 
-  // 按班级统计
-  var classStats = {};
+  // ========== 全局统计 ==========
+  var totalRecords = 0, totalPresent = 0, totalLate = 0, totalAbsent = 0, totalLeave = 0;
   doneSessions.forEach(function(s) {
-    if (!classStats[s.className]) {
-      classStats[s.className] = { total: 0, present: 0, late: 0, absent: 0, leave: 0 };
-    }
-    var stat = classStats[s.className];
     s.students.forEach(function(st) {
-      stat.total++;
-      if (st.attendance === 'present') stat.present++;
-      else if (st.attendance === 'late') stat.late++;
-      else if (st.attendance === 'absent') stat.absent++;
-      else if (st.attendance === 'leave') stat.leave++;
+      totalRecords++;
+      if (st.attendance === 'present') totalPresent++;
+      else if (st.attendance === 'late') totalLate++;
+      else if (st.attendance === 'absent') totalAbsent++;
+      else if (st.attendance === 'leave') totalLeave++;
+    });
+  });
+  var avgRate = totalRecords > 0 ? (totalPresent / totalRecords * 100).toFixed(1) : '0.0';
+  var punctualityRate = totalRecords > 0 ? ((totalPresent + totalLate) / totalRecords * 100).toFixed(1) : '0.0';
+
+  // 总扣费
+  var totalDeducted = 0;
+  students.forEach(function(s) {
+    (s.feeLogs || []).forEach(function(l) {
+      if (l.amount < 0) totalDeducted += Math.abs(l.amount);
     });
   });
 
-  // 渲染班级维度统计汇总
-  var classStatsHtml = '';
+  // ========== 渲染综合分析 ==========
+  var overviewHtml = '';
+
+  // 核心指标卡片
+  overviewHtml += '<div class="stats-grid" style="grid-template-columns:repeat(5,1fr)">' +
+    '<div class="stat-card"><div class="stat-icon blue">📋</div><div class="stat-info"><h3>' + doneSessions.length + '</h3><p>已完成课节</p></div></div>' +
+    '<div class="stat-card"><div class="stat-icon green">✅</div><div class="stat-info"><h3>' + avgRate + '%</h3><p>平均出勤率</p></div></div>' +
+    '<div class="stat-card"><div class="stat-icon amber">⏰</div><div class="stat-info"><h3>' + punctualityRate + '%</h3><p>到课率(含迟到)</p></div></div>' +
+    '<div class="stat-card"><div class="stat-icon red">❌</div><div class="stat-info"><h3>' + totalAbsent + '</h3><p>总缺勤人次</p></div></div>' +
+    '<div class="stat-card"><div class="stat-icon blue">💰</div><div class="stat-info"><h3>¥' + totalDeducted.toLocaleString() + '</h3><p>累计扣费</p></div></div>' +
+    '</div>';
+
+  // 班级出勤率对比柱状图 + 出勤分布饼图
+  var classStats = {};
+  doneSessions.forEach(function(s) {
+    if (!classStats[s.className]) classStats[s.className] = { total: 0, present: 0, late: 0, absent: 0, leave: 0, course: s.course };
+    var st = classStats[s.className];
+    s.students.forEach(function(x) {
+      st.total++;
+      if (x.attendance === 'present') st.present++;
+      else if (x.attendance === 'late') st.late++;
+      else if (x.attendance === 'absent') st.absent++;
+      else if (x.attendance === 'leave') st.leave++;
+    });
+  });
+
   var classNames = Object.keys(classStats);
   if (classNames.length > 0) {
-    classStatsHtml = '<div style="margin-bottom:20px"><h4 style="margin-bottom:12px;font-size:14px;color:var(--text-secondary)">📊 班级出勤汇总</h4>' +
-      '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">' +
-      classNames.map(function(cn) {
-        var st = classStats[cn];
-        var rate = st.total > 0 ? (st.present / st.total * 100).toFixed(1) : '0.0';
-        return '<div style="background:var(--bg);border-radius:10px;padding:14px;border:1px solid var(--border)">' +
-          '<div style="font-weight:600;margin-bottom:8px">' + cn + '</div>' +
-          '<div style="display:flex;gap:12px;font-size:12px;color:var(--text-secondary)">' +
-          '<span>出勤 <b style="color:var(--success)">' + st.present + '</b></span>' +
-          '<span>迟到 <b style="color:var(--warning)">' + st.late + '</b></span>' +
-          '<span>缺勤 <b style="color:var(--danger)">' + st.absent + '</b></span>' +
-          '<span>请假 <b style="color:var(--info)">' + st.leave + '</b></span>' +
-          '</div>' +
-          '<div style="margin-top:8px;display:flex;align-items:center;gap:8px">' +
-          '<div class="progress-bar" style="flex:1"><div class="progress-fill ' + (rate >= 90 ? 'green' : 'amber') + '" style="width:' + rate + '%"></div></div>' +
-          '<span style="font-size:12px;font-weight:600">' + rate + '%</span></div></div>';
-      }).join('') + '</div></div>';
+    overviewHtml += '<div class="charts-grid"><div class="chart-card"><h3>📊 班级出勤率对比</h3><div class="attendance-bar-chart">';
+    classNames.forEach(function(cn) {
+      var cs = classStats[cn];
+      var rate = cs.total > 0 ? (cs.present / cs.total * 100) : 0;
+      var height = Math.max(4, rate);
+      overviewHtml += '<div class="attendance-bar-group"><div class="attendance-bar" style="height:' + height + 'px"><div class="bar-value">' + rate.toFixed(1) + '%</div></div><div class="attendance-bar-label">' + cn + '</div></div>';
+    });
+    overviewHtml += '</div></div>';
+
+    // 出勤分布环形图
+    var p1 = totalRecords > 0 ? (totalPresent / totalRecords * 100) : 0;
+    var p2 = totalRecords > 0 ? (totalLate / totalRecords * 100) : 0;
+    var p3 = totalRecords > 0 ? (totalAbsent / totalRecords * 100) : 0;
+    var p4 = totalRecords > 0 ? (totalLeave / totalRecords * 100) : 0;
+    var c1 = Math.round(p1); var c2 = c1 + Math.round(p2); var c3 = c2 + Math.round(p3); var c4 = c3 + Math.round(p4);
+    overviewHtml += '<div class="chart-card"><h3>🎯 出勤分布</h3><div class="donut-chart"><div style="position:relative"><div class="donut-ring" style="background:conic-gradient(var(--success) 0% ' + c1 + '%, var(--warning) ' + c1 + '% ' + c2 + '%, var(--danger) ' + c2 + '% ' + c3 + '%, var(--info) ' + c3 + '% ' + c4 + '%, #CBD5E1 ' + c4 + '% 100%)"></div><div class="donut-center"><strong>' + totalRecords + '</strong><span>总人次</span></div></div><div class="donut-legend"><div class="legend-item"><div class="legend-dot" style="background:var(--success)"></div>出勤 ' + p1.toFixed(1) + '%</div><div class="legend-item"><div class="legend-dot" style="background:var(--warning)"></div>迟到 ' + p2.toFixed(1) + '%</div><div class="legend-item"><div class="legend-dot" style="background:var(--danger)"></div>缺勤 ' + p3.toFixed(1) + '%</div><div class="legend-item"><div class="legend-dot" style="background:var(--info)"></div>请假 ' + p4.toFixed(1) + '%</div></div></div></div></div>';
   }
 
-  // 渲染课节明细表格
-  document.getElementById('attendanceBody').innerHTML = doneSessions.map(s => {
-    const total = s.students.length;
-    const present = s.students.filter(st => st.attendance === 'present').length;
-    const late = s.students.filter(st => st.attendance === 'late').length;
-    const absent = s.students.filter(st => st.attendance === 'absent').length;
-    const leave = s.students.filter(st => st.attendance === 'leave').length;
-    const rate = total > 0 ? (present / total * 100).toFixed(1) : 0;
-    return `<tr>
-      <td>${s.course || s.className}</td><td>${s.className}</td><td>${s.teacher || '-'}</td><td>${s.classroom || '-'}</td><td>${s.date} ${s.start}-${s.end}</td>
-      <td>${total}</td><td>${present}</td><td>${late}</td><td>${absent}</td>
-      <td><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:80px"><div class="progress-fill ${rate >= 90 ? 'green' : 'amber'}" style="width:${rate}%"></div></div>${rate}%</div></td>
-    </tr>`;
+  // 异常预警
+  var alerts = [];
+  classNames.forEach(function(cn) {
+    var cs = classStats[cn];
+    var absentRate = cs.total > 0 ? (cs.absent / cs.total * 100) : 0;
+    if (absentRate > 20) alerts.push({ type: 'danger', text: cn + ' 缺勤率 ' + absentRate.toFixed(1) + '% 超过20%' });
+  });
+  // 学员余额不足预警
+  var lowFeeStudents = students.filter(function(s) {
+    var perSession = getPerSessionFee(s.course);
+    return perSession > 0 && (s.fee || 0) < perSession * 3 && (s.fee || 0) > 0 && s.status === 'active';
+  });
+  if (lowFeeStudents.length > 0) alerts.push({ type: 'warning', text: lowFeeStudents.length + ' 名学员剩余费用不足3课时' });
+  var zeroFeeStudents = students.filter(function(s) { return (s.fee || 0) <= 0 && s.status === 'active'; });
+  if (zeroFeeStudents.length > 0) alerts.push({ type: 'danger', text: zeroFeeStudents.length + ' 名学员剩余费用为0' });
+
+  if (alerts.length > 0) {
+    overviewHtml += '<div style="margin-top:20px"><h4 style="margin-bottom:12px;font-size:14px">⚠️ 异常预警</h4><div style="display:flex;flex-direction:column;gap:8px">';
+    alerts.forEach(function(a) {
+      overviewHtml += '<div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--surface);border-radius:10px;border-left:4px solid var(--' + a.type + ');box-shadow:var(--shadow)"><span style="font-size:18px">' + (a.type === 'danger' ? '🔴' : '🟡') + '</span><span style="font-size:13px">' + a.text + '</span></div>';
+    });
+    overviewHtml += '</div></div>';
+  }
+
+  document.getElementById('attOverview').innerHTML = overviewHtml;
+
+  // ========== 学员考勤分析 ==========
+  var studentAttendance = {};
+  doneSessions.forEach(function(s) {
+    s.students.forEach(function(st) {
+      if (!studentAttendance[st.id]) studentAttendance[st.id] = { name: st.name, total: 0, present: 0, late: 0, absent: 0, leave: 0, course: s.course, className: s.className };
+      var sa = studentAttendance[st.id];
+      sa.total++;
+      if (st.attendance === 'present') sa.present++;
+      else if (st.attendance === 'late') sa.late++;
+      else if (st.attendance === 'absent') sa.absent++;
+      else if (st.attendance === 'leave') sa.leave++;
+    });
+  });
+
+  var studentHtml = '<div class="table-card"><table><thead><tr><th>学员</th><th>学号</th><th>课程</th><th>班级</th><th>出勤</th><th>迟到</th><th>缺勤</th><th>请假</th><th>出勤率</th><th>剩余费用</th><th>状态</th></tr></thead><tbody>';
+  var sortedStudents = Object.values(studentAttendance).sort(function(a, b) {
+    var rateA = a.total > 0 ? a.present / a.total : 0;
+    var rateB = b.total > 0 ? b.present / b.total : 0;
+    return rateA - rateB; // 按出勤率升序，低的在前
+  });
+  sortedStudents.forEach(function(sa) {
+    var student = students.find(function(s) { return s.id === sa.id; }) || students.find(function(s) { return s.name === sa.name; });
+    var color = student ? student.color : '#6366F1';
+    var fee = student ? (student.fee || 0) : 0;
+    var perSession = getPerSessionFee(sa.course);
+    var rate = sa.total > 0 ? (sa.present / sa.total * 100).toFixed(1) : '0.0';
+    var rateNum = parseFloat(rate);
+    var statusTag = rateNum >= 90 ? '<span class="status-tag active">优秀</span>' : rateNum >= 75 ? '<span class="status-tag pending">良好</span>' : '<span class="status-tag inactive">需关注</span>';
+    studentHtml += '<tr><td><div class="avatar-cell"><div class="avatar-sm" style="background:' + color + '">' + sa.name[0] + '</div>' + sa.name + '</td><td>' + (sa.id || '-') + '</td><td>' + sa.course + '</td><td>' + sa.className + '</td><td style="color:var(--success);font-weight:600">' + sa.present + '</td><td style="color:var(--warning)">' + sa.late + '</td><td style="color:var(--danger)">' + sa.absent + '</td><td style="color:var(--info)">' + sa.leave + '</td><td><div style="display:flex;align-items:center;gap:6px"><div class="progress-bar" style="width:60px"><div class="progress-fill ' + (rateNum >= 90 ? 'green' : rateNum >= 75 ? 'amber' : 'blue') + '" style="width:' + rate + '%"></div></div><span style="font-weight:600;font-size:12px">' + rate + '%</span></div></td><td style="font-weight:600;color:' + (fee > perSession * 3 ? 'var(--success)' : fee > 0 ? 'var(--warning)' : 'var(--danger)') + '">¥' + fee.toLocaleString() + '</td><td>' + statusTag + '</td></tr>';
+  });
+  studentHtml += '</tbody></table></div>';
+  document.getElementById('attStudent').innerHTML = studentHtml;
+
+  // ========== 课程分析 ==========
+  var courseAttendance = {};
+  doneSessions.forEach(function(s) {
+    var courseName = s.course || s.className;
+    if (!courseAttendance[courseName]) courseAttendance[courseName] = { total: 0, present: 0, late: 0, absent: 0, leave: 0, sessions: 0 };
+    var ca = courseAttendance[courseName];
+    ca.sessions++;
+    s.students.forEach(function(st) {
+      ca.total++;
+      if (st.attendance === 'present') ca.present++;
+      else if (st.attendance === 'late') ca.late++;
+      else if (st.attendance === 'absent') ca.absent++;
+      else if (st.attendance === 'leave') ca.leave++;
+    });
+  });
+
+  var courseHtml = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px">';
+  Object.keys(courseAttendance).forEach(function(cn) {
+    var ca = courseAttendance[cn];
+    var rate = ca.total > 0 ? (ca.present / ca.total * 100).toFixed(1) : '0.0';
+    var course = courses.find(function(c) { return c.name === cn; });
+    var progress = course ? course.progress : 0;
+    var perSession = course ? (course.perSessionPrice || 0) : 0;
+    var totalDeduct = 0;
+    students.filter(function(s) { return s.course === cn; }).forEach(function(s) {
+      (s.feeLogs || []).forEach(function(l) { if (l.amount < 0) totalDeduct += Math.abs(l.amount); });
+    });
+    courseHtml += '<div class="chart-card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h3 style="font-size:15px;margin:0">' + cn + '</h3><span class="status-tag ' + (parseFloat(rate) >= 90 ? 'active' : 'pending') + '">' + rate + '% 出勤</span></div>' +
+      '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px">' +
+      '<div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center"><div style="font-size:11px;color:var(--text-secondary)">课节</div><div style="font-size:18px;font-weight:700">' + ca.sessions + '</div></div>' +
+      '<div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center"><div style="font-size:11px;color:var(--text-secondary)">出勤</div><div style="font-size:18px;font-weight:700;color:var(--success)">' + ca.present + '</div></div>' +
+      '<div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center"><div style="font-size:11px;color:var(--text-secondary)">缺勤</div><div style="font-size:18px;font-weight:700;color:var(--danger)">' + ca.absent + '</div></div>' +
+      '<div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center"><div style="font-size:11px;color:var(--text-secondary)">课时单价</div><div style="font-size:18px;font-weight:700;color:var(--warning)">¥' + perSession + '</div></div>' +
+      '</div>' +
+      '<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>课程进度</span><span>' + progress + '%</span></div><div class="progress-bar"><div class="progress-fill blue" style="width:' + progress + '%"></div></div></div>' +
+      '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>出勤率</span><span>' + rate + '%</span></div><div class="progress-bar"><div class="progress-fill ' + (parseFloat(rate) >= 90 ? 'green' : 'amber') + '" style="width:' + rate + '%"></div></div>' +
+      '<div style="margin-top:10px;font-size:12px;color:var(--text-secondary)">累计扣费 <b style="color:var(--danger)">¥' + totalDeduct.toLocaleString() + '</b></div>' +
+      '</div>';
+  });
+  courseHtml += '</div>';
+  document.getElementById('attCourse').innerHTML = courseHtml;
+
+  // ========== 教师分析 ==========
+  var teacherAttendance = {};
+  doneSessions.forEach(function(s) {
+    var tn = s.teacher || '未指定';
+    if (!teacherAttendance[tn]) teacherAttendance[tn] = { total: 0, present: 0, late: 0, absent: 0, leave: 0, sessions: 0, courses: {} };
+    var ta = teacherAttendance[tn];
+    ta.sessions++;
+    if (s.course) ta.courses[s.course] = true;
+    s.students.forEach(function(st) {
+      ta.total++;
+      if (st.attendance === 'present') ta.present++;
+      else if (st.attendance === 'late') ta.late++;
+      else if (st.attendance === 'absent') ta.absent++;
+      else if (st.attendance === 'leave') ta.leave++;
+    });
+  });
+
+  var teacherHtml = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px">';
+  Object.keys(teacherAttendance).forEach(function(tn) {
+    var ta = teacherAttendance[tn];
+    var rate = ta.total > 0 ? (ta.present / ta.total * 100).toFixed(1) : '0.0';
+    var teacher = teachers.find(function(t) { return t.name === tn; });
+    var gradient = teacher ? teacher.gradient : 'linear-gradient(135deg,#6366F1,#8B5CF6)';
+    var courseList = Object.keys(ta.courses).join('、');
+    teacherHtml += '<div class="chart-card" style="display:flex;gap:16px;align-items:center"><div class="avatar-sm" style="width:56px;height:56px;font-size:20px;background:' + gradient + '">' + tn[0] + '</div><div style="flex:1"><div style="font-weight:600;font-size:15px">' + tn + '</div><div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px">' + courseList + '</div>' +
+      '<div style="display:flex;gap:16px;font-size:12px;color:var(--text-secondary)"><span>课节 <b>' + ta.sessions + '</b></span><span>出勤 <b style="color:var(--success)">' + ta.present + '</b></span><span>缺勤 <b style="color:var(--danger)">' + ta.absent + '</b></span></div>' +
+      '<div style="margin-top:6px;display:flex;align-items:center;gap:8px"><div class="progress-bar" style="flex:1"><div class="progress-fill ' + (parseFloat(rate) >= 90 ? 'green' : 'amber') + '" style="width:' + rate + '%"></div></div><span style="font-size:12px;font-weight:600">' + rate + '%</span></div></div></div>';
+  });
+  teacherHtml += '</div>';
+  document.getElementById('attTeacher').innerHTML = teacherHtml;
+
+  // ========== 费用联动分析 ==========
+  var feeHtml = '';
+
+  // 费用概览
+  var totalRemaining = students.reduce(function(s, st) { return s + (st.fee || 0); }, 0);
+  var totalEnrolled = 0;
+  students.forEach(function(s) {
+    var ci = courses.find(function(c) { return c.name === s.course; });
+    if (ci) totalEnrolled += parseInt(String(ci.price).replace(/[^0-9]/g, '')) || 0;
+  });
+
+  feeHtml += '<div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">' +
+    '<div class="stat-card"><div class="stat-icon blue">💰</div><div class="stat-info"><h3>¥' + totalEnrolled.toLocaleString() + '</h3><p>总报名费用</p></div></div>' +
+    '<div class="stat-card"><div class="stat-icon green">💵</div><div class="stat-info"><h3>¥' + totalRemaining.toLocaleString() + '</h3><p>剩余费用总计</p></div></div>' +
+    '<div class="stat-card"><div class="stat-icon red">📉</div><div class="stat-info"><h3>¥' + totalDeducted.toLocaleString() + '</h3><p>累计扣费</p></div></div>' +
+    '<div class="stat-card"><div class="stat-icon amber">📊</div><div class="stat-info"><h3>' + (totalEnrolled > 0 ? (totalDeducted / totalEnrolled * 100).toFixed(1) : '0') + '%</h3><p>费用消耗率</p></div></div>' +
+    '</div>';
+
+  // 学员费用明细表
+  feeHtml += '<div class="table-card" style="margin-top:20px"><div class="table-header"><h3>💳 学员费用与考勤联动</h3></div><table><thead><tr><th>学员</th><th>课程</th><th>课时单价</th><th>剩余费用</th><th>已上课时</th><th>剩余可上</th><th>出勤率</th><th>费用状态</th></tr></thead><tbody>';
+  students.filter(function(s) { return s.status === 'active'; }).forEach(function(s) {
+    var perSession = getPerSessionFee(s.course);
+    var fee = s.fee || 0;
+    var attended = (s.feeLogs || []).filter(function(l) { return l.amount < 0; }).length;
+    var canAttend = perSession > 0 ? Math.floor(fee / perSession) : 0;
+    // 该学员出勤率
+    var stuTotal = 0, stuPresent = 0;
+    doneSessions.forEach(function(sess) {
+      var stu = sess.students.find(function(st) { return st.id === s.id; });
+      if (stu) {
+        stuTotal++;
+        if (stu.attendance === 'present' || stu.attendance === 'late') stuPresent++;
+      }
+    });
+    var stuRate = stuTotal > 0 ? (stuPresent / stuTotal * 100).toFixed(1) : '-';
+    var feeStatus = fee <= 0 ? '<span class="status-tag inactive">已耗尽</span>' : canAttend < 3 ? '<span class="status-tag pending">即将不足</span>' : '<span class="status-tag active">正常</span>';
+    feeHtml += '<tr><td><div class="avatar-cell"><div class="avatar-sm" style="background:' + s.color + '">' + s.name[0] + '</div>' + s.name + '</td><td>' + s.course + '</td><td style="font-weight:600;color:var(--warning)">¥' + perSession + '</td><td style="font-weight:700;color:' + (fee > 0 ? 'var(--success)' : 'var(--danger)') + '">¥' + fee.toLocaleString() + '</td><td>' + attended + '</td><td style="font-weight:600;color:' + (canAttend >= 5 ? 'var(--success)' : canAttend > 0 ? 'var(--warning)' : 'var(--danger)') + '">' + canAttend + ' 节</td><td>' + (stuRate !== '-' ? stuRate + '%' : '-') + '</td><td>' + feeStatus + '</td></tr>';
+  });
+  feeHtml += '</tbody></table></div>';
+
+  // 扣费记录
+  var allLogs = [];
+  students.forEach(function(s) {
+    (s.feeLogs || []).forEach(function(l) {
+      allLogs.push({ studentName: s.name, studentId: s.id, color: s.color, date: l.date, session: l.session, amount: l.amount, balance: l.balance, type: l.type });
+    });
+  });
+  allLogs.sort(function(a, b) { return b.date.localeCompare(a.date); });
+
+  if (allLogs.length > 0) {
+    feeHtml += '<div class="table-card" style="margin-top:20px"><div class="table-header"><h3>📝 扣费记录 (' + allLogs.length + '条)</h3></div><table><thead><tr><th>日期</th><th>学员</th><th>课节</th><th>类型</th><th>扣费</th><th>余额</th></tr></thead><tbody>';
+    allLogs.slice(0, 50).forEach(function(l) {
+      feeHtml += '<tr><td>' + l.date + '</td><td><div class="avatar-cell"><div class="avatar-sm" style="background:' + l.color + '">' + l.studentName[0] + '</div>' + l.studentName + '</td><td>' + l.session + '</td><td><span class="status-tag ' + (l.type.includes('不足') ? 'inactive' : 'active') + '">' + l.type + '</span></td><td style="color:var(--danger);font-weight:600">¥' + Math.abs(l.amount).toLocaleString() + '</td><td>¥' + l.balance.toLocaleString() + '</td></tr>';
+    });
+    feeHtml += '</tbody></table></div>';
+  }
+
+  document.getElementById('attFee').innerHTML = feeHtml;
+
+  // ========== 课节明细表格 ==========
+  document.getElementById('attendanceBody').innerHTML = doneSessions.map(function(s) {
+    var total = s.students.length;
+    var present = s.students.filter(function(st) { return st.attendance === 'present'; }).length;
+    var late = s.students.filter(function(st) { return st.attendance === 'late'; }).length;
+    var absent = s.students.filter(function(st) { return st.attendance === 'absent'; }).length;
+    var leave = s.students.filter(function(st) { return st.attendance === 'leave'; }).length;
+    var rate = total > 0 ? (present / total * 100).toFixed(1) : 0;
+    return '<tr><td>' + (s.course || s.className) + '</td><td>' + s.className + '</td><td>' + (s.teacher || '-') + '</td><td>' + (s.classroom || '-') + '</td><td>' + s.date + ' ' + s.start + '-' + s.end + '</td><td>' + total + '</td><td>' + present + '</td><td>' + late + '</td><td>' + absent + '</td><td><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:80px"><div class="progress-fill ' + (rate >= 90 ? 'green' : 'amber') + '" style="width:' + rate + '%"></div></div>' + rate + '%</div></td></tr>';
   }).join('');
-
-  // 在表格前面插入班级统计
-  var table = document.getElementById('attendanceBody').closest('table');
-  if (table) {
-    var existingSummary = table.parentNode.querySelector('.attendance-class-summary');
-    if (existingSummary) existingSummary.remove();
-    if (classStatsHtml) {
-      var div = document.createElement('div');
-      div.className = 'attendance-class-summary';
-      div.innerHTML = classStatsHtml;
-      table.parentNode.insertBefore(div, table);
-    }
-  }
 }
 
 // ==================== Charts ====================
