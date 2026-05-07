@@ -872,7 +872,7 @@ select.form-control { cursor: pointer; }
         <div style="font-weight:600;font-size:15px;padding:0 12px" id="weekTitle">2026年5月4日 — 5月10日</div>
         <button class="btn btn-outline btn-sm" onclick="changeWeek(1)">下一周 ›</button>
         <div style="flex:1"></div>
-        <select class="form-control" style="width:160px" id="scheduleClassroomFilter"><option value="">全部教室</option></select>
+        <select class="form-control" style="width:160px" id="scheduleClassroomFilter" onchange="renderSchedule()"><option value="">全部教室</option></select>
         <button class="btn btn-outline batch-del-btn" id="batchDeleteScheduleBtn" style="display:none" onclick="batchDeleteSchedule()">🗑️ 批量删除(<span id="scheduleSelectedCount">0</span>)</button>
         <button class="btn btn-primary" onclick="showModal('addScheduleModal')">➕ 新增排课</button>
       </div>
@@ -886,14 +886,15 @@ select.form-control { cursor: pointer; }
         <div class="tab">异常记录</div>
       </div>
       <div class="filter-bar">
-        <select class="form-control" style="width:180px" id="attendanceCourseFilter"><option value="">全部课程</option></select>
-        <input class="form-control" type="date" style="width:160px">
+        <select class="form-control" style="width:180px" id="attendanceCourseFilter" onchange="renderAttendance()"><option value="">全部课程</option></select>
+        <input class="form-control" type="date" style="width:160px" id="attendanceDateFilter" onchange="renderAttendance()">
+        <select class="form-control" style="width:160px" id="attendanceTeacherFilter" onchange="renderAttendance()"><option value="">全部教师</option></select>
         <div style="flex:1"></div>
         <button class="btn btn-outline" onclick="exportAttendance()">📊 导出报表</button>
       </div>
       <div class="table-card">
         <table>
-          <thead><tr><th>课程</th><th>时间</th><th>应到</th><th>实到</th><th>迟到</th><th>缺勤</th><th>出勤率</th></tr></thead>
+          <thead><tr><th>课程</th><th>班级</th><th>教师</th><th>教室</th><th>时间</th><th>应到</th><th>实到</th><th>迟到</th><th>缺勤</th><th>出勤率</th></tr></thead>
           <tbody id="attendanceBody"></tbody>
         </table>
       </div>
@@ -1215,36 +1216,36 @@ select.form-control { cursor: pointer; }
     <div class="modal-body">
       <div class="form-group">
         <label>课程 *</label>
-        <select class="form-control"><option>商务英语高级班</option><option>Python全栈开发</option><option>雅思冲刺班</option><option>少儿美术启蒙</option></select>
+        <select class="form-control" id="scheduleCourse"></select>
       </div>
       <div class="form-row">
         <div class="form-group">
           <label>上课日期 *</label>
-          <input class="form-control" type="date">
+          <input class="form-control" type="date" id="scheduleDate">
         </div>
         <div class="form-group">
           <label>教室 *</label>
-          <select class="form-control"><option>A301 多媒体教室</option><option>A302 语音室</option><option>B201 计算机房</option></select>
+          <select class="form-control" id="scheduleClassroom"></select>
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
           <label>开始时间 *</label>
-          <input class="form-control" type="time">
+          <input class="form-control" type="time" id="scheduleStartTime" value="09:00">
         </div>
         <div class="form-group">
           <label>结束时间 *</label>
-          <input class="form-control" type="time">
+          <input class="form-control" type="time" id="scheduleEndTime" value="11:00">
         </div>
       </div>
       <div class="form-group">
         <label>授课教师</label>
-        <select class="form-control"><option>张明辉</option><option>李文静</option><option>王艺萌</option></select>
+        <select class="form-control" id="scheduleTeacher"></select>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="hideModal('addScheduleModal')">取消</button>
-      <button class="btn btn-primary">确认排课</button>
+      <button class="btn btn-primary" onclick="addSchedule()">确认排课</button>
     </div>
   </div>
 </div>
@@ -1900,7 +1901,20 @@ function syncData() {
     }
   });
 
-  // 7. 更新首页仪表盘统计数字
+  // 7. 同步排课与考勤数据联动：标记已完成的排课
+  Object.keys(scheduleData).forEach(function(dateKey) {
+    var events = scheduleData[dateKey];
+    if (!events) return;
+    events.forEach(function(e) {
+      // 查找对应的已完成课节
+      var matchedSession = sessions.find(function(s) {
+        return s.status === 'done' && s.course === (e.courseRef || e.name) && s.date && dateKey === (parseInt(s.date.split('-')[1]) + '/' + parseInt(s.date.split('-')[2]));
+      });
+      e.completed = !!matchedSession;
+    });
+  });
+
+  // 8. 更新首页仪表盘统计数字
   updateDashboardStats();
 }
 
@@ -2134,7 +2148,17 @@ document.querySelectorAll('.nav-item').forEach(item => {
 });
 
 // ==================== Modal ====================
-function showModal(id) { document.getElementById(id).classList.add('show'); }
+function showModal(id) {
+  document.getElementById(id).classList.add('show');
+  // 打开排课弹窗时同步下拉框数据（与课程管理、教师管理、教室管理联动）
+  if (id === 'addScheduleModal') {
+    syncScheduleModalDropdowns();
+    bindScheduleCourseChange();
+    // 设置默认日期为今天
+    var dateInput = document.getElementById('scheduleDate');
+    if (dateInput && !dateInput.value) dateInput.value = new Date().toISOString().split('T')[0];
+  }
+}
 function hideModal(id) { document.getElementById(id).classList.remove('show'); }
 document.querySelectorAll('.modal-overlay').forEach(m => {
   m.addEventListener('click', e => { if (e.target === m) m.classList.remove('show'); });
@@ -2535,14 +2559,14 @@ function exportAttendance() {
   });
 
   // 课节明细
-  csv += '\n课节明细\n上课时间,班级,老师,应到,实到,迟到,缺勤,出勤率\n';
+  csv += '\n课节明细\n上课时间,课程,班级,教师,教室,应到,实到,迟到,缺勤,出勤率\n';
   done.forEach(function(s) {
     var t = s.students.length;
     var p = s.students.filter(function(st){ return st.attendance==='present'; }).length;
     var l = s.students.filter(function(st){ return st.attendance==='late'; }).length;
     var a = s.students.filter(function(st){ return st.attendance==='absent'; }).length;
     var r = t > 0 ? (p/t*100).toFixed(1) : '0.0';
-    csv += s.date+' '+s.start+'-'+s.end+','+s.className+','+s.teacher+','+t+','+p+','+l+','+a+','+r+'%\n';
+    csv += s.date+' '+s.start+'-'+s.end+','+(s.course||'')+','+s.className+','+(s.teacher||'')+','+(s.classroom||'')+','+t+','+p+','+l+','+a+','+r+'%\n';
   });
 
   var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -2957,17 +2981,30 @@ function addClass() {
 // ==================== 排课系统 ====================
 const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 function renderSchedule() {
+  var roomFilter = (document.getElementById('scheduleClassroomFilter') || {}).value || '';
   const dates = Object.keys(scheduleData).sort();
   document.getElementById('scheduleGrid').innerHTML = days.map(d => `<div class="schedule-header">${d}</div>`).join('') +
     dates.map(d => {
-      const events = scheduleData[d] || [];
+      var events = scheduleData[d] || [];
+      // 按教室筛选
+      if (roomFilter) {
+        events = events.filter(function(e) { return e.classroom && e.classroom.indexOf(roomFilter.split(' ')[0]) === 0; });
+      }
       const isToday = d === '5/6';
       return `<div class="schedule-cell ${isToday ? 'today' : ''}">
         <div class="date-num">${d.split('/')[1]}日</div>
-        ${events.map((e, ei) => `<div class="schedule-event ${e.type}" style="display:flex;align-items:center;gap:4px">
-          <input type="checkbox" data-type="schedule" data-date="${d}" data-idx="${ei}" onchange="updateBatchButtons()" style="margin:0">
-          <span onclick="deleteScheduleEvent('${d}',${ei})" title="点击删除" style="cursor:pointer;flex:1">${e.name} ✕</span>
-        </div>`).join('')}
+        ${events.map((e, ei) => {
+          var extraInfo = '';
+          if (e.teacher) extraInfo += '<div style="font-size:10px;color:#6B7280;margin-top:2px">👤' + e.teacher + '</div>';
+          if (e.classroom) extraInfo += '<div style="font-size:10px;color:#6B7280">🏫' + e.classroom.split(' ')[0] + '</div>';
+          return `<div class="schedule-event ${e.type}" style="display:flex;align-items:flex-start;gap:4px;flex-direction:column;${e.completed ? 'opacity:0.7;border-left-style:solid' : ''}">
+            <div style="display:flex;align-items:center;gap:4px;width:100%">
+              <input type="checkbox" data-type="schedule" data-date="${d}" data-idx="${ei}" onchange="updateBatchButtons()" style="margin:0">
+              <span onclick="deleteScheduleEvent('${d}',${ei})" title="点击删除" style="cursor:pointer;flex:1">${e.completed ? '✅ ' : ''}${e.name} ✕</span>
+            </div>
+            ${extraInfo}
+          </div>`;
+        }).join('')}
       </div>`;
     }).join('');
   updateBatchButtons();
@@ -2978,6 +3015,123 @@ function deleteScheduleEvent(date, idx) {
   const name = events[idx].name;
   if (!confirm(`确定要删除「${name}」吗？`)) return;
   events.splice(idx, 1); saveAll(); renderSchedule(); renderDashboard(); showToast(`已删除排课「${name}」`);
+}
+
+// 同步排课弹窗下拉框（与课程管理、教师管理、教室管理联动）
+function syncScheduleModalDropdowns() {
+  // 课程下拉框 - 从课程管理数据动态获取
+  var courseSel = document.getElementById('scheduleCourse');
+  if (courseSel) {
+    var val = courseSel.value;
+    courseSel.innerHTML = courses.map(function(c) {
+      return '<option value="' + c.name + '">' + c.name + ' (' + c.type + ')</option>';
+    }).join('');
+    if (val && courses.some(function(c){ return c.name === val; })) courseSel.value = val;
+  }
+  // 教师下拉框 - 从教师管理数据动态获取
+  var teacherSel = document.getElementById('scheduleTeacher');
+  if (teacherSel) {
+    var val = teacherSel.value;
+    teacherSel.innerHTML = '<option value="">未指定</option>' + teachers.map(function(t) {
+      return '<option value="' + t.name + '">' + t.name + ' (' + t.subject + ')</option>';
+    }).join('');
+    if (val) teacherSel.value = val;
+  }
+  // 教室下拉框 - 从教室管理数据动态获取
+  var roomSel = document.getElementById('scheduleClassroom');
+  if (roomSel) {
+    var val = roomSel.value;
+    roomSel.innerHTML = classrooms.filter(function(c) { return c.status === 'active'; }).map(function(c) {
+      return '<option value="' + c.name + '">' + c.name + ' ' + c.type + ' (容量' + c.capacity + ')</option>';
+    }).join('');
+    if (val) roomSel.value = val;
+  }
+}
+
+// 选择课程后自动匹配教师
+function bindScheduleCourseChange() {
+  var courseSel = document.getElementById('scheduleCourse');
+  if (!courseSel || courseSel._bound) return;
+  courseSel._bound = true;
+  courseSel.addEventListener('change', function() {
+    var selectedCourse = courses.find(function(c) { return c.name === courseSel.value; });
+    if (selectedCourse) {
+      var teacherSel = document.getElementById('scheduleTeacher');
+      if (teacherSel && selectedCourse.teacher) {
+        teacherSel.value = selectedCourse.teacher;
+      }
+    }
+  });
+}
+
+// 新增排课
+function addSchedule() {
+  var courseName = document.getElementById('scheduleCourse').value;
+  var dateVal = document.getElementById('scheduleDate').value;
+  var room = document.getElementById('scheduleClassroom').value;
+  var startTime = document.getElementById('scheduleStartTime').value;
+  var endTime = document.getElementById('scheduleEndTime').value;
+  var teacher = document.getElementById('scheduleTeacher').value;
+
+  if (!courseName) { showToast('请选择课程', true); return; }
+  if (!dateVal) { showToast('请选择上课日期', true); return; }
+  if (!startTime || !endTime) { showToast('请填写上课时间', true); return; }
+  if (startTime >= endTime) { showToast('结束时间必须晚于开始时间', true); return; }
+
+  // 找到对应课程，确定类型
+  var course = courses.find(function(c) { return c.name === courseName; });
+  var eventType = 'course';
+
+  // 将日期转为 M/D 格式（与现有数据格式一致）
+  var dateParts = dateVal.split('-');
+  var dateKey = parseInt(dateParts[1]) + '/' + parseInt(dateParts[2]);
+
+  // 创建排课事件
+  var event = {
+    name: courseName,
+    type: eventType,
+    teacher: teacher || (course ? course.teacher : ''),
+    classroom: room,
+    start: startTime,
+    end: endTime,
+    courseRef: courseName
+  };
+
+  if (!scheduleData[dateKey]) scheduleData[dateKey] = [];
+  scheduleData[dateKey].push(event);
+
+  // 同时创建对应的课节课节（用于点名和考勤联动）
+  var courseObj = course;
+  var className = '';
+  if (courseObj) {
+    // 找到该课程下的第一个班级
+    var matchedClass = classList.find(function(cls) { return cls.course === courseName; });
+    if (matchedClass) className = matchedClass.name;
+  }
+  if (className) {
+    var classStudents = students.filter(function(s) { return s.cls === className; });
+    var sessId = 'SESS' + Date.now();
+    sessions.push({
+      id: sessId,
+      date: dateVal,
+      start: startTime,
+      end: endTime,
+      className: className,
+      course: courseName,
+      teacher: teacher || (course ? course.teacher : ''),
+      classroom: room.split(' ')[0],
+      status: 'pending',
+      students: classStudents.map(function(s) {
+        return { id: s.id, name: s.name, attendance: null };
+      })
+    });
+  }
+
+  saveAll();
+  renderSchedule();
+  renderDashboard();
+  hideModal('addScheduleModal');
+  showToast('排课成功：' + courseName + ' ' + dateKey);
 }
 
 // ==================== 教师管理 ====================
@@ -3101,7 +3255,28 @@ function deleteGrade(idx) {
 
 // ==================== 考勤统计 ====================
 function renderAttendance() {
-  const doneSessions = sessions.filter(s => s.status === 'done');
+  // 同步教师筛选下拉框（与教师管理联动）
+  var teacherFilterSel = document.getElementById('attendanceTeacherFilter');
+  if (teacherFilterSel) {
+    var val = teacherFilterSel.value;
+    teacherFilterSel.innerHTML = '<option value="">全部教师</option>' + teachers.map(function(t) {
+      return '<option value="' + t.name + '">' + t.name + '</option>';
+    }).join('');
+    if (val) teacherFilterSel.value = val;
+  }
+
+  // 获取筛选条件
+  var courseFilter = (document.getElementById('attendanceCourseFilter') || {}).value || '';
+  var dateFilter = (document.getElementById('attendanceDateFilter') || {}).value || '';
+  var teacherFilter = (document.getElementById('attendanceTeacherFilter') || {}).value || '';
+
+  var doneSessions = sessions.filter(function(s) {
+    if (s.status !== 'done') return false;
+    if (courseFilter && s.course !== courseFilter) return false;
+    if (dateFilter && s.date !== dateFilter) return false;
+    if (teacherFilter && s.teacher !== teacherFilter) return false;
+    return true;
+  });
 
   // 按班级统计
   var classStats = {};
@@ -3148,9 +3323,10 @@ function renderAttendance() {
     const present = s.students.filter(st => st.attendance === 'present').length;
     const late = s.students.filter(st => st.attendance === 'late').length;
     const absent = s.students.filter(st => st.attendance === 'absent').length;
+    const leave = s.students.filter(st => st.attendance === 'leave').length;
     const rate = total > 0 ? (present / total * 100).toFixed(1) : 0;
     return `<tr>
-      <td>${s.className}</td><td>${s.date} ${s.start}-${s.end}</td>
+      <td>${s.course || s.className}</td><td>${s.className}</td><td>${s.teacher || '-'}</td><td>${s.classroom || '-'}</td><td>${s.date} ${s.start}-${s.end}</td>
       <td>${total}</td><td>${present}</td><td>${late}</td><td>${absent}</td>
       <td><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:80px"><div class="progress-fill ${rate >= 90 ? 'green' : 'amber'}" style="width:${rate}%"></div></div>${rate}%</div></td>
     </tr>`;
@@ -3727,6 +3903,10 @@ function updateDonutChart() {
 
 // 统一同步所有下拉框（与各管理模块联动）
 function syncAllDropdowns() {
+  // 排课弹窗下拉框（与课程管理、教师管理、教室管理联动）
+  syncScheduleModalDropdowns();
+  bindScheduleCourseChange();
+
   // 班级下拉框
   var classSelectIds = ['sessionClass'];
   classSelectIds.forEach(function(id) {
