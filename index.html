@@ -2588,6 +2588,16 @@ function saveRollcall() {
   });
 
   currentRollcallSession.status = 'done';
+
+  // ========== 点名自动更新班级已上课时 ==========
+  var matchedClass = classList.find(function(cl) { return cl.name === session.className; });
+  if (matchedClass) {
+    if (!matchedClass.doneHours) matchedClass.doneHours = 0;
+    matchedClass.doneHours += 1;
+    // 确保不超过总课时
+    if (matchedClass.doneHours > matchedClass.totalHours) matchedClass.doneHours = matchedClass.totalHours;
+  }
+
   saveAll();
   hideModal('rollcallDetailModal');
   renderRollcallSessions();
@@ -2599,10 +2609,15 @@ function saveRollcall() {
   // 显示扣费结果
   let msg = `点名已保存！本次扣费 ${deductedCount} 人，共 ¥${deductedTotal.toLocaleString()}`;
   if (perSessionFee > 0) msg += ` (课时单价 ¥${perSessionFee})`;
+  // 显示课程进度更新
+  var updatedCourse = courses.find(function(c) { return c.name === session.course; });
+  if (updatedCourse) {
+    msg += `\n📚 ${session.course} 进度已更新: ${updatedCourse.progress}%`;
+  }
   if (insufficientStudents.length > 0) {
     msg += `\n⚠️ 余额不足：${insufficientStudents.join('、')}`;
   }
-  showToast(msg);
+  showToast(msg, false, 5000);
 }
 
 // 删除课节
@@ -4435,13 +4450,42 @@ function viewStudentDetail(id) {
 function reRollcall(sessionId) {
   var session = sessions.find(function(s) { return s.id === sessionId; });
   if (!session) return;
-  if (!confirm('确定要重新点名「' + session.className + ' ' + session.date + '」吗？\n当前考勤记录将被清除。')) return;
+  if (!confirm('确定要重新点名「' + session.className + ' ' + session.date + '」吗？\n当前考勤记录将被清除，已扣费用将退回。')) return;
+
+  // ========== 退回已扣费用 ==========
+  session.students.forEach(function(st) {
+    if (st.attendance === 'present' || st.attendance === 'late') {
+      var student = students.find(function(x) { return x.id === st.id; });
+      if (!student) return;
+      // 找到对应的扣费记录并退回
+      var feeLogs = student.feeLogs || [];
+      var logIdx = -1;
+      for (var i = feeLogs.length - 1; i >= 0; i--) {
+        if (feeLogs[i].date === session.date && feeLogs[i].session === session.className && feeLogs[i].amount < 0) {
+          logIdx = i;
+          break;
+        }
+      }
+      if (logIdx >= 0) {
+        var refundAmount = Math.abs(feeLogs[logIdx].amount);
+        student.fee = (student.fee || 0) + refundAmount;
+        feeLogs.splice(logIdx, 1);
+      }
+    }
+  });
+
+  // ========== 回退班级已上课时 ==========
+  var matchedClass = classList.find(function(cl) { return cl.name === session.className; });
+  if (matchedClass && matchedClass.doneHours > 0) {
+    matchedClass.doneHours -= 1;
+  }
+
   session.status = 'pending';
   session.students.forEach(function(st) { st.attendance = null; });
   saveAll();
   renderRollcallSessions();
   renderDashboard();
-  showToast('已重置点名，正在进入点名界面...', false, 2000);
+  showToast('已重置点名，费用已退回，正在进入点名界面...', false, 2000);
   setTimeout(function() { openRollcall(sessionId); }, 500);
 }
 
