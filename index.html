@@ -2840,6 +2840,7 @@ function renderCourses() {
       return '<option value="' + c.name + '">' + c.name + '</option>';
     }).join("");
   }
+  syncClassroomTypeOptions();
   updateBatchButtons();
 }
 
@@ -3037,6 +3038,19 @@ function addTeacher() {
 }
 
 // ==================== 教室管理 ====================
+
+// 同步教室类型下拉框（与课程管理联动）
+function syncClassroomTypeOptions() {
+  var defaultTypes = ['普通教室', '多媒体教室', '计算机房', '语音室', '画室', '琴房'];
+  var courseTypes = courses.map(function(c) { return c.type; });
+  var allTypes = defaultTypes.concat(courseTypes.filter(function(t) { return defaultTypes.indexOf(t) === -1; }));
+  var opts = allTypes.map(function(t) { return '<option value="' + t + '">' + t + '</option>'; }).join('');
+  var roomTypeSel = document.getElementById('roomType');
+  if (roomTypeSel) roomTypeSel.innerHTML = opts;
+  var editRoomTypeSel = document.getElementById('editRoomType');
+  if (editRoomTypeSel) editRoomTypeSel.innerHTML = opts;
+}
+
 function renderClassrooms() {
   document.getElementById('classroomGrid').innerHTML = classrooms.map((c, i) => `
     <div class="chart-card" style="text-align:center;position:relative">
