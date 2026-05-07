@@ -899,7 +899,7 @@ select.form-control { cursor: pointer; }
       </div>
       <div class="table-card">
         <table>
-          <thead><tr><th style="width:40px"><input type="checkbox" onchange="toggleAllCheckboxes(this,'student')"></th><th>学员</th><th>学号</th><th>联系电话</th><th>报名课程</th><th>班级</th><th>报名费用</th><th>状态</th><th>操作</th></tr></thead>
+          <thead><tr><th style="width:40px"><input type="checkbox" onchange="toggleAllCheckboxes(this,'student')"></th><th>学员</th><th>学号</th><th>联系电话</th><th>报名课程</th><th>班级</th><th>报名费用</th><th>剩余费用</th><th>状态</th><th>操作</th></tr></thead>
           <tbody id="studentTableBody"></tbody>
         </table>
         <div class="pagination">
@@ -1185,7 +1185,7 @@ select.form-control { cursor: pointer; }
       <div class="form-row">
         <div class="form-group">
           <label>报名费用 (元) *</label>
-          <input class="form-control" id="stuFee" type="number" placeholder="请输入报名费用" min="0">
+          <input class="form-control" id="stuFee" type="number" placeholder="请输入报名费用（即初始剩余费用）" min="0">
         </div>
         <div class="form-group">
           <label>缴费状态</label>
@@ -1577,7 +1577,7 @@ select.form-control { cursor: pointer; }
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>报名费用 (元)</label>
+          <label>剩余费用 (元)</label>
           <input class="form-control" id="editStuFee" type="number" min="0">
         </div>
         <div class="form-group">
@@ -1841,18 +1841,18 @@ const LS = {
 
 // 学员数据
 const defaultStudents = [
-  { name:'李明华', id:'S20260001', phone:'138****1234', course:'商务英语高级班', cls:'商务英语高级1班', status:'active', color:'#6366F1', fee:6800, payStatus:'paid' },
-  { name:'王思雨', id:'S20260002', phone:'139****5678', course:'Python全栈开发', cls:'Python全栈开发1班', status:'pending', color:'#EC4899', fee:8900, payStatus:'paid' },
-  { name:'张天一', id:'S20260003', phone:'136****9012', course:'少儿美术启蒙', cls:'少儿美术启蒙1班', status:'active', color:'#F59E0B', fee:4200, payStatus:'paid' },
-  { name:'陈晓峰', id:'S20260004', phone:'137****3456', course:'雅思冲刺班', cls:'雅思冲刺1班', status:'completed', color:'#10B981', fee:12000, payStatus:'paid' },
-  { name:'刘雨萱', id:'S20260005', phone:'135****7890', course:'钢琴进阶课', cls:'钢琴进阶1班', status:'active', color:'#8B5CF6', fee:5600, payStatus:'partial' },
-  { name:'赵雅琪', id:'S20260006', phone:'133****2345', course:'商务英语高级班', cls:'商务英语高级1班', status:'active', color:'#F43F5E', fee:6800, payStatus:'paid' },
-  { name:'孙浩然', id:'S20260007', phone:'131****6789', course:'Python全栈开发', cls:'Python全栈开发1班', status:'active', color:'#0EA5E9', fee:8500, payStatus:'unpaid' },
-  { name:'周美琳', id:'S20260008', phone:'132****0123', course:'雅思冲刺班', cls:'雅思冲刺1班', status:'inactive', color:'#A855F7', fee:11000, payStatus:'partial' },
-  { name:'吴佳怡', id:'S20260009', phone:'134****4567', course:'商务英语高级班', cls:'商务英语高级1班', status:'active', color:'#F97316', fee:6500, payStatus:'paid' },
-  { name:'郑浩宇', id:'S20260010', phone:'130****8901', course:'Python全栈开发', cls:'Python全栈开发1班', status:'active', color:'#14B8A6', fee:8900, payStatus:'paid' },
-  { name:'黄诗涵', id:'S20260011', phone:'129****2345', course:'少儿美术启蒙', cls:'少儿美术启蒙1班', status:'active', color:'#E11D48', fee:4000, payStatus:'unpaid' },
-  { name:'马子轩', id:'S20260012', phone:'128****6789', course:'商务英语高级班', cls:'商务英语高级1班', status:'active', color:'#7C3AED', fee:6800, payStatus:'paid' },
+  { name:'李明华', id:'S20260001', phone:'138****1234', course:'商务英语高级班', cls:'商务英语高级1班', status:'active', color:'#6366F1', fee:6800, payStatus:'paid', feeLogs:[] },
+  { name:'王思雨', id:'S20260002', phone:'139****5678', course:'Python全栈开发', cls:'Python全栈开发1班', status:'pending', color:'#EC4899', fee:8900, payStatus:'paid', feeLogs:[] },
+  { name:'张天一', id:'S20260003', phone:'136****9012', course:'少儿美术启蒙', cls:'少儿美术启蒙1班', status:'active', color:'#F59E0B', fee:4200, payStatus:'paid', feeLogs:[] },
+  { name:'陈晓峰', id:'S20260004', phone:'137****3456', course:'雅思冲刺班', cls:'雅思冲刺1班', status:'completed', color:'#10B981', fee:12000, payStatus:'paid', feeLogs:[] },
+  { name:'刘雨萱', id:'S20260005', phone:'135****7890', course:'钢琴进阶课', cls:'钢琴进阶1班', status:'active', color:'#8B5CF6', fee:5600, payStatus:'partial', feeLogs:[] },
+  { name:'赵雅琪', id:'S20260006', phone:'133****2345', course:'商务英语高级班', cls:'商务英语高级1班', status:'active', color:'#F43F5E', fee:6800, payStatus:'paid', feeLogs:[] },
+  { name:'孙浩然', id:'S20260007', phone:'131****6789', course:'Python全栈开发', cls:'Python全栈开发1班', status:'active', color:'#0EA5E9', fee:8500, payStatus:'unpaid', feeLogs:[] },
+  { name:'周美琳', id:'S20260008', phone:'132****0123', course:'雅思冲刺班', cls:'雅思冲刺1班', status:'inactive', color:'#A855F7', fee:11000, payStatus:'partial', feeLogs:[] },
+  { name:'吴佳怡', id:'S20260009', phone:'134****4567', course:'商务英语高级班', cls:'商务英语高级1班', status:'active', color:'#F97316', fee:6500, payStatus:'paid', feeLogs:[] },
+  { name:'郑浩宇', id:'S20260010', phone:'130****8901', course:'Python全栈开发', cls:'Python全栈开发1班', status:'active', color:'#14B8A6', fee:8900, payStatus:'paid', feeLogs:[] },
+  { name:'黄诗涵', id:'S20260011', phone:'129****2345', course:'少儿美术启蒙', cls:'少儿美术启蒙1班', status:'active', color:'#E11D48', fee:4000, payStatus:'unpaid', feeLogs:[] },
+  { name:'马子轩', id:'S20260012', phone:'128****6789', course:'商务英语高级班', cls:'商务英语高级1班', status:'active', color:'#7C3AED', fee:6800, payStatus:'paid', feeLogs:[] },
 ];
 let students = LS.get('students', defaultStudents);
 
@@ -2503,8 +2503,8 @@ function renderRollcallStudents() {
           <div style="font-weight:600">${st.name}</div>
           <div style="font-size:12px;color:var(--text-secondary)">${st.id}</div>
           <div style="font-size:11px;margin-top:2px">
-            <span style="color:${feeEnough ? 'var(--success)' : 'var(--danger)'};font-weight:600">余额 ¥${fee.toLocaleString()}</span>
-            <span style="color:var(--text-secondary);margin-left:6px">扣 ¥${perSessionFee}/节</span>
+            <span style="color:${feeEnough ? 'var(--success)' : 'var(--danger)'};font-weight:600">剩余费用 ¥${fee.toLocaleString()}</span>
+            <span style="color:var(--text-secondary);margin-left:6px">每课时扣 ¥${perSessionFee}</span>
           </div>
         </div>
       </div>
@@ -2662,7 +2662,7 @@ function viewRollcallDetail(sessionId) {
             <div>
               <div style="font-weight:600">${st.name}</div>
               <div style="font-size:12px;color:var(--text-secondary)">${st.id}</div>
-              ${deductAmt > 0 ? `<div style="font-size:11px;color:var(--danger);margin-top:2px">扣费 ¥${deductAmt} → 余额 ¥${(student.fee||0).toLocaleString()}</div>` : ''}
+              ${deductAmt > 0 ? `<div style="font-size:11px;color:var(--danger);margin-top:2px">扣费 ¥${deductAmt} → 剩余费用 ¥${(student.fee||0).toLocaleString()}</div>` : ''}
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:8px">
@@ -2882,16 +2882,28 @@ function renderDashboard() {
 const statusMap = { active:'在读', pending:'待确认', completed:'已毕业', inactive:'休学' };
 
 function renderStudents() {
-  // 费用统计
+  // 费用统计 - 基于剩余费用和课时单价
   const totalFee = students.reduce((s, st) => s + (st.fee || 0), 0);
-  const paidFee = students.filter(st => st.payStatus === 'paid').reduce((s, st) => s + (st.fee || 0), 0);
-  const unpaidFee = students.filter(st => st.payStatus === 'unpaid').reduce((s, st) => s + (st.fee || 0), 0);
-  const partialFee = students.filter(st => st.payStatus === 'partial').reduce((s, st) => s + (st.fee || 0), 0);
+  const paidFee = students.filter(st => {
+    const ci = courses.find(c => c.name === st.course);
+    const hours = ci ? ci.hours : 48;
+    const price = ci ? parseInt(String(ci.price).replace(/[^0-9]/g, '')) : 0;
+    const perSession = hours > 0 ? Math.round(price / hours) : 0;
+    return (st.fee || 0) >= perSession * 3;
+  }).reduce((s, st) => s + (st.fee || 0), 0);
+  const unpaidFee = students.filter(st => (st.fee || 0) <= 0).reduce((s, st) => s + (st.fee || 0), 0);
+  const partialFee = students.filter(st => {
+    const ci = courses.find(c => c.name === st.course);
+    const hours = ci ? ci.hours : 48;
+    const price = ci ? parseInt(String(ci.price).replace(/[^0-9]/g, '')) : 0;
+    const perSession = hours > 0 ? Math.round(price / hours) : 0;
+    return (st.fee || 0) > 0 && (st.fee || 0) < perSession * 3;
+  }).reduce((s, st) => s + (st.fee || 0), 0);
   document.getElementById('studentFeeStats').innerHTML = [
-    { label:'总报名费', value:'¥'+totalFee.toLocaleString(), color:'var(--primary)', bg:'var(--primary)10', icon:'💰' },
-    { label:'已缴费', value:'¥'+paidFee.toLocaleString(), color:'var(--success)', bg:'var(--success)10', icon:'✅' },
-    { label:'未缴费', value:'¥'+unpaidFee.toLocaleString(), color:'var(--danger)', bg:'var(--danger)10', icon:'⚠️' },
-    { label:'部分缴费', value:'¥'+partialFee.toLocaleString(), color:'var(--warning)', bg:'var(--warning)10', icon:'⏳' },
+    { label:'剩余费用总计', value:'¥'+totalFee.toLocaleString(), color:'var(--primary)', bg:'var(--primary)10', icon:'💰' },
+    { label:'费用充足', value:'¥'+paidFee.toLocaleString(), color:'var(--success)', bg:'var(--success)10', icon:'✅' },
+    { label:'费用不足', value:'¥'+unpaidFee.toLocaleString(), color:'var(--danger)', bg:'var(--danger)10', icon:'⚠️' },
+    { label:'费用偏低', value:'¥'+partialFee.toLocaleString(), color:'var(--warning)', bg:'var(--warning)10', icon:'⏳' },
   ].map(st => `<div style="flex:1;background:${st.bg};border:1px solid ${st.color}20;border-radius:12px;padding:16px;display:flex;align-items:center;gap:12px">
     <div style="font-size:24px">${st.icon}</div>
     <div><div style="font-size:12px;color:var(--text-secondary)">${st.label}</div><div style="font-size:20px;font-weight:700;color:${st.color}">${st.value}</div></div>
@@ -2905,19 +2917,33 @@ function renderStudents() {
   var pageData = filtered.slice(startIdx, startIdx + studentPageSize);
 
   const tbody = document.getElementById('studentTableBody');
-  tbody.innerHTML = pageData.map(s => `
+  tbody.innerHTML = pageData.map(s => {
+    // 计算该学员课程的课时单价
+    const courseInfo = courses.find(c => c.name === s.course);
+    const totalHours = courseInfo ? courseInfo.hours : 48;
+    const priceStr = courseInfo ? courseInfo.price : '¥0';
+    const totalPrice = parseInt(priceStr.replace(/[^0-9]/g, '')) || 0;
+    const perSessionFee = totalHours > 0 ? Math.round(totalPrice / totalHours) : 0;
+    const remainingFee = s.fee || 0;
+    const feeStatus = remainingFee <= 0 ? 'danger' : remainingFee < perSessionFee * 3 ? 'warning' : 'success';
+    const feeStatusText = remainingFee <= 0 ? '余额不足' : remainingFee < perSessionFee * 3 ? '余额偏低' : '正常';
+    return `
     <tr>
       <td><input type="checkbox" data-type="student" data-id="${s.id}" onchange="updateBatchButtons()"></td>
       <td><div class="avatar-cell"><div class="avatar-sm" style="background:${s.color}">${s.name[0]}</div>${s.name}</div></td>
       <td>${s.id}</td><td>${s.phone}</td><td>${s.course}</td><td>${s.cls}</td>
       <td>
-        <div style="font-weight:600;color:var(--primary)">¥${(s.fee||0).toLocaleString()}</div>
-        <span class="status-tag ${s.payStatus === 'paid' ? 'active' : s.payStatus === 'partial' ? 'pending' : 'inactive'}" style="font-size:10px;margin-top:2px">${s.payStatus === 'paid' ? '已缴费' : s.payStatus === 'partial' ? '部分缴费' : '未缴费'}</span>
+        <div style="font-weight:600;color:var(--primary)">¥${totalPrice.toLocaleString()}</div>
+        <div style="font-size:11px;color:var(--text-secondary)">¥${perSessionFee}/课时</div>
+      </td>
+      <td>
+        <div style="font-weight:700;font-size:15px;color:var(--${feeStatus})">¥${remainingFee.toLocaleString()}</div>
+        <span class="status-tag ${feeStatus === 'success' ? 'active' : feeStatus === 'warning' ? 'pending' : 'inactive'}" style="font-size:10px;margin-top:2px">${feeStatusText}</span>
       </td>
       <td><span class="status-tag ${s.status}">${statusMap[s.status]}</span></td>
       <td><button class="btn btn-outline btn-sm" onclick="editStudent('${s.id}')">编辑</button> <button class="btn btn-outline btn-sm" style="color:var(--info);border-color:var(--info)" onclick="viewStudentDetail('${s.id}')">👁 详情</button> <button class="btn btn-outline btn-sm" style="color:var(--warning);border-color:var(--warning)" onclick="viewFeeLog('${s.id}')">💰 明细</button> <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger)" onclick="deleteStudent('${s.id}')">删除</button></td>
-    </tr>
-  `).join('');
+    </tr>`;
+  }).join('');
 
   // 分页信息和按钮
   var endIdx = Math.min(startIdx + studentPageSize, filtered.length);
@@ -2973,7 +2999,7 @@ function addStudent() {
     course, cls: classInfo ? classInfo.name : cls,
     status: 'active',
     color: colors[Math.floor(Math.random() * colors.length)],
-    fee, payStatus
+    fee, payStatus, feeLogs: []
   });
   saveAll(); renderStudents(); renderClasses(); renderCourses(); renderTeachers(); renderDashboard();
   hideModal('addStudentModal');
@@ -4341,8 +4367,26 @@ function viewStudentDetail(id) {
     '<div class="student-detail-item"><div class="label">报名课程</div><div class="value">' + s.course + '</div></div>' +
     '<div class="student-detail-item"><div class="label">所在班级</div><div class="value">' + s.cls + '</div></div>' +
     '<div class="student-detail-item"><div class="label">学员状态</div><div class="value"><span class="status-tag ' + s.status + '">' + (statusMap2[s.status] || s.status) + '</span></div></div>' +
-    '<div class="student-detail-item"><div class="label">报名费用</div><div class="value" style="color:var(--primary)">¥' + (s.fee || 0).toLocaleString() + '</div></div>' +
+    '<div class="student-detail-item"><div class="label">剩余费用</div><div class="value" style="color:var(--primary)">¥' + (s.fee || 0).toLocaleString() + '</div></div>' +
     '<div class="student-detail-item"><div class="label">缴费状态</div><div class="value" style="color:' + (payColor[s.payStatus] || 'var(--text)') + '">' + (payMap[s.payStatus] || s.payStatus) + '</div></div>' +
+    '</div></div>';
+
+  // 课时单价信息
+  var courseInfo = courses.find(function(c) { return c.name === s.course; });
+  var totalHours = courseInfo ? courseInfo.hours : 48;
+  var priceStr = courseInfo ? courseInfo.price : '¥0';
+  var totalPrice = parseInt(priceStr.replace(/[^0-9]/g, '')) || 0;
+  var perSessionFee = totalHours > 0 ? Math.round(totalPrice / totalHours) : 0;
+  var attendedCount = (s.feeLogs || []).filter(function(l) { return l.amount < 0; }).length;
+  var canAttend = Math.floor((s.fee || 0) / perSessionFee);
+
+  html += '<div class="student-detail-section">' +
+    '<h4>💰 费用信息</h4>' +
+    '<div class="student-detail-grid">' +
+    '<div class="student-detail-item"><div class="label">课程总价</div><div class="value">¥' + totalPrice.toLocaleString() + '</div></div>' +
+    '<div class="student-detail-item"><div class="label">课时单价</div><div class="value" style="color:var(--warning)">¥' + perSessionFee + '/课时</div></div>' +
+    '<div class="student-detail-item"><div class="label">已扣课时</div><div class="value">' + attendedCount + ' 节</div></div>' +
+    '<div class="student-detail-item"><div class="label">剩余可上课</div><div class="value" style="color:' + (canAttend > 5 ? 'var(--success)' : canAttend > 0 ? 'var(--warning)' : 'var(--danger)') + '">' + canAttend + ' 节</div></div>' +
     '</div></div>';
 
   // 出勤历史
