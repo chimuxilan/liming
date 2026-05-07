@@ -802,11 +802,12 @@ select.form-control { cursor: pointer; }
         <div style="flex:1"></div>
         <button class="btn btn-outline">📥 导入</button>
         <button class="btn btn-outline">📤 导出</button>
+        <button class="btn btn-outline batch-del-btn" id="batchDeleteStudentBtn" style="display:none" onclick="batchDeleteStudents()">🗑️ 批量删除(<span id="studentSelectedCount">0</span>)</button>
         <button class="btn btn-primary" onclick="showModal('addStudentModal')">➕ 新增学员</button>
       </div>
       <div class="table-card">
         <table>
-          <thead><tr><th>学员</th><th>学号</th><th>联系电话</th><th>报名课程</th><th>班级</th><th>状态</th><th>操作</th></tr></thead>
+          <thead><tr><th style="width:40px"><input type="checkbox" onchange="toggleAllCheckboxes(this,'student')"></th><th>学员</th><th>学号</th><th>联系电话</th><th>报名课程</th><th>班级</th><th>状态</th><th>操作</th></tr></thead>
           <tbody id="studentTableBody"></tbody>
         </table>
         <div class="pagination">
@@ -828,6 +829,7 @@ select.form-control { cursor: pointer; }
         <select class="form-control" style="width:140px"><option>全部类型</option><option>语言培训</option><option>职业技能</option><option>艺术特长</option><option>学科辅导</option></select>
         <select class="form-control" style="width:140px"><option>全部状态</option><option>开课中</option><option>未开课</option><option>已结课</option></select>
         <div style="flex:1"></div>
+        <button class="btn btn-outline batch-del-btn" id="batchDeleteCourseBtn" style="display:none" onclick="batchDeleteCourses()">🗑️ 批量删除(<span id="courseSelectedCount">0</span>)</button>
         <button class="btn btn-primary" onclick="showModal('addCourseModal')">➕ 创建课程</button>
       </div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px" id="courseGrid"></div>
@@ -838,11 +840,12 @@ select.form-control { cursor: pointer; }
       <div class="filter-bar">
         <select class="form-control" style="width:140px"><option>全部状态</option><option>开课中</option><option>未开课</option><option>已结课</option></select>
         <div style="flex:1"></div>
+        <button class="btn btn-outline batch-del-btn" id="batchDeleteClassBtn" style="display:none" onclick="batchDeleteClasses()">🗑️ 批量删除(<span id="classSelectedCount">0</span>)</button>
         <button class="btn btn-primary" onclick="showModal('addClassModal')">➕ 新增班级</button>
       </div>
       <div class="table-card">
         <table>
-          <thead><tr><th>班级名称</th><th>课程</th><th>授课老师</th><th>学员数</th><th>已上课时</th><th>总课时</th><th>状态</th><th>操作</th></tr></thead>
+          <thead><tr><th style="width:40px"><input type="checkbox" onchange="toggleAllCheckboxes(this,'class')"></th><th>班级名称</th><th>课程</th><th>授课老师</th><th>学员数</th><th>已上课时</th><th>总课时</th><th>状态</th><th>操作</th></tr></thead>
           <tbody id="classTableBody"></tbody>
         </table>
       </div>
@@ -856,6 +859,7 @@ select.form-control { cursor: pointer; }
         <button class="btn btn-outline btn-sm" onclick="changeWeek(1)">下一周 ›</button>
         <div style="flex:1"></div>
         <select class="form-control" style="width:160px"><option>全部教室</option><option>A301 多媒体教室</option><option>A302 语音室</option><option>B201 计算机房</option></select>
+        <button class="btn btn-outline batch-del-btn" id="batchDeleteScheduleBtn" style="display:none" onclick="batchDeleteSchedule()">🗑️ 批量删除(<span id="scheduleSelectedCount">0</span>)</button>
         <button class="btn btn-primary" onclick="showModal('addScheduleModal')">➕ 新增排课</button>
       </div>
       <div class="schedule-grid" id="scheduleGrid"></div>
@@ -889,11 +893,12 @@ select.form-control { cursor: pointer; }
         <div style="flex:1"></div>
         <button class="btn btn-outline">📥 导入成绩</button>
         <button class="btn btn-outline">📤 导出报表</button>
+        <button class="btn btn-outline batch-del-btn" id="batchDeleteGradeBtn" style="display:none" onclick="batchDeleteGrades()">🗑️ 批量删除(<span id="gradeSelectedCount">0</span>)</button>
         <button class="btn btn-primary">➕ 录入成绩</button>
       </div>
       <div class="table-card">
         <table>
-          <thead><tr><th>学员</th><th>学号</th><th>课程</th><th>平时成绩</th><th>期中</th><th>期末</th><th>总评</th><th>等级</th><th>操作</th></tr></thead>
+          <thead><tr><th style="width:40px"><input type="checkbox" onchange="toggleAllCheckboxes(this,'grade')"></th><th>学员</th><th>学号</th><th>课程</th><th>平时成绩</th><th>期中</th><th>期末</th><th>总评</th><th>等级</th><th>操作</th></tr></thead>
           <tbody id="gradesBody"></tbody>
         </table>
         <div class="pagination">
@@ -912,6 +917,7 @@ select.form-control { cursor: pointer; }
       <div class="filter-bar">
         <select class="form-control" style="width:140px"><option>全部学科</option><option>英语</option><option>计算机</option><option>美术</option><option>音乐</option></select>
         <div style="flex:1"></div>
+        <button class="btn btn-outline batch-del-btn" id="batchDeleteTeacherBtn" style="display:none" onclick="batchDeleteTeachers()">🗑️ 批量删除(<span id="teacherSelectedCount">0</span>)</button>
         <button class="btn btn-primary" onclick="showModal('addTeacherModal')">➕ 新增教师</button>
       </div>
       <div id="teacherGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px"></div>
@@ -923,6 +929,7 @@ select.form-control { cursor: pointer; }
         <select class="form-control" style="width:140px"><option>全部楼层</option><option>A栋</option><option>B栋</option></select>
         <select class="form-control" style="width:140px"><option>全部类型</option><option>普通教室</option><option>多媒体教室</option><option>计算机房</option><option>语音室</option></select>
         <div style="flex:1"></div>
+        <button class="btn btn-outline batch-del-btn" id="batchDeleteClassroomBtn" style="display:none" onclick="batchDeleteClassrooms()">🗑️ 批量删除(<span id="classroomSelectedCount">0</span>)</button>
         <button class="btn btn-primary" onclick="showModal('addClassroomModal')">➕ 新增教室</button>
       </div>
       <div id="classroomGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px"></div>
@@ -1551,6 +1558,109 @@ function saveAll() {
   LS.set('schedule', scheduleData);
 }
 
+// ==================== 批量选择与删除 ====================
+(function(){
+  const s=document.createElement('style');
+  s.textContent='.batch-checkbox-wrap{position:absolute;top:8px;left:8px;z-index:2}.batch-checkbox-wrap input{width:16px;height:16px;cursor:pointer;accent-color:var(--danger)}.batch-del-btn{color:var(--danger)!important;border-color:var(--danger)!important;font-weight:600}.batch-del-btn:hover{background:var(--danger)!important;color:#fff!important}';
+  document.head.appendChild(s);
+})();
+
+function toggleAllCheckboxes(master, type) {
+  document.querySelectorAll('input[data-type="'+type+'"]').forEach(function(cb) {
+    cb.checked = master.checked;
+  });
+  updateBatchButtons();
+}
+
+function getChecked(type) {
+  return Array.from(document.querySelectorAll('input[data-type="'+type+'"]:checked'));
+}
+
+function updateBatchButtons() {
+  var types = ['student','course','class','schedule','grade','teacher','classroom'];
+  types.forEach(function(t) {
+    var count = getChecked(t).length;
+    var btn = document.getElementById('batchDelete'+t.charAt(0).toUpperCase()+t.slice(1)+'Btn');
+    var cnt = document.getElementById(t+'SelectedCount');
+    if (btn) btn.style.display = count > 0 ? '' : 'none';
+    if (cnt) cnt.textContent = count;
+  });
+}
+
+function batchDeleteStudents() {
+  var checked = getChecked('student');
+  if (!checked.length) return;
+  if (!confirm('确定要删除选中的 ' + checked.length + ' 名学员吗？此操作不可恢复！')) return;
+  var ids = checked.map(function(cb){ return cb.getAttribute('data-id'); });
+  students = students.filter(function(s){ return ids.indexOf(s.id) === -1; });
+  saveAll(); renderStudents();
+  showToast('已批量删除 ' + ids.length + ' 名学员');
+}
+
+function batchDeleteCourses() {
+  var checked = getChecked('course');
+  if (!checked.length) return;
+  if (!confirm('确定要删除选中的 ' + checked.length + ' 个课程吗？此操作不可恢复！')) return;
+  var idxs = checked.map(function(cb){ return parseInt(cb.getAttribute('data-idx')); }).sort(function(a,b){ return b-a; });
+  idxs.forEach(function(i){ courses.splice(i, 1); });
+  saveAll(); renderCourses();
+  showToast('已批量删除 ' + idxs.length + ' 个课程');
+}
+
+function batchDeleteClasses() {
+  var checked = getChecked('class');
+  if (!checked.length) return;
+  if (!confirm('确定要删除选中的 ' + checked.length + ' 个班级吗？此操作不可恢复！')) return;
+  var idxs = checked.map(function(cb){ return parseInt(cb.getAttribute('data-idx')); }).sort(function(a,b){ return b-a; });
+  idxs.forEach(function(i){ classList.splice(i, 1); });
+  saveAll(); renderClasses();
+  showToast('已批量删除 ' + idxs.length + ' 个班级');
+}
+
+function batchDeleteSchedule() {
+  var checked = getChecked('schedule');
+  if (!checked.length) return;
+  if (!confirm('确定要删除选中的 ' + checked.length + ' 个排课吗？此操作不可恢复！')) return;
+  var toDelete = checked.map(function(cb){ return { date: cb.getAttribute('data-date'), idx: parseInt(cb.getAttribute('data-idx')) }; });
+  toDelete.sort(function(a,b){ return b.idx - a.idx; });
+  toDelete.forEach(function(d){
+    if (scheduleData[d.date]) scheduleData[d.date].splice(d.idx, 1);
+    if (scheduleData[d.date] && scheduleData[d.date].length === 0) delete scheduleData[d.date];
+  });
+  saveAll(); renderSchedule();
+  showToast('已批量删除 ' + toDelete.length + ' 个排课');
+}
+
+function batchDeleteGrades() {
+  var checked = getChecked('grade');
+  if (!checked.length) return;
+  if (!confirm('确定要删除选中的 ' + checked.length + ' 条成绩吗？此操作不可恢复！')) return;
+  var idxs = checked.map(function(cb){ return parseInt(cb.getAttribute('data-idx')); }).sort(function(a,b){ return b-a; });
+  idxs.forEach(function(i){ gradesData.splice(i, 1); });
+  saveAll(); renderGrades();
+  showToast('已批量删除 ' + idxs.length + ' 条成绩');
+}
+
+function batchDeleteTeachers() {
+  var checked = getChecked('teacher');
+  if (!checked.length) return;
+  if (!confirm('确定要删除选中的 ' + checked.length + ' 名教师吗？此操作不可恢复！')) return;
+  var idxs = checked.map(function(cb){ return parseInt(cb.getAttribute('data-idx')); }).sort(function(a,b){ return b-a; });
+  idxs.forEach(function(i){ teachers.splice(i, 1); });
+  saveAll(); renderTeachers();
+  showToast('已批量删除 ' + idxs.length + ' 名教师');
+}
+
+function batchDeleteClassrooms() {
+  var checked = getChecked('classroom');
+  if (!checked.length) return;
+  if (!confirm('确定要删除选中的 ' + checked.length + ' 间教室吗？此操作不可恢复！')) return;
+  var idxs = checked.map(function(cb){ return parseInt(cb.getAttribute('data-idx')); }).sort(function(a,b){ return b-a; });
+  idxs.forEach(function(i){ classrooms.splice(i, 1); });
+  saveAll(); renderClassrooms();
+  showToast('已批量删除 ' + idxs.length + ' 间教室');
+}
+
 // ==================== 导航 ====================
 const pageTitles = {
   dashboard:'首页', students:'学员列表', courses:'课程管理', classManage:'班级列表',
@@ -1927,6 +2037,7 @@ function renderStudents() {
   const tbody = document.getElementById('studentTableBody');
   tbody.innerHTML = students.map(s => `
     <tr>
+      <td><input type="checkbox" data-type="student" data-id="${s.id}" onchange="updateBatchButtons()"></td>
       <td><div class="avatar-cell"><div class="avatar-sm" style="background:${s.color}">${s.name[0]}</div>${s.name}</div></td>
       <td>${s.id}</td><td>${s.phone}</td><td>${s.course}</td><td>${s.cls}</td>
       <td><span class="status-tag ${s.status}">${statusMap[s.status]}</span></td>
@@ -1934,6 +2045,7 @@ function renderStudents() {
     </tr>
   `).join('');
   document.getElementById('studentPagInfo').textContent = `显示 1-${students.length} 共 ${students.length} 条`;
+  updateBatchButtons();
 }
 
 function deleteStudent(id) {
@@ -1974,7 +2086,8 @@ function addStudent() {
 // ==================== 课程管理 ====================
 function renderCourses() {
   document.getElementById('courseGrid').innerHTML = courses.map((c, i) => `
-    <div class="chart-card" style="cursor:pointer">
+    <div class="chart-card" style="cursor:pointer;position:relative">
+      <div class="batch-checkbox-wrap"><input type="checkbox" data-type="course" data-idx="${i}" onchange="updateBatchButtons()"></div>
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
         <div style="width:40px;height:40px;border-radius:10px;background:${c.color}20;color:${c.color};display:flex;align-items:center;justify-content:center;font-size:18px">📚</div>
         <div style="display:flex;align-items:center;gap:8px">
@@ -1991,6 +2104,7 @@ function renderCourses() {
       <div class="progress-bar"><div class="progress-fill blue" style="width:${c.progress}%"></div></div>
     </div>
   `).join('');
+  updateBatchButtons();
 }
 
 function deleteCourse(idx) {
@@ -2020,6 +2134,7 @@ function addCourse() {
 function renderClasses() {
   document.getElementById('classTableBody').innerHTML = classList.map((c, i) => `
     <tr>
+      <td><input type="checkbox" data-type="class" data-idx="${i}" onchange="updateBatchButtons()"></td>
       <td><strong>${c.name}</strong></td>
       <td>${c.course}</td>
       <td>${c.teacher}</td>
@@ -2033,6 +2148,7 @@ function renderClasses() {
       </td>
     </tr>
   `).join('');
+  updateBatchButtons();
 }
 
 function deleteClass(idx) {
@@ -2066,9 +2182,13 @@ function renderSchedule() {
       const isToday = d === '5/6';
       return `<div class="schedule-cell ${isToday ? 'today' : ''}">
         <div class="date-num">${d.split('/')[1]}日</div>
-        ${events.map((e, ei) => `<div class="schedule-event ${e.type}" onclick="deleteScheduleEvent('${d}',${ei})" title="点击删除">${e.name} ✕</div>`).join('')}
+        ${events.map((e, ei) => `<div class="schedule-event ${e.type}" style="display:flex;align-items:center;gap:4px">
+          <input type="checkbox" data-type="schedule" data-date="${d}" data-idx="${ei}" onchange="updateBatchButtons()" style="margin:0">
+          <span onclick="deleteScheduleEvent('${d}',${ei})" title="点击删除" style="cursor:pointer;flex:1">${e.name} ✕</span>
+        </div>`).join('')}
       </div>`;
     }).join('');
+  updateBatchButtons();
 }
 
 function deleteScheduleEvent(date, idx) {
@@ -2081,7 +2201,8 @@ function deleteScheduleEvent(date, idx) {
 // ==================== 教师管理 ====================
 function renderTeachers() {
   document.getElementById('teacherGrid').innerHTML = teachers.map((t, i) => `
-    <div class="chart-card" style="display:flex;gap:16px;align-items:center">
+    <div class="chart-card" style="display:flex;gap:16px;align-items:center;position:relative">
+      <div class="batch-checkbox-wrap"><input type="checkbox" data-type="teacher" data-idx="${i}" onchange="updateBatchButtons()"></div>
       <div class="avatar-sm" style="width:56px;height:56px;font-size:20px;background:${t.gradient}">${t.name[0]}</div>
       <div style="flex:1">
         <div style="font-weight:600;font-size:15px">${t.name}</div>
@@ -2094,6 +2215,7 @@ function renderTeachers() {
       </div>
     </div>
   `).join('');
+  updateBatchButtons();
 }
 
 function deleteTeacher(idx) {
@@ -2121,7 +2243,8 @@ function addTeacher() {
 // ==================== 教室管理 ====================
 function renderClassrooms() {
   document.getElementById('classroomGrid').innerHTML = classrooms.map((c, i) => `
-    <div class="chart-card" style="text-align:center">
+    <div class="chart-card" style="text-align:center;position:relative">
+      <div class="batch-checkbox-wrap"><input type="checkbox" data-type="classroom" data-idx="${i}" onchange="updateBatchButtons()"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span></span>
         <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger);padding:2px 8px;font-size:11px" onclick="deleteClassroom(${i})">删除</button>
       </div>
@@ -2132,6 +2255,7 @@ function renderClassrooms() {
       <div style="margin-top:12px;font-size:12px;color:var(--text-secondary)">今日使用: ${c.usage} 课时</div>
     </div>
   `).join('');
+  updateBatchButtons();
 }
 
 function deleteClassroom(idx) {
@@ -2160,6 +2284,7 @@ function addClassroom() {
 function renderGrades() {
   document.getElementById('gradesBody').innerHTML = gradesData.map((g, i) => `
     <tr>
+      <td><input type="checkbox" data-type="grade" data-idx="${i}" onchange="updateBatchButtons()"></td>
       <td><div class="avatar-cell"><div class="avatar-sm" style="background:${g.color}">${g.name[0]}</div>${g.name}</div></td>
       <td>${g.id}</td><td>${g.course}</td><td>${g.daily}</td><td>${g.midterm}</td><td>${g.final}</td>
       <td><strong>${g.total}</strong></td>
@@ -2167,6 +2292,7 @@ function renderGrades() {
       <td><button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger)" onclick="deleteGrade(${i})">删除</button></td>
     </tr>
   `).join('');
+  updateBatchButtons();
 }
 
 function deleteGrade(idx) {
