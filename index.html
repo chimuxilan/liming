@@ -973,6 +973,7 @@ select.form-control { cursor: pointer; }
         <select class="form-control" style="width:160px" id="attendanceTeacherFilter" onchange="renderAttendance()"><option value="">全部教师</option></select>
         <select class="form-control" style="width:160px" id="attendanceClassFilter" onchange="renderAttendance()"><option value="">全部班级</option></select>
         <div style="flex:1"></div>
+        <button class="btn btn-warning" onclick="refreshAttendance()" title="重新计算所有考勤统计数据">🔄 重新统计</button>
         <button class="btn btn-outline" onclick="exportAttendance()">📊 导出报表</button>
       </div>
 
@@ -2083,9 +2084,21 @@ function syncData() {
     var events = scheduleData[dateKey];
     if (!events) return;
     events.forEach(function(e) {
-      // 查找对应的已完成课节
+      // 查找对应的已完成课节（兼容 YYYY-MM-DD 和 M/D 两种日期格式）
+      var normalizedDateKey = dateKey;
+      // 将 M/D 格式转为 YYYY-MM-DD 以便比较
+      if (dateKey.match(/^\d{1,2}\/\d{1,2}$/)) {
+        var parts = dateKey.split('/');
+        var now = new Date();
+        normalizedDateKey = now.getFullYear() + '-' + String(parseInt(parts[0])).padStart(2, '0') + '-' + String(parseInt(parts[1])).padStart(2, '0');
+      }
       var matchedSession = sessions.find(function(s) {
-        return s.status === 'done' && s.course === (e.courseRef || e.name) && s.date && dateKey === (parseInt(s.date.split('-')[1]) + '/' + parseInt(s.date.split('-')[2]));
+        if (s.status !== 'done') return false;
+        if (s.course !== (e.courseRef || e.name)) return false;
+        if (!s.date) return false;
+        // 统一比较：将 session 的 YYYY-MM-DD 日期与 normalizedDateKey 比较
+        var sessionDateStr = s.date; // 已是 YYYY-MM-DD 格式
+        return sessionDateStr === normalizedDateKey;
       });
       e.completed = !!matchedSession;
     });
@@ -2658,6 +2671,7 @@ function saveRollcall() {
   renderGrades();
   renderCourses();
   renderCharts();
+  renderSchedule();
 
   // 显示扣费结果
   let msg = `点名已保存！本次扣费 ${deductedCount} 人，共 ¥${deductedTotal.toLocaleString()}`;
@@ -3868,6 +3882,83 @@ function renderAttendance() {
     var rate = total > 0 ? (present / total * 100).toFixed(1) : 0;
     return '<tr><td>' + (s.course || s.className) + '</td><td>' + s.className + '</td><td>' + (s.teacher || '-') + '</td><td>' + (s.classroom || '-') + '</td><td>' + s.date + ' ' + s.start + '-' + s.end + '</td><td>' + total + '</td><td>' + present + '</td><td>' + late + '</td><td>' + absent + '</td><td><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:80px"><div class="progress-fill ' + (rate >= 90 ? 'green' : 'amber') + '" style="width:' + rate + '%"></div></div>' + rate + '%</div></td></tr>';
   }).join('');
+}
+
+// ==================== 重新统计考勤 ====================
+function refreshAttendance() {
+  if (!confirm('确定要重新统计所有考勤数据吗？\n这将重新计算出勤率、扣费、课程进度等所有统计数据。')) return;
+
+  // 1. 重新同步所有数据联动
+  syncData();
+
+  // 2. 重新计算所有班级的已上课时（从已完成课节统计）
+  classList.forEach(function(cls) {
+    var doneSessionsCount = sessions.filter(function(s) {
+      return s.status === 'done' && s.className === cls.name;
+    }).length;
+    cls.doneHours = doneSessionsCount;
+    if (cls.doneHours > cls.totalHours) cls.doneHours = cls.totalHours;
+  });
+
+  // 3. 重新计算课程进度
+  courses.forEach(function(c) {
+    var cls = classList.filter(function(cl) { return cl.course === c.name; });
+    var done = cls.reduce(function(s, cl) { return s + (cl.doneHours || 0); }, 0);
+    var total = cls.reduce(function(s, cl) { return s + (cl.totalHours || 0); }, 0);
+    c.progress = total > 0 ? Math.round(done / total * 100) : c.progress;
+  });
+
+  // 4. 重新计算学员费用（从扣费日志重新汇总）
+  students.forEach(function(st) {
+    var course = courses.find(function(c) { return c.name === st.course; });
+    if (!course) return;
+    var perSessionFee = getPerSessionFee(st.course);
+    var totalPrice = parseInt(String(course.price).replace(/[^0-9]/g, '')) || 0;
+    // 从总费用减去所有扣费记录重新计算剩余费用
+    var totalDeducted = (st.feeLogs || []).reduce(function(sum, l) {
+      return sum + (l.amount < 0 ? Math.abs(l.amount) : 0);
+    }, 0);
+    st.fee = Math.max(0, totalPrice - totalDeducted);
+    // 更新扣费日志中的余额
+    var runningFee = totalPrice;
+    (st.feeLogs || []).forEach(function(l) {
+      if (l.amount < 0) {
+        runningFee += l.amount; // amount is negative
+        l.balance = Math.max(0, runningFee);
+      }
+    });
+  });
+
+  // 5. 重新同步排课完成标记
+  Object.keys(scheduleData).forEach(function(dateKey) {
+    var events = scheduleData[dateKey];
+    if (!events) return;
+    events.forEach(function(e) {
+      var normalizedDateKey = dateKey;
+      if (dateKey.match(/^\d{1,2}\/\d{1,2}$/)) {
+        var parts = dateKey.split('/');
+        var now = new Date();
+        normalizedDateKey = now.getFullYear() + '-' + String(parseInt(parts[0])).padStart(2, '0') + '-' + String(parseInt(parts[1])).padStart(2, '0');
+      }
+      var matchedSession = sessions.find(function(s) {
+        return s.status === 'done' && s.course === (e.courseRef || e.name) && s.date && s.date === normalizedDateKey;
+      });
+      e.completed = !!matchedSession;
+    });
+  });
+
+  // 6. 保存并刷新所有相关页面
+  saveAll();
+  renderAttendance();
+  renderDashboard();
+  renderStudents();
+  renderCourses();
+  renderClasses();
+  renderSchedule();
+  renderCharts();
+  renderRollcallSessions();
+
+  showToast('✅ 考勤数据已重新统计完成！', false, 4000);
 }
 
 // ==================== Charts ====================
